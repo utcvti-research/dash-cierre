@@ -143,9 +143,14 @@ td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--
 .faltas-toggle-btn:hover{background:var(--badge);border-color:var(--accent2);color:var(--accent)}
 .faltas-toggle-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .faltas-toggle-btn.active svg{fill:#fff}
-.error-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
+.error-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
 .error-modal.visible{display:flex}
-.error-box{background:var(--card);border-radius:12px;padding:28px 32px;box-shadow:0 12px 40px rgba(0,0,0,.25);max-width:520px;width:100%;border-top:4px solid var(--red-text)}
+.error-box{background:var(--card);border-radius:12px;padding:28px 32px;box-shadow:0 12px 40px rgba(0,0,0,.25);max-width:520px;width:100%;border-top:4px solid var(--red-text);overflow-y:auto;max-height:92vh}
+.modal-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;flex-wrap:wrap}
+.student-info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 20px;background:var(--badge);padding:14px 18px;border-radius:8px;font-size:12px}
+.student-radar-wrap{display:flex;gap:16px;align-items:flex-start}
+.student-radar-panel{min-width:140px;display:flex;flex-direction:column;gap:6px;padding-top:8px}
+.student-radar-chart{flex:1;position:relative;height:420px}
 .error-box .error-icon{width:56px;height:56px;background:var(--red-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
 .error-box .error-icon svg{width:32px;height:32px;fill:var(--red-text)}
 .error-box h3{font-size:17px;color:var(--text);margin-bottom:8px;font-weight:700}
@@ -214,6 +219,22 @@ td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--
   .dist-chart-wrap{height:260px!important}
   .error-modal{padding:8px}
 }
+@media(max-width:768px){
+  .error-box{max-height:88vh;padding:16px 14px!important}
+  .student-info-grid{grid-template-columns:repeat(2,1fr);gap:6px 10px;padding:10px 12px;font-size:11px}
+  .student-radar-wrap{flex-direction:column}
+  .student-radar-chart{height:280px;width:100%}
+  .student-radar-panel{flex-direction:row;flex-wrap:wrap;min-width:auto;gap:4px}
+  .student-radar-panel .radar-period-btn{flex:1;text-align:center;padding:8px 10px}
+  #evoTableContent{overflow-x:auto}
+  #heatContent{overflow-x:auto}
+}
+@media(max-width:480px){
+  .error-box{padding:12px 10px!important;max-height:85vh}
+  .error-modal{align-items:flex-start;padding-top:16px}
+  .student-info-grid{grid-template-columns:1fr;font-size:11px;padding:8px 10px}
+  .student-radar-chart{height:240px}
+}
 </style>
 </head>
 <body>
@@ -226,55 +247,55 @@ td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--
 </div>
 </div>
 <div class="error-modal" id="heatModal">
-<div class="error-box" style="max-width:1100px;border-top:4px solid var(--purple);padding:20px 24px">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px">
-<h3 id="heatTitle" style="margin:0;flex:1">Semáforo de desempeño académico por docente</h3>
-<button onclick="downloadHeatmap()" class="img-export-btn" style="padding:6px 12px;font-size:11px"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Descargar imagen</button>
-<button onclick="closeHeat()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px">×</button>
+<div class="error-box" style="max-width:1100px;border-top:4px solid var(--purple)">
+<div class="modal-header-row">
+<h3 id="heatTitle" style="margin:0;flex:1;min-width:0">Semáforo de desempeño académico por docente</h3>
+<button onclick="downloadHeatmap()" class="img-export-btn" style="padding:6px 12px;font-size:11px;flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Descargar imagen</button>
+<button onclick="closeHeat()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px;flex-shrink:0">×</button>
 </div>
 <p style="font-size:11px;color:var(--text2);margin-bottom:12px">Rojo = Crítico &nbsp;|&nbsp; Amarillo = Alerta &nbsp;|&nbsp; Verde = Óptimo</p>
-<div id="heatContent" style="max-height:70vh;overflow:auto"></div>
+<div id="heatContent" style="max-height:65vh;overflow:auto"></div>
 </div>
 </div>
 <div class="error-modal" id="studentModal">
-<div class="error-box" style="max-width:960px;border-top:4px solid var(--accent);padding:20px 24px">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-<h3 id="studentModalTitle" style="margin:0">Detalle del alumno</h3>
-<button onclick="closeStudentModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px">×</button>
+<div class="error-box" style="max-width:960px;border-top:4px solid var(--accent)">
+<div class="modal-header-row">
+<h3 id="studentModalTitle" style="margin:0;flex:1;min-width:0">Detalle del alumno</h3>
+<button onclick="closeStudentModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px;flex-shrink:0">×</button>
 </div>
 <div id="studentModalInfo" style="margin-bottom:10px"></div>
 <div style="display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid var(--border)">
 <button id="stTabGeneral" class="active" onclick="switchStudentTab('general')" style="padding:8px 20px;border:none;background:transparent;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px">General</button>
 <button id="stTabAnalisis" onclick="switchStudentTab('analisis')" style="padding:8px 20px;border:none;background:transparent;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px">Análisis</button>
 </div>
-<div id="studentTabGeneral" style="max-height:55vh;overflow:auto"></div>
+<div id="studentTabGeneral" style="max-height:55vh;overflow:auto;overflow-x:auto"></div>
 <div id="studentTabAnalisis" style="display:none">
-<div style="display:flex;gap:16px;align-items:flex-start">
-<div style="min-width:140px;display:flex;flex-direction:column;gap:6px;padding-top:8px">
+<div class="student-radar-wrap">
+<div class="student-radar-panel">
 <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text2);letter-spacing:.5px;margin-bottom:2px">Periodo</span>
 <button class="radar-period-btn active" onclick="switchRadarPeriod(this,'p1')">Parcial 1</button>
 <button class="radar-period-btn" onclick="switchRadarPeriod(this,'pf')">Parcial Final</button>
 </div>
-<div style="flex:1;position:relative;height:420px"><canvas id="studentRadarChart"></canvas></div>
+<div class="student-radar-chart"><canvas id="studentRadarChart"></canvas></div>
 </div>
 </div>
 </div>
 </div>
 <div class="error-modal" id="evoModal">
-<div class="error-box" style="max-width:1200px;border-top:4px solid var(--accent2);padding:20px 24px">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-<h3 id="evoTitle" style="margin:0">Evolución por parcial</h3>
-<button onclick="closeEvo()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px">×</button>
+<div class="error-box" style="max-width:1200px;border-top:4px solid var(--accent2)">
+<div class="modal-header-row" style="margin-bottom:12px">
+<h3 id="evoTitle" style="margin:0;flex:1;min-width:0">Evolución por parcial</h3>
+<button onclick="closeEvo()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px;flex-shrink:0">×</button>
 </div>
-<div id="evoTableContent" style="max-height:40vh;overflow:auto;margin-bottom:16px"></div>
+<div id="evoTableContent" style="max-height:40vh;overflow:auto;overflow-x:auto;margin-bottom:16px"></div>
 <div style="position:relative;width:100%;height:300px"><canvas id="evoChart"></canvas></div>
 </div>
 </div>
 <div class="error-modal" id="distModal">
-<div class="error-box" style="max-width:780px;border-top:4px solid var(--accent2);padding:20px 24px">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-<h3 id="distTitle" style="margin:0">Distribución de calificaciones</h3>
-<button onclick="closeDist()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px">×</button>
+<div class="error-box" style="max-width:780px;border-top:4px solid var(--accent2)">
+<div class="modal-header-row">
+<h3 id="distTitle" style="margin:0;flex:1;min-width:0">Distribución de calificaciones</h3>
+<button onclick="closeDist()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px;flex-shrink:0">×</button>
 </div>
 <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
 <label style="font-size:12px;font-weight:600;color:var(--text2)">Materia:</label>
@@ -1335,7 +1356,7 @@ function showStudentDetail(matricula){
 
   const sx=first.Sexo==='Masculino'?'Hombre':first.Sexo==='Femenino'?'Mujer':(first.Sexo||'');
   document.getElementById('studentModalInfo').innerHTML=`
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px 20px;background:var(--badge);padding:14px 18px;border-radius:8px;font-size:12px">
+    <div class="student-info-grid">
       <div><strong>Matrícula:</strong> ${first.Matricula}</div>
       <div><strong>CURP:</strong> ${first.CURP||'—'}</div>
       <div><strong>Sexo:</strong> ${sx}</div>
@@ -1392,7 +1413,7 @@ function showStudentDetail(matricula){
     const rows=[...map.values()].sort((a,b)=>a.materia.localeCompare(b.materia));
     let html='';
     if(title)html+=`<div style="margin:14px 0 6px;font-weight:700;font-size:13px;color:var(--accent)">${title}</div>`;
-    html+='<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr>'+
+    html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr>'+
       '<th style="text-align:left;padding:10px;background:var(--accent2);color:#fff;border-radius:6px 0 0 0">Materias</th>'+
       '<th style="text-align:center;padding:10px;background:var(--accent2);color:#fff;min-width:42px">P1</th>'+
       '<th style="text-align:center;padding:10px;background:var(--accent2);color:#fff;min-width:42px">PF</th>'+
@@ -1416,7 +1437,7 @@ function showStudentDetail(matricula){
         <td style="text-align:center;font-size:12px;${m.f2&&m.f2>0?'color:var(--red-text);font-weight:700':'color:var(--text2)'}">${m.f2!==null?m.f2:'0'}</td>
       </tr>`;
     });
-    html+='</tbody></table>';
+    html+='</tbody></table></div>';
     return html;
   }
 
