@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Control Calif.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Dashboard de seguimiento académico - Control de captura de calificaciones">
+<title>Dashboard Control de Calificaciones</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%231a1a2e'/%3E%3Cpath d='M256 120L100 200l60 33v110L256 400l96-57V233l24-13v130h28V200L256 120zm103 80L256 253 153 200l103-53 103 53zM336 318l-80 47-80-47V253l80 47 80-47v65z' fill='%23fff'/%3E%3C/svg%3E">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f0f2f5;--card:#fff;--text:#1a1a2e;--text2:#555;--accent:#1e3a5f;--accent2:#2d5f8a;--border:#dde1e6;--red-bg:#fde8e8;--red-text:#c0392b;--green-bg:#e8f5e9;--green-text:#27ae60;--hover:#f5f7fa;--badge:#eef2f7;--purple:#6c3483}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;padding:20px 32px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.header svg{width:36px;height:36px;fill:#fff;flex-shrink:0}
+.header h1{font-size:20px;font-weight:600;letter-spacing:-.3px}
+.header p{font-size:12px;opacity:.7;margin-top:2px}
+.container{max-width:100%;padding:20px 24px}
+.upload-zone{background:var(--card);border:2px dashed var(--border);border-radius:12px;padding:48px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:20px}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--badge)}
+.upload-zone svg{width:48px;height:48px;fill:var(--accent2);margin-bottom:12px}
+.upload-zone h3{font-size:16px;color:var(--accent);margin-bottom:4px}
+.upload-zone p{font-size:13px;color:var(--text2)}
+.filters{background:var(--card);border-radius:10px;padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);border:1px solid var(--border)}
+.filter-group{display:flex;flex-direction:column;gap:4px;position:relative}
+.filter-group label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.ms-trigger{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:34px;user-select:none}
+.ms-trigger:hover{border-color:var(--accent2)}
+.ms-trigger .ms-tags{display:flex;flex-wrap:wrap;gap:3px;flex:1;min-width:0}
+.ms-trigger .ms-tag{background:var(--badge);color:var(--accent);font-size:11px;padding:1px 7px;border-radius:4px;white-space:nowrap;max-width:100px;overflow:hidden;text-overflow:ellipsis}
+.ms-trigger .ms-placeholder{color:#999;font-size:12px}
+.ms-trigger .ms-arrow{font-size:10px;color:#999;margin-left:6px;flex-shrink:0}
+.ms-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:100;margin-top:4px;display:none;max-height:260px;overflow:hidden;flex-direction:column}
+.ms-dropdown.open{display:flex}
+.ms-search{padding:8px 10px;border:none;border-bottom:1px solid var(--border);font-size:12px;outline:none;width:100%}
+.ms-options{overflow-y:auto;flex:1}
+.ms-option{padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.ms-option:hover{background:var(--hover)}
+.ms-option.selected{background:#eef2ff;color:var(--accent);font-weight:600}
+.ms-option .ms-check{width:14px;height:14px;border:1.5px solid var(--border);border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:#fff}
+.ms-option.selected .ms-check{background:var(--accent);border-color:var(--accent)}
+.ms-clear{padding:6px 12px;font-size:11px;color:var(--accent2);cursor:pointer;border-top:1px solid var(--border);text-align:center;font-weight:600}
+.ms-clear:hover{background:var(--hover)}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.stat-card{background:var(--card);border-radius:10px;padding:14px 18px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.stat-card .label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+.stat-card .value{font-size:22px;font-weight:700;color:var(--accent);margin-top:2px}
+.stat-card .sub{font-size:11px;color:var(--text2);margin-top:2px}
+.stat-card .gender-badges{display:flex;gap:8px;margin-top:6px}
+.stat-card .gender-badges span{font-size:11px;font-weight:600;padding:2px 10px;border-radius:10px}
+.stat-card .gender-badges .badge-h{background:#dbeafe;color:#1e40af}
+.stat-card .gender-badges .badge-m{background:#fce7f3;color:#be185d}
+.stat-card.danger .value{color:var(--red-text)}
+.stat-card.success .value{color:var(--green-text)}
+.analysis-section{background:var(--card);border-radius:10px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:16px;overflow:hidden}
+.analysis-header{background:var(--purple);color:#fff;padding:12px 20px;font-size:14px;font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:10px}
+.analysis-header svg{width:20px;height:20px;fill:#fff}
+.analysis-body{display:grid;grid-template-columns:1fr auto 1fr;gap:0;min-height:380px}
+.analysis-panel{padding:20px;display:flex;flex-direction:column;min-width:0}
+.analysis-panel h3{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:center;justify-content:space-between}
+.img-export-btn{background:none;border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);font-weight:600;transition:all .15s;text-transform:none;letter-spacing:0}
+.img-export-btn:hover{background:var(--badge);border-color:var(--accent2);color:var(--accent)}
+.img-export-btn svg{width:13px;height:13px;fill:currentColor}
+.analysis-divider{width:1px;background:var(--border)}
+.top-materia-item{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.top-materia-rank{font-size:11px;font-weight:700;color:var(--text2);min-width:22px;text-align:right}
+.top-materia-bar-bg{flex:1;background:#f0ecf5;border-radius:4px;height:26px;position:relative;overflow:hidden;cursor:pointer}
+.top-materia-bar{height:100%;background:var(--purple);border-radius:4px;display:flex;align-items:center;padding-left:8px;min-width:30px;transition:width .3s}
+.top-materia-bar span{font-size:10px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-materia-pct{font-size:12px;font-weight:700;color:var(--text);min-width:55px;text-align:right}
+.top-materias-scroll{flex:1;overflow-y:auto;max-height:340px}
+.bar-tooltip{position:fixed;background:rgba(26,26,46,.94);color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;z-index:999;pointer-events:none;max-width:350px;line-height:1.5;white-space:normal;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.radio-group{display:flex;gap:0;background:var(--card);border-radius:8px;border:1px solid var(--border);overflow:hidden;width:fit-content}
+.radio-group button{padding:8px 18px;font-size:13px;border:none;background:transparent;cursor:pointer;color:var(--text2);font-weight:500;transition:all .15s;border-right:1px solid var(--border)}
+.radio-group button:last-child{border-right:none}
+.radio-group button.active{background:var(--accent);color:#fff}
+.period-selector{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.period-group{display:flex;flex-direction:column;gap:3px}
+.period-group-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);padding-left:4px}
+.period-group-label.ord{color:var(--accent)}
+.period-group-label.ext{color:#e67e22}
+.period-group-label.esp{color:#8e44ad}
+.period-group .radio-group.ext-group{border-color:#e67e22}
+.period-group .radio-group.ext-group button.active{background:#e67e22}
+.period-group .radio-group.esp-group{border-color:#8e44ad}
+.period-group .radio-group.esp-group button.active{background:#8e44ad}
+.radar-period-btn{padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--card);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;text-align:left}
+.radar-period-btn:hover{background:var(--hover);border-color:var(--accent2)}
+.radar-period-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+.table-wrapper{background:var(--card);border-radius:10px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:auto;max-height:70vh;margin-bottom:20px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{position:sticky;top:0;z-index:2}
+thead th{background:#1a1a2e;color:#fff;padding:8px 10px;text-align:left;font-weight:600;font-size:11px;white-space:nowrap;border-right:1px solid rgba(255,255,255,.1)}
+thead th.materia-header{writing-mode:horizontal-tb;min-width:70px;max-width:120px;font-size:10px;text-align:center;white-space:normal;line-height:1.2}
+thead th:last-child{border-right:none}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:hover{background:var(--hover)}
+tbody td{padding:6px 10px;white-space:nowrap}
+td.student-id{font-family:'Consolas',monospace;font-size:11px;color:var(--accent2);font-weight:600}
+td.name-cell{font-weight:500}
+td.grade-cell{text-align:center;font-weight:600;font-size:12px;min-width:60px;border-left:1px solid #eee}
+td.grade-cell.fail{background:var(--red-bg);color:var(--red-text);font-weight:700}
+td.grade-cell.pass{color:var(--green-text)}
+td.grade-cell.na{color:#bbb;font-style:italic;font-weight:400}
+td.has-obs{position:relative}
+td.has-obs:hover{box-shadow:inset 0 0 12px rgba(45,95,138,.2);transition:box-shadow .15s}
+td.has-obs:hover::after{content:attr(data-obs);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:rgba(26,26,46,.92);color:#fff;font-size:11px;font-weight:500;padding:6px 14px;border-radius:6px;white-space:nowrap;z-index:50;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.25);max-width:420px;line-height:1.4}
+td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--badge);border-left:2px solid var(--border)}
+.no-data{padding:60px;text-align:center;color:var(--text2)}
+.no-data svg{width:64px;height:64px;fill:var(--border);margin-bottom:12px}
+.no-data h3{font-size:16px;margin-bottom:4px}
+.file-info{background:var(--green-bg);border:1px solid #c8e6c9;border-radius:8px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--green-text)}
+.file-info svg{width:20px;height:20px;fill:var(--green-text);flex-shrink:0}
+.hidden{display:none}
+.export-btn{margin-left:auto;padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:6px}
+.export-btn:hover{background:var(--accent2)}
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.progress-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(240,242,245,.92);z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.progress-overlay.visible{display:flex}
+.progress-box{background:var(--card);border-radius:12px;padding:32px 48px;box-shadow:0 8px 32px rgba(0,0,0,.12);text-align:center;min-width:360px}
+.progress-box h3{font-size:16px;color:var(--accent);margin-bottom:4px}
+.progress-box p{font-size:12px;color:var(--text2);margin-bottom:16px}
+.progress-track{width:100%;height:10px;background:#e8eaed;border-radius:5px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:5px;width:0%;transition:width .3s}
+.progress-pct{font-size:13px;font-weight:700;color:var(--accent);margin-top:8px}
+.main-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:3px solid var(--border)}
+.main-tab{padding:12px 28px;font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;margin-bottom:-3px;transition:all .2s;display:flex;align-items:center;gap:8px}
+.main-tab:hover{color:var(--accent)}
+.main-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--card)}
+.main-tab svg{width:18px;height:18px;fill:currentColor}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.group-separator{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:10px 16px;font-size:13px;font-weight:700;letter-spacing:.3px;border-radius:8px;margin:16px 0 8px;display:flex;align-items:center;gap:8px}
+.group-separator svg{width:16px;height:16px;fill:#fff}
+.faltas-toggle-btn{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);font-weight:600;transition:all .15s}
+.faltas-toggle-btn:hover{background:var(--badge);border-color:var(--accent2);color:var(--accent)}
+.faltas-toggle-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.faltas-toggle-btn.active svg{fill:#fff}
+.error-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
+.error-modal.visible{display:flex}
+.error-box{background:var(--card);border-radius:12px;padding:28px 32px;box-shadow:0 12px 40px rgba(0,0,0,.25);max-width:520px;width:100%;border-top:4px solid var(--red-text)}
+.error-box .error-icon{width:56px;height:56px;background:var(--red-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.error-box .error-icon svg{width:32px;height:32px;fill:var(--red-text)}
+.error-box h3{font-size:17px;color:var(--text);margin-bottom:8px;font-weight:700}
+.error-box p{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px}
+.error-box .error-detail{background:var(--hover);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--text2);margin:12px 0;font-family:Consolas,monospace;word-break:break-word}
+.error-box .error-btn{background:var(--accent);color:#fff;border:none;padding:10px 24px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;width:100%}
+.error-box .error-btn:hover{background:var(--accent2)}
+@media(max-width:960px){.analysis-body{grid-template-columns:1fr}.analysis-divider{display:none}}
+@media(max-width:768px){
+  .header{padding:14px 16px;gap:10px}
+  .header h1{font-size:16px}
+  .header svg{width:28px;height:28px}
+  .container{padding:12px 10px}
+  .main-tabs{gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
+  .main-tab{padding:10px 14px;font-size:12px;gap:5px;white-space:nowrap;flex-shrink:0}
+  .main-tab svg{width:15px;height:15px}
+  .filters{grid-template-columns:1fr 1fr;padding:12px 14px;gap:8px}
+  .stats-row{grid-template-columns:1fr 1fr;gap:8px}
+  .stat-card .value{font-size:18px}
+  .toolbar{gap:8px}
+  .radio-group{width:100%;overflow-x:auto;flex-shrink:0}
+  .radio-group button{padding:7px 12px;font-size:11px;flex-shrink:0}
+  .period-selector{gap:6px}
+  .period-group .radio-group{width:auto}
+  .export-btn{padding:7px 12px;font-size:11px}
+  #docenteSearch{min-width:0!important;width:100%}
+  .upload-zone{padding:28px 16px}
+  .upload-zone h3{font-size:14px}
+  .progress-box{min-width:auto;width:90%;padding:24px 20px}
+  .error-box{padding:20px 18px;margin:10px}
+  .group-separator{font-size:11px;padding:8px 12px;flex-wrap:wrap}
+  .analysis-panel{padding:12px}
+  .analysis-panel h3{font-size:11px;flex-wrap:wrap;gap:6px}
+  .top-materias-scroll{max-height:260px}
+  .table-wrapper{max-height:60vh;border-radius:8px}
+  table{font-size:11px}
+  thead th{padding:6px 7px;font-size:10px}
+  tbody td{padding:5px 7px;font-size:11px}
+  td.grade-cell{min-width:45px}
+  .faltas-toggle-btn{padding:4px 10px;font-size:11px}
+  .file-info{font-size:11px;padding:8px 12px}
+}
+@media(max-width:480px){
+  .header{padding:10px 12px}
+  .header h1{font-size:14px}
+  .header p{font-size:10px}
+  .container{padding:8px 6px}
+  .main-tab{padding:8px 10px;font-size:11px}
+  .filters{grid-template-columns:1fr;gap:6px;padding:10px 12px}
+  .stats-row{grid-template-columns:1fr;gap:6px}
+  .stat-card{padding:10px 14px}
+  .stat-card .value{font-size:16px}
+  .toolbar{flex-direction:column;align-items:stretch}
+  .radio-group{width:100%}
+  .radio-group button{flex:1;text-align:center;padding:8px 6px;font-size:10px}
+  .export-btn{width:100%;justify-content:center}
+  #docenteSearch{width:100%!important}
+  .analysis-header{padding:10px 14px;font-size:12px}
+  .upload-zone{padding:20px 12px}
+  .upload-zone svg{width:36px;height:36px}
+  .group-separator{font-size:10px;padding:7px 10px}
+  .faltas-toggle-btn{font-size:10px;padding:4px 8px}
+  .img-export-btn{font-size:9px;padding:2px 6px}
+  .bar-tooltip{max-width:260px;font-size:11px}
+  .error-box{max-width:100%}
+  .dist-chart-wrap{height:260px!important}
+  .error-modal{padding:8px}
+}
+</style>
+</head>
+<body>
+<div class="progress-overlay" id="progressOverlay">
+<div class="progress-box">
+<h3 id="progressTitle">Cargando archivo...</h3>
+<p id="progressMsg">Leyendo datos del archivo Excel</p>
+<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+<div class="progress-pct" id="progressPct">0%</div>
+</div>
+</div>
+<div class="error-modal" id="heatModal">
+<div class="error-box" style="max-width:1100px;border-top:4px solid var(--purple);padding:20px 24px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px">
+<h3 id="heatTitle" style="margin:0;flex:1">Semáforo de desempeño académico por docente</h3>
+<button onclick="downloadHeatmap()" class="img-export-btn" style="padding:6px 12px;font-size:11px"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Descargar imagen</button>
+<button onclick="closeHeat()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px">×</button>
+</div>
+<p style="font-size:11px;color:var(--text2);margin-bottom:12px">Rojo = Crítico &nbsp;|&nbsp; Amarillo = Alerta &nbsp;|&nbsp; Verde = Óptimo</p>
+<div id="heatContent" style="max-height:70vh;overflow:auto"></div>
+</div>
+</div>
+<div class="error-modal" id="studentModal">
+<div class="error-box" style="max-width:960px;border-top:4px solid var(--accent);padding:20px 24px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<h3 id="studentModalTitle" style="margin:0">Detalle del alumno</h3>
+<button onclick="closeStudentModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px">×</button>
+</div>
+<div id="studentModalInfo" style="margin-bottom:10px"></div>
+<div style="display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid var(--border)">
+<button id="stTabGeneral" class="active" onclick="switchStudentTab('general')" style="padding:8px 20px;border:none;background:transparent;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px">General</button>
+<button id="stTabAnalisis" onclick="switchStudentTab('analisis')" style="padding:8px 20px;border:none;background:transparent;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px">Análisis</button>
+</div>
+<div id="studentTabGeneral" style="max-height:55vh;overflow:auto"></div>
+<div id="studentTabAnalisis" style="display:none">
+<div style="display:flex;gap:16px;align-items:flex-start">
+<div style="min-width:140px;display:flex;flex-direction:column;gap:6px;padding-top:8px">
+<span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text2);letter-spacing:.5px;margin-bottom:2px">Periodo</span>
+<button class="radar-period-btn active" onclick="switchRadarPeriod(this,'p1')">Parcial 1</button>
+<button class="radar-period-btn" onclick="switchRadarPeriod(this,'pf')">Parcial Final</button>
+</div>
+<div style="flex:1;position:relative;height:420px"><canvas id="studentRadarChart"></canvas></div>
+</div>
+</div>
+</div>
+</div>
+<div class="error-modal" id="evoModal">
+<div class="error-box" style="max-width:1200px;border-top:4px solid var(--accent2);padding:20px 24px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<h3 id="evoTitle" style="margin:0">Evolución por parcial</h3>
+<button onclick="closeEvo()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px">×</button>
+</div>
+<div id="evoTableContent" style="max-height:40vh;overflow:auto;margin-bottom:16px"></div>
+<div style="position:relative;width:100%;height:300px"><canvas id="evoChart"></canvas></div>
+</div>
+</div>
+<div class="error-modal" id="distModal">
+<div class="error-box" style="max-width:780px;border-top:4px solid var(--accent2);padding:20px 24px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<h3 id="distTitle" style="margin:0">Distribución de calificaciones</h3>
+<button onclick="closeDist()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px">×</button>
+</div>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+<label style="font-size:12px;font-weight:600;color:var(--text2)">Materia:</label>
+<select id="distMateriaSelect" onchange="updateDistChart()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:#fff;flex:1;min-width:220px;cursor:pointer"></select>
+</div>
+<div id="distSummary" style="font-size:12px;color:var(--text2);margin-bottom:10px"></div>
+<div style="position:relative;width:100%;height:360px;min-height:250px" class="dist-chart-wrap"><canvas id="distChart"></canvas></div>
+</div>
+</div>
+<div class="error-modal" id="errorModal">
+<div class="error-box">
+<div class="error-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div>
+<h3 id="errorTitle">Error al cargar archivo</h3>
+<p id="errorMsg">El archivo no cumple con el formato esperado.</p>
+<div class="error-detail hidden" id="errorDetail"></div>
+<button class="error-btn" onclick="closeError()">Entendido</button>
+</div>
+</div>
+<div class="header">
+<svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+<div><h1>Control de Captura de Calificaciones</h1><p>Dashboard de seguimiento académico</p></div>
+</div>
+<div class="container">
+<div id="uploadSection">
+<div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zm-3-7v4h-2v-4H9.5L12 9.5l2.5 4H11z"/></svg>
+<h3>Arrastra tu archivo Excel aquí</h3>
+<p>o haz clic para seleccionar el archivo .xlsx de Control Escolar</p>
+</div>
+<input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
+</div>
+<div id="fileInfo" class="file-info hidden">
+<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+<span id="fileName"></span>
+</div>
+<div id="dashboard" class="hidden">
+<div class="main-tabs">
+<button class="main-tab active" onclick="switchMainTab('grupal')"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Grupal</button>
+<button class="main-tab" onclick="switchMainTab('generacional')"><svg viewBox="0 0 24 24"><path d="M12 12.75c1.63 0 3.07.39 4.24.9 1.08.48 1.76 1.56 1.76 2.73V18H6v-1.61c0-1.18.68-2.26 1.76-2.73 1.17-.52 2.61-.91 4.24-.91zM4 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm1.13 1.1C4.76 14.04 4.39 14 4 14c-.99 0-1.93.21-2.78.58A2.01 2.01 0 000 16.43V18h4.5v-1.61c0-.83.23-1.61.63-2.29zM20 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm4 3.43c0-.81-.48-1.53-1.22-1.85A6.95 6.95 0 0020 14c-.39 0-.76.04-1.13.1.4.68.63 1.46.63 2.29V18H24v-1.57zM12 6c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/></svg>Generacional</button>
+<button class="main-tab" onclick="switchMainTab('docentes')"><svg viewBox="0 0 24 24"><path d="M20 17a2 2 0 002-2V5a2 2 0 00-2-2H9.46c.35.61.54 1.3.54 2h10v10h-7v2M15 7v2H9v3H7V9H1V7h6V4h2v3h6M7 15h6v3l5-4-5-4v3H5v8h2v-6z"/></svg>Docentes</button>
+</div>
+
+<!-- TAB GRUPAL -->
+<div class="tab-content active" id="tabGrupal">
+<div class="filters" id="filtersGrupal"></div>
+<div class="stats-row" id="statsGrupal"></div>
+<div class="analysis-section hidden" id="analysisGrupal">
+<div class="analysis-header"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>Análisis de cátedra (docentes y materias)</div>
+<div class="analysis-body">
+<div class="analysis-panel"><h3>Diagnóstico de aprendizaje por materia<button class="img-export-btn" onclick="exportChartImg('grupal')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Imagen</button></h3><div style="position:relative;width:100%;flex:1;min-height:300px"><canvas id="chartGrupal"></canvas></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-top:8px;font-size:10px;color:var(--text2)"><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#27ae60;display:inline-block"></span> Buen aprendizaje uniforme</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#e67e22;display:inline-block"></span> Rezago en algunos alumnos</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#c0392b;display:inline-block"></span> Grupo no aprende</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#8e44ad;display:inline-block"></span> Solo algunos aprenden</span></div></div>
+<div class="analysis-divider"></div>
+<div class="analysis-panel"><h3>Materias ordenadas por núm. de reprobados<button class="img-export-btn" onclick="exportBarsImg('barsGrupal')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Imagen</button></h3><div id="barsGrupal" class="top-materias-scroll"></div></div>
+</div></div>
+<div class="toolbar">
+<div class="period-selector" id="colSwitchGrupal">
+<div class="period-group"><span class="period-group-label ord">Ordinario</span><div class="radio-group">
+<button class="active" data-col="Cal_P1" onclick="switchCol(this,'grupal')">Parcial 1</button>
+<button data-col="Cal_EF" onclick="switchCol(this,'grupal')">Parcial Final</button>
+<button data-col="Cal_CF" onclick="switchCol(this,'grupal')">Calif. Final</button>
+</div></div>
+<div class="period-group"><span class="period-group-label ext">Extraordinario</span><div class="radio-group ext-group">
+<button data-col="Cal_EX1" onclick="switchCol(this,'grupal')">Extra P1</button>
+<button data-col="Cal_EX2" onclick="switchCol(this,'grupal')">Extra PF</button>
+</div></div>
+<div class="period-group"><span class="period-group-label esp">Especial</span><div class="radio-group esp-group">
+<button data-col="Cal_ES1" onclick="switchCol(this,'grupal')">Especial P1</button>
+<button data-col="Cal_ES2" onclick="switchCol(this,'grupal')">Especial PF</button>
+</div></div>
+</div>
+<button class="export-btn" onclick="exportTab('grupal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Exportar</button>
+</div>
+<div id="groupSummaryGrupal" style="margin-bottom:16px"></div>
+<div id="tableAreaGrupal"></div>
+</div>
+
+<!-- TAB GENERACIONAL -->
+<div class="tab-content" id="tabGeneracional">
+<div class="filters" id="filtersGeneracional"></div>
+<div class="stats-row" id="statsGeneracional"></div>
+<div class="analysis-section hidden" id="analysisGeneracional">
+<div class="analysis-header"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>Análisis de cátedra (docentes y materias)</div>
+<div class="analysis-body">
+<div class="analysis-panel"><h3>Diagnóstico de aprendizaje por materia<button class="img-export-btn" onclick="exportChartImg('generacional')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Imagen</button></h3><div style="position:relative;width:100%;flex:1;min-height:300px"><canvas id="chartGeneracional"></canvas></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-top:8px;font-size:10px;color:var(--text2)"><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#27ae60;display:inline-block"></span> Buen aprendizaje uniforme</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#e67e22;display:inline-block"></span> Rezago en algunos alumnos</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#c0392b;display:inline-block"></span> Grupo no aprende</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#8e44ad;display:inline-block"></span> Solo algunos aprenden</span></div></div>
+<div class="analysis-divider"></div>
+<div class="analysis-panel"><h3>Materias ordenadas por núm. de reprobados<button class="img-export-btn" onclick="exportBarsImg('barsGeneracional')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Imagen</button></h3><div id="barsGeneracional" class="top-materias-scroll"></div></div>
+</div></div>
+<div class="toolbar">
+<div class="period-selector" id="colSwitchGeneracional">
+<div class="period-group"><span class="period-group-label ord">Ordinario</span><div class="radio-group">
+<button class="active" data-col="Cal_P1" onclick="switchCol(this,'generacional')">Parcial 1</button>
+<button data-col="Cal_EF" onclick="switchCol(this,'generacional')">Parcial Final</button>
+<button data-col="Cal_CF" onclick="switchCol(this,'generacional')">Calif. Final</button>
+</div></div>
+<div class="period-group"><span class="period-group-label ext">Extraordinario</span><div class="radio-group ext-group">
+<button data-col="Cal_EX1" onclick="switchCol(this,'generacional')">Extra P1</button>
+<button data-col="Cal_EX2" onclick="switchCol(this,'generacional')">Extra PF</button>
+</div></div>
+<div class="period-group"><span class="period-group-label esp">Especial</span><div class="radio-group esp-group">
+<button data-col="Cal_ES1" onclick="switchCol(this,'generacional')">Especial P1</button>
+<button data-col="Cal_ES2" onclick="switchCol(this,'generacional')">Especial PF</button>
+</div></div>
+</div>
+<button class="export-btn" onclick="exportTab('generacional')"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Exportar</button>
+</div>
+<div id="groupSummaryGeneracional" style="margin-bottom:16px"></div>
+<div id="tableAreaGeneracional"></div>
+</div>
+
+<!-- TAB DOCENTES -->
+<div class="tab-content" id="tabDocentes">
+<div class="filters" id="filtersDocentes"></div>
+<div class="stats-row" id="statsDocentes"></div>
+<div class="toolbar">
+<div class="radio-group" id="colSwitchDocentes">
+<button class="active" data-col="Cal_P1" onclick="switchCol(this,'docentes')">Parcial 1</button>
+<button data-col="Cal_EF" onclick="switchCol(this,'docentes')">Parcial Final</button>
+<button data-col="Cal_CF" onclick="switchCol(this,'docentes')">Calif. Final</button>
+</div>
+<input type="text" id="docenteSearch" placeholder="🔍 Buscar docente..." oninput="filterDocenteRows(this.value)" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;min-width:240px;outline:none">
+<button class="export-btn" onclick="showHeatmap()" style="background:var(--purple);margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M3 3h8v8H3V3m10 0h8v8h-8V3M3 13h8v8H3v-8m10 5h3v3h-3v-3m5 0h3v3h-3v-3m-5-5h3v3h-3v-3m5 0h3v3h-3v-3"/></svg>Ver mapa de calor</button>
+<button class="export-btn" onclick="exportDocentesTable()" style="margin-left:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Exportar</button>
+</div>
+<div id="tableAreaDocentes"></div>
+</div>
+
+</div>
+</div>
+<div class="bar-tooltip" id="barTooltip" style="display:none"></div>
+
+<script>
+let rawData=[];
+const tabState={
+  grupal:{col:'Cal_P1',chart:null,scatterData:null,origBg:null,origBorder:null,origR:null,filters:{},ms:{}},
+  generacional:{col:'Cal_P1',chart:null,scatterData:null,origBg:null,origBorder:null,origR:null,filters:{},ms:{}},
+  docentes:{col:'Cal_P1',filters:{},ms:{}}
+};
+let activeTab='grupal';
+
+class MultiSelect{
+  constructor(container,key,placeholder,onChange){
+    this.key=key;this.selected=[];this.allOptions=[];this.onChange=onChange;this.placeholder=placeholder;
+    this.trigger=document.createElement('div');this.trigger.className='ms-trigger';
+    this.trigger.innerHTML=`<div class="ms-tags"><span class="ms-placeholder">${placeholder}</span></div><span class="ms-arrow">&#9662;</span>`;
+    this.dropdown=document.createElement('div');this.dropdown.className='ms-dropdown';
+    this.dropdown.innerHTML=`<input class="ms-search" type="text" placeholder="Buscar..."><div class="ms-options"></div><div class="ms-clear">Limpiar selección</div>`;
+    container.appendChild(this.trigger);container.appendChild(this.dropdown);
+    this.tagsEl=this.trigger.querySelector('.ms-tags');
+    this.searchEl=this.dropdown.querySelector('.ms-search');
+    this.optionsEl=this.dropdown.querySelector('.ms-options');
+    this.trigger.addEventListener('click',e=>{e.stopPropagation();this.toggle()});
+    this.searchEl.addEventListener('input',()=>this.renderOptions());
+    this.searchEl.addEventListener('click',e=>e.stopPropagation());
+    this.dropdown.querySelector('.ms-clear').addEventListener('click',e=>{e.stopPropagation();this.selected=[];this.update()});
+    document.addEventListener('click',e=>{if(!container.contains(e.target))this.close()});
+  }
+  setOptions(opts){this.allOptions=opts.sort();this.selected=[];this.renderOptions();this.renderTags()}
+  toggle(){const o=this.dropdown.classList.contains('open');document.querySelectorAll('.ms-dropdown.open').forEach(d=>d.classList.remove('open'));if(!o){this.dropdown.classList.add('open');this.searchEl.value='';this.renderOptions();setTimeout(()=>this.searchEl.focus(),50)}}
+  close(){this.dropdown.classList.remove('open')}
+  renderOptions(){
+    const q=this.searchEl.value.toLowerCase();
+    const f=this.allOptions.filter(o=>o.toLowerCase().includes(q));
+    this.optionsEl.innerHTML='';
+    f.forEach(o=>{
+      const div=document.createElement('div');
+      div.className='ms-option'+(this.selected.includes(o)?' selected':'');
+      div.innerHTML=`<span class="ms-check">${this.selected.includes(o)?'&#10003;':''}</span>${o}`;
+      div.addEventListener('click',e=>{e.stopPropagation();if(this.selected.includes(o))this.selected=this.selected.filter(x=>x!==o);else this.selected.push(o);this.update()});
+      this.optionsEl.appendChild(div);
+    });
+  }
+  renderTags(){
+    if(!this.selected.length){this.tagsEl.innerHTML=`<span class="ms-placeholder">${this.placeholder}</span>`;return}
+    if(this.selected.length<=2)this.tagsEl.innerHTML=this.selected.map(s=>`<span class="ms-tag" title="${s}">${s}</span>`).join('');
+    else this.tagsEl.innerHTML=`<span class="ms-tag">${this.selected[0]}</span><span class="ms-tag">+${this.selected.length-1} más</span>`;
+  }
+  update(){this.renderOptions();this.renderTags();this.onChange()}
+}
+
+function buildFilters(tab,keys,container){
+  const placeholders={Generacion:'(Todas)',Alias:'(Todas)',Campus:'(Todos)',Modalidad:'(Todas)',Grado:'(Todos)',Grupo:'(Todos)'};
+  const labels={Generacion:'Generación',Alias:'Carrera (Alias)',Campus:'Campus',Modalidad:'Modalidad',Grado:'Grado',Grupo:'Grupo'};
+  container.innerHTML='';
+  keys.forEach(key=>{
+    const fg=document.createElement('div');fg.className='filter-group';
+    const lbl=document.createElement('label');lbl.textContent=labels[key]||key;
+    const w=document.createElement('div');
+    fg.appendChild(lbl);fg.appendChild(w);container.appendChild(fg);
+    const ms=new MultiSelect(w,key,placeholders[key]||'(Todos)',()=>renderTab(tab));
+    tabState[tab].ms[key]=ms;
+    tabState[tab].filters[key]=[];
+  });
+}
+
+function populateTabFilters(tab){
+  const keys=Object.keys(tabState[tab].ms);
+  keys.forEach(key=>{
+    const vals=[...new Set(rawData.map(r=>r[key]).filter(Boolean))];
+    tabState[tab].ms[key].setOptions(vals);
+  });
+}
+
+function getFilteredData(tab){
+  const ms=tabState[tab].ms;
+  const hasAnyFilter=Object.keys(ms).some(k=>ms[k].selected.length>0);
+  if(!hasAnyFilter)return[];
+  return rawData.filter(r=>{
+    for(const key of Object.keys(ms)){
+      const sel=ms[key].selected;
+      if(sel.length>0&&!sel.includes(r[key]||''))return false;
+    }
+    return true;
+  });
+}
+
+function isEstadia(m){return m&&m.toString().trim().toLowerCase().startsWith('estad')}
+
+function computeStats(data,col){
+  const materias=[...new Set(data.map(r=>r.Materia))].sort();
+  const profMap={};
+  data.forEach(r=>{if(r.Materia&&r.Profesor&&!isEstadia(r.Materia))profMap[r.Materia]=r.Profesor});
+  const falCol=col==='Cal_P1'?'Fal_P1':'Fal_EF';
+  const studentMap=new Map();
+  data.forEach(r=>{
+    const k=r.Matricula;
+    if(!studentMap.has(k))studentMap.set(k,{Matricula:r.Matricula,Paterno:r.Paterno||'',Materno:r.Materno||'',Nombre:r.Nombre||'',Sexo:r.Sexo||'',Grupo:r.Grupo||'',grades:{},faltas:{},asesores:{},obs:{},p1Grades:{},efGrades:{},ordGrades:{},ex1Grades:{},ex2Grades:{},es1Grades:{},es2Grades:{}});
+    const s=studentMap.get(k);
+    if(!s.Sexo&&r.Sexo)s.Sexo=r.Sexo;
+    const v=r[col];
+    s.grades[r.Materia]=v!=null&&v!==''&&!isNaN(v)?Number(v):null;
+    const f=r[falCol];
+    s.faltas[r.Materia]=f!=null&&f!==''&&!isNaN(f)?Number(f):null;
+    if(r.Observacion!=null&&r.Observacion!=='')s.obs[r.Materia]=String(r.Observacion);
+    if(isEstadia(r.Materia)&&r.Profesor)s.asesores[r.Materia]=r.Profesor;
+    const p1v=r.Cal_P1;s.p1Grades[r.Materia]=p1v!=null&&p1v!==''&&!isNaN(p1v)?Number(p1v):null;
+    const efv=r.Cal_EF;s.efGrades[r.Materia]=efv!=null&&efv!==''&&!isNaN(efv)?Number(efv):null;
+    const cf=r.Cal_CF;s.ordGrades[r.Materia]=cf!=null&&cf!==''&&!isNaN(cf)?Number(cf):null;
+    const ex1=r.Cal_EX1;s.ex1Grades[r.Materia]=ex1!=null&&ex1!==''&&!isNaN(ex1)?Number(ex1):null;
+    const ex2=r.Cal_EX2;s.ex2Grades[r.Materia]=ex2!=null&&ex2!==''&&!isNaN(ex2)?Number(ex2):null;
+    const es1=r.Cal_ES1;s.es1Grades[r.Materia]=es1!=null&&es1!==''&&!isNaN(es1)?Number(es1):null;
+    const es2=r.Cal_ES2;s.es2Grades[r.Materia]=es2!=null&&es2!==''&&!isNaN(es2)?Number(es2):null;
+  });
+
+  let students=[...studentMap.values()].sort((a,b)=>(a.Paterno+a.Materno+a.Nombre).localeCompare(b.Paterno+b.Materno+b.Nombre));
+
+  if(col==='Cal_EX1'||col==='Cal_EX2'||col==='Cal_ES1'||col==='Cal_ES2'){
+    students=students.filter(s=>{
+      const mats=materias.filter(mt=>!isEstadia(mt));
+      if(col==='Cal_EX1'){
+        return mats.some(mt=>{const g=s.p1Grades[mt];return g!==null&&g!==undefined&&g<7});
+      }
+      if(col==='Cal_EX2'){
+        return mats.some(mt=>{const g=s.efGrades[mt];return g!==null&&g!==undefined&&g<7});
+      }
+      if(col==='Cal_ES1'){
+        return mats.some(mt=>{
+          const p1=s.p1Grades[mt];
+          if(p1===null||p1===undefined||p1>=7)return false;
+          const e1=s.ex1Grades[mt];
+          if(e1!==null&&e1!==undefined&&e1>=7)return false;
+          return true;
+        });
+      }
+      if(col==='Cal_ES2'){
+        return mats.some(mt=>{
+          const ef=s.efGrades[mt];
+          if(ef===null||ef===undefined||ef>=7)return false;
+          const e2=s.ex2Grades[mt];
+          if(e2!==null&&e2!==undefined&&e2>=7)return false;
+          return true;
+        });
+      }
+      return true;
+    });
+  }
+  const countH=students.filter(s=>s.Sexo==='Masculino').length;
+  const countM=students.filter(s=>s.Sexo==='Femenino').length;
+  let tg=0,fg=0;
+  students.forEach(s=>{materias.forEach(m=>{const v=s.grades[m];if(v!==null&&v!==undefined){tg++;if(v<7)fg++}})});
+  const swf=students.filter(s=>materias.some(m=>s.grades[m]!=null&&s.grades[m]<7)).length;
+  let sa=0,ca=0;
+  students.forEach(s=>{let ss=0,sc=0;materias.forEach(m=>{const v=s.grades[m];if(v!==null&&v!==undefined){ss+=v;sc++}});if(sc>0){sa+=ss/sc;ca++}});
+  const aprov=ca>0?(sa/ca).toFixed(1):'N/A';
+  const first=data[0]||{};
+  const meta={grado:first.Grado||'',grupo:first.Grupo||'',carrera:first.Alias||'',modalidad:first.Modalidad||'',campus:first.Campus||''};
+  return{materias,profMap,students,countH,countM,swf,pctR:students.length?((swf/students.length)*100).toFixed(1):'0',aprov,meta};
+}
+
+function renderStatsHTML(s){
+  const ac=s.aprov!=='N/A'&&parseFloat(s.aprov)>=7?'success':'danger';
+  const pc=Number(s.pctR)>20?'danger':'success';
+  return `<div class="stat-card"><div class="label">Alumnos</div><div class="value">${s.students.length}</div><div class="sub">${s.materias.length} materias</div><div class="gender-badges"><span class="badge-h">H ${s.countH}</span><span class="badge-m">M ${s.countM}</span></div></div>
+  <div class="stat-card danger"><div class="label">Alumnos reprobados</div><div class="value">${s.swf}</div><div class="sub">Con al menos 1 materia &lt; 7</div></div>
+  <div class="stat-card ${pc}"><div class="label">% Reprobación</div><div class="value">${s.pctR}%</div><div class="sub">${s.swf} de ${s.students.length} alumnos</div></div>
+  <div class="stat-card ${ac}"><div class="label">Aprovechamiento grupal</div><div class="value">${s.aprov}</div><div class="sub">Promedio general del grupo</div></div>`;
+}
+
+function renderBubbleChart(canvasId,tab,materias,profMap,students,rawRows){
+  if(tabState[tab].chart){tabState[tab].chart.destroy();tabState[tab].chart=null}
+  const col=tabState[tab].col;
+  const mpKeys=new Map();
+  (rawRows||[]).forEach(r=>{
+    if(!r.Materia)return;
+    const v=r[col];
+    if(v==null||v===''||isNaN(v))return;
+    const prof=r.Profesor||'';
+    const key=r.Materia+'|||'+prof;
+    if(!mpKeys.has(key))mpKeys.set(key,{materia:r.Materia,profesor:prof,grades:new Map()});
+    const entry=mpKeys.get(key);
+    const mk=r.Matricula+'|'+r.Materia;
+    if(!entry.grades.has(mk))entry.grades.set(mk,Number(v));
+  });
+  const ms=[...mpKeys.values()].map(e=>{
+    const vals=[...e.grades.values()];
+    if(!vals.length)return null;
+    const fails=vals.filter(v=>v<7).length;
+    const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+    const variance=vals.reduce((a,b)=>a+Math.pow(b-avg,2),0)/vals.length;
+    const sd=Math.sqrt(variance);
+    return{materia:e.materia,profesor:e.profesor,total:vals.length,fails,avg:Math.round(avg*10)/10,sd:Math.round(sd*100)/100,pct:Math.round(fails/vals.length*100)};
+  }).filter(Boolean);
+
+  const avgThreshold=7;
+  const allSDs=ms.map(m=>m.sd);
+  const sdMedian=allSDs.length?allSDs.sort((a,b)=>a-b)[Math.floor(allSDs.length/2)]:1;
+  const sdThreshold=Math.max(sdMedian,1);
+
+  const colors={q1:'#27ae60',q2:'#e67e22',q3:'#c0392b',q4:'#8e44ad'};
+  const sd=ms.map(m=>{
+    let q,bg,border;
+    if(m.avg>=avgThreshold&&m.sd<=sdThreshold){q='q1';bg='rgba(39,174,96,0.75)';border=colors.q1}
+    else if(m.avg>=avgThreshold&&m.sd>sdThreshold){q='q2';bg='rgba(230,126,34,0.75)';border=colors.q2}
+    else if(m.avg<avgThreshold&&m.sd<=sdThreshold){q='q3';bg='rgba(192,57,43,0.75)';border=colors.q3}
+    else{q='q4';bg='rgba(142,68,173,0.75)';border=colors.q4}
+    return{x:m.sd,y:m.avg,materia:m.materia,profesor:m.profesor,total:m.total,fails:m.fails,avg:m.avg,sd:m.sd,pct:m.pct,q,bg,border};
+  });
+
+  const maxSD=Math.max(...sd.map(d=>d.x),sdThreshold*1.5);
+
+  const quadrantPlugin={
+    id:'quadrantBg',
+    beforeDraw(chart){
+      const{ctx,chartArea:{left,right,top,bottom},scales:{x,y}}=chart;
+      const xMid=x.getPixelForValue(sdThreshold);
+      const yMid=y.getPixelForValue(avgThreshold);
+      ctx.save();
+      ctx.globalAlpha=0.06;
+      ctx.fillStyle=colors.q1;ctx.fillRect(left,top,xMid-left,yMid-top);
+      ctx.fillStyle=colors.q2;ctx.fillRect(xMid,top,right-xMid,yMid-top);
+      ctx.fillStyle=colors.q3;ctx.fillRect(left,yMid,xMid-left,bottom-yMid);
+      ctx.fillStyle=colors.q4;ctx.fillRect(xMid,yMid,right-xMid,bottom-yMid);
+      ctx.globalAlpha=1;
+      ctx.setLineDash([5,4]);ctx.lineWidth=1;ctx.strokeStyle='#999';
+      ctx.beginPath();ctx.moveTo(xMid,top);ctx.lineTo(xMid,bottom);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(left,yMid);ctx.lineTo(right,yMid);ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font='600 9px Segoe UI,sans-serif';ctx.globalAlpha=0.35;
+      ctx.fillStyle=colors.q1;ctx.textAlign='left';ctx.fillText('APRENDIZAJE UNIFORME',left+6,top+14);
+      ctx.fillStyle=colors.q2;ctx.textAlign='right';ctx.fillText('REZAGO PARCIAL',right-6,top+14);
+      ctx.fillStyle=colors.q3;ctx.textAlign='left';ctx.fillText('GRUPO NO APRENDE',left+6,bottom-6);
+      ctx.fillStyle=colors.q4;ctx.textAlign='right';ctx.fillText('SOLO ALGUNOS APRENDEN',right-6,bottom-6);
+      ctx.restore();
+    }
+  };
+
+  tabState[tab].chart=new Chart(document.getElementById(canvasId),{
+    type:'bubble',
+    data:{datasets:[{
+      data:sd.map(d=>({x:d.x,y:d.y,r:Math.max(6,Math.min(16,d.total/3+4))})),
+      backgroundColor:sd.map(d=>d.bg),
+      borderColor:sd.map(d=>d.border),
+      borderWidth:1.5,hoverBorderWidth:3
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{
+        callbacks:{label:c=>{const d=sd[c.dataIndex];
+          const labels={q1:'Aprendizaje uniforme',q2:'Rezago parcial',q3:'Grupo no aprende',q4:'Solo algunos aprenden'};
+          return[decodeHtml(d.materia),`Prof: ${decodeHtml(d.profesor)}`,`Promedio: ${d.avg} | D.E.: ${d.sd}`,`Alumnos: ${d.total} | Reprobados: ${d.fails} (${d.pct}%)`,`→ ${labels[d.q]}`]}},
+        titleFont:{size:0},bodyFont:{size:12},padding:12,backgroundColor:'rgba(26,26,46,.94)',cornerRadius:8,displayColors:false
+      }},
+      scales:{
+        x:{title:{display:true,text:'DESVIACIÓN ESTÁNDAR (dispersión de calificaciones)',font:{size:10,weight:'bold'},color:'#555'},grid:{color:'#eee'},ticks:{font:{size:10}},min:0,max:Math.ceil(maxSD*1.1*10)/10},
+        y:{title:{display:true,text:'PROMEDIO GRUPAL',font:{size:10,weight:'bold'},color:'#555'},grid:{color:'#eee'},ticks:{font:{size:10}},min:0,max:10}
+      }
+    },
+    plugins:[quadrantPlugin]
+  });
+  tabState[tab].scatterData=sd;
+  tabState[tab].origBg=sd.map(d=>d.bg);
+  tabState[tab].origBorder=sd.map(d=>d.border);
+  tabState[tab].origR=sd.map(d=>Math.max(6,Math.min(16,d.total/3+4)));
+  return ms;
+}
+
+function renderBars(containerId,ms,tab){
+  const sdData=tabState[tab].scatterData||[];
+  const colorMap={};
+  sdData.forEach(d=>{colorMap[d.materia]=d.border});
+  const sorted=[...ms].sort((a,b)=>b.fails-a.fails);
+  const mx=sorted.length?sorted[0].fails:1;
+  document.getElementById(containerId).innerHTML=sorted.map((m,i)=>{
+    const bw=Math.max(8,Math.round(m.fails/mx*100));
+    const sp=m.profesor.length>20?m.profesor.substring(0,20)+'…':m.profesor;
+    const sm=m.materia.length>25?m.materia.substring(0,25)+'…':m.materia;
+    const barColor=colorMap[m.materia]||'var(--purple)';
+    const ft=`${m.materia} — ${m.profesor} | Reprobados: ${m.fails} de ${m.total} (${m.pct}%)`;
+    const safeMateria=m.materia.replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+    return `<div class="top-materia-item"><div class="top-materia-rank">${i+1}</div><div class="top-materia-bar-bg" data-tip="${ft.replace(/"/g,'&quot;')}" data-idx="${sdData.findIndex(d=>d.materia===m.materia)}" data-tab="${tab}" onmouseenter="highlightPoint(this);showBarTip(event)" onmousemove="moveBarTip(event)" onmouseleave="unhighlightPoint(this);hideBarTip()"><div class="top-materia-bar" style="width:${bw}%;background:${barColor}"><span>${sm}: ${sp}</span></div></div><div class="top-materia-pct">${m.fails} <span style="font-size:10px;color:var(--text2)">(${m.pct}%)</span></div></div>`;
+  }).join('');
+}
+
+function highlightPoint(el){
+  const idx=parseInt(el.dataset.idx);
+  const tab=el.dataset.tab;
+  const chart=tabState[tab].chart;
+  const ts=tabState[tab];
+  if(!chart||!ts.origBg||idx<0||isNaN(idx))return;
+  const ds=chart.data.datasets[0];
+  ds.backgroundColor=ts.origBg.map((c,i)=>i===idx?c:'rgba(200,200,200,0.2)');
+  ds.borderColor=ts.origBorder.map((c,i)=>i===idx?c:'rgba(200,200,200,0.3)');
+  ds.data=ds.data.map((d,i)=>({...d,r:i===idx?ts.origR[i]+6:ts.origR[i]}));
+  chart.update('none');
+}
+
+function unhighlightPoint(el){
+  const tab=el.dataset.tab;
+  const chart=tabState[tab].chart;
+  const ts=tabState[tab];
+  if(!chart||!ts.origBg)return;
+  const ds=chart.data.datasets[0];
+  ds.backgroundColor=[...ts.origBg];
+  ds.borderColor=[...ts.origBorder];
+  ds.data=ds.data.map((d,i)=>({...d,r:ts.origR[i]}));
+  chart.update('none');
+}
+
+function buildTableHTML(materias,profMap,students,numberStart,meta,col){
+  let ns=numberStart||0;
+  const m=meta||{};
+  const isExtraOrSpecial=col==='Cal_EX1'||col==='Cal_EX2'||col==='Cal_ES1'||col==='Cal_ES2';
+  const filteredMaterias=materias.filter(mt=>students.some(s=>s.grades[mt]!==null&&s.grades[mt]!==undefined));
+  const label=decodeHtml([m.grado,m.grupo?'Grupo '+m.grupo:'',m.carrera,m.modalidad,m.campus].filter(Boolean).join(' - '));
+  const headerBar=label?`<div style="background:#1a1a2e;color:#fff;padding:10px 16px;font-size:13px;font-weight:700;letter-spacing:.3px;border-radius:8px 8px 0 0">${label}</div>`:'';
+  const hdr='<thead><tr><th style="text-align:center;min-width:40px">Núm.</th><th>Matrícula</th><th>Paterno</th><th>Materno</th><th>Nombre</th><th style="text-align:center">Sexo</th>'+filteredMaterias.map(mt=>{
+    const dm=decodeHtml(mt);
+    if(isEstadia(mt)){
+      return `<th class="materia-header" title="${dm}" data-export="${dm}" style="min-width:160px">Asesor de ${dm}</th><th class="materia-header" title="${dm}" data-export="${dm}">${dm}</th><th class="falta-col materia-header" style="display:none;min-width:35px;max-width:45px">F</th>`;
+    }
+    const p=decodeHtml(profMap[mt]||'');
+    return `<th class="materia-header" title="${dm}|${p}" data-export="${dm} | ${p}">${dm}<br><span style="font-weight:400;font-size:9px;opacity:.7">${p}</span></th><th class="falta-col materia-header" style="display:none;min-width:35px;max-width:45px">F</th>`;
+  }).join('')+'<th class="materia-header">Total general</th></tr></thead>';
+  let body='';
+  students.forEach((s,i)=>{
+    let sum=0,cnt=0;
+    const sx=s.Sexo==='Masculino'?'H':s.Sexo==='Femenino'?'M':s.Sexo?s.Sexo.charAt(0):'';
+    let row=`<tr><td style="text-align:center;color:var(--text2);font-size:11px">${ns+i+1}</td><td class="student-id"><a href="#" onclick="showStudentDetail('${s.Matricula}');return false" style="color:var(--accent2);text-decoration:none;font-weight:600;cursor:pointer">${s.Matricula}</a></td><td class="name-cell">${decodeHtml(s.Paterno)}</td><td>${decodeHtml(s.Materno)}</td><td>${decodeHtml(s.Nombre)}</td><td style="text-align:center;font-weight:600;font-size:11px">${sx}</td>`;
+    filteredMaterias.forEach(mt=>{
+      if(isEstadia(mt)){
+        const asesor=s.asesores[mt]||'';
+        row+=`<td style="font-size:11px;color:var(--text2);font-style:italic;max-width:200px;overflow:hidden;text-overflow:ellipsis" title="${decodeHtml(asesor)}">${decodeHtml(asesor)}</td>`;
+      }
+      const v=s.grades[mt];
+      const rawObs=s.obs&&s.obs[mt]?s.obs[mt]:'';
+      const obsText=(!rawObs||rawObs==='--')?'Sin observaciones':decodeHtml(rawObs).replace(/"/g,'&quot;');
+      let alreadyPassed=false;
+      if(isExtraOrSpecial&&!isEstadia(mt)){
+        const p1=s.p1Grades?s.p1Grades[mt]:null;
+        const ef=s.efGrades?s.efGrades[mt]:null;
+        const e1=s.ex1Grades?s.ex1Grades[mt]:null;
+        const e2=s.ex2Grades?s.ex2Grades[mt]:null;
+        if(col==='Cal_EX1'){
+          if(p1!==null&&p1!==undefined&&p1>=7)alreadyPassed=true;
+        }
+        if(col==='Cal_EX2'){
+          if(ef!==null&&ef!==undefined&&ef>=7)alreadyPassed=true;
+        }
+        if(col==='Cal_ES1'){
+          if(p1!==null&&p1!==undefined&&p1>=7)alreadyPassed=true;
+          else if(e1!==null&&e1!==undefined&&e1>=7)alreadyPassed=true;
+        }
+        if(col==='Cal_ES2'){
+          if(ef!==null&&ef!==undefined&&ef>=7)alreadyPassed=true;
+          else if(e2!==null&&e2!==undefined&&e2>=7)alreadyPassed=true;
+        }
+      }
+      if(alreadyPassed){
+        row+=`<td class="grade-cell" style="background:#e8e8e8;color:#aaa;text-align:center;font-style:italic;font-size:10px" title="Acreditada en periodo anterior">✓</td>`;
+      } else if(v===null||v===undefined){
+        row+=`<td class="grade-cell na"></td>`;
+      } else {
+        const c=v<7?'fail':'pass';
+        row+=`<td class="grade-cell ${c} has-obs" data-obs="${obsText}">${v}</td>`;
+        sum+=v;cnt++;
+      }
+      const f=s.faltas[mt];
+      const fv=f!==null&&f!==undefined?f:'';
+      const fc=f>0?'style="color:var(--red-text);font-weight:700"':'';
+      row+=`<td class="falta-col grade-cell" style="display:none;text-align:center;font-size:11px;background:#fef9e7;border-left:1px solid #eee" ${fc}>${fv}</td>`;
+    });
+    const avg=cnt>0?(sum/cnt).toFixed(1):'';
+    row+=`<td class="total-cell ${cnt>0&&sum/cnt<7?'fail':''}">${avg}</td></tr>`;
+    body+=row;
+  });
+  const distId='dist'+(distRegistry.nextId++);
+  const materiaGrades={};
+  filteredMaterias.forEach(mt=>{
+    const arr=[];
+    students.forEach(s=>{const v=s.grades[mt];if(v!==null&&v!==undefined)arr.push(v)});
+    if(arr.length)materiaGrades[mt]=arr;
+  });
+  distRegistry[distId]={title:label||'Distribución de calificaciones',materias:materiaGrades,profMap:profMap||{}};
+  const toggleBtn=`<div style="margin-bottom:6px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap"><button class="faltas-toggle-btn" onclick="showDistribution('${distId}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M22 21H2V3h2v16h2v-9h4v9h2V6h4v13h2v-7h4v9z"/></svg>Mostrar distribución</button><button class="faltas-toggle-btn" onclick="toggleReprobados(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>Solo reprobados</button><button class="faltas-toggle-btn" onclick="toggleFaltas(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>Mostrar faltas</button></div>`;
+  return`${headerBar}${toggleBtn}<div class="table-wrapper" style="${label?'border-radius:0 0 8px 8px':''}"><table>${hdr}<tbody>${body}</tbody></table></div>`;
+}
+
+function renderTab(tab){
+  Object.keys(distRegistry).forEach(k=>{if(k!=='nextId')delete distRegistry[k]});
+  const data=getFilteredData(tab);
+  const col=tabState[tab].col;
+  const statsEl=document.getElementById('stats'+cap(tab));
+  const analysisEl=document.getElementById('analysis'+cap(tab));
+  const tableArea=document.getElementById('tableArea'+cap(tab));
+
+  if(!data.length){
+    statsEl.innerHTML='';
+    if(analysisEl)analysisEl.classList.add('hidden');
+    const summaryEl=document.getElementById('groupSummary'+cap(tab));
+    if(summaryEl)summaryEl.innerHTML='';
+    tableArea.innerHTML='<div class="no-data"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><h3>Selecciona los filtros</h3><p>Elige al menos un filtro para ver datos</p></div>';
+    tabState[tab].selectedGroup=null;
+    return;
+  }
+
+  if(tab==='docentes'){renderDocentes(data,col);return}
+
+  const s=computeStats(data,col);
+  statsEl.innerHTML=renderStatsHTML(s);
+  analysisEl.classList.remove('hidden');
+  const ms=renderBubbleChart('chart'+cap(tab),tab,s.materias,s.profMap,s.students,data);
+  renderBars('bars'+cap(tab),ms,tab);
+
+  if(tab==='grupal'||tab==='generacional'){
+    const groupKeys=new Map();
+    data.forEach(r=>{
+      const key=[r.Grado||'',r.Grupo||'',r.Alias||'',r.Modalidad||'',r.Campus||''].join('|||');
+      if(!groupKeys.has(key))groupKeys.set(key,{grado:r.Grado||'',grupo:r.Grupo||'',carrera:r.Alias||'',modalidad:r.Modalidad||'',campus:r.Campus||'',rows:[]});
+      groupKeys.get(key).rows.push(r);
+    });
+    const groups=[...groupKeys.values()].sort((a,b)=>{
+      const al=[a.carrera,a.grado,a.grupo].join();
+      const bl=[b.carrera,b.grado,b.grupo].join();
+      return al.localeCompare(bl);
+    });
+    tabState[tab].groups=groups;
+
+    const summaryEl=document.getElementById('groupSummary'+cap(tab));
+    let stbl='<div class="table-wrapper" style="max-height:50vh"><table><thead><tr>'+
+      '<th style="text-align:center;min-width:40px">Núm.</th>'+
+      '<th>Grupo</th>'+
+      '<th style="text-align:center">Total alumnos</th>'+
+      '<th style="text-align:center">Aprobados</th>'+
+      '<th style="text-align:center">Reprobados</th>'+
+      '<th style="text-align:center">% Reprobación</th>'+
+      '<th style="text-align:center">Aprovechamiento</th>'+
+      '</tr></thead><tbody>';
+    groups.forEach((g,i)=>{
+      const gs=computeStats(g.rows,col);
+      g._stats=gs;
+      const label=[g.grado,'Grupo '+g.grupo,g.carrera,g.modalidad,g.campus].filter(Boolean).join(' - ');
+      const pctCls=Number(gs.pctR)>=20?'fail':'pass';
+      const aprovCls=gs.aprov!=='N/A'&&parseFloat(gs.aprov)<7?'fail':'pass';
+      stbl+=`<tr style="cursor:pointer" onclick="showGroupDetail('${tab}',${i})" title="Clic para ver detalle">
+        <td style="text-align:center;color:var(--text2);font-size:11px">${i+1}</td>
+        <td><a href="#" onclick="showGroupDetail('${tab}',${i});return false" style="color:var(--accent2);text-decoration:none;font-weight:600;font-size:12px">${decodeHtml(label)}</a></td>
+        <td style="text-align:center;font-weight:600">${gs.students.length}</td>
+        <td style="text-align:center;color:var(--green-text);font-weight:600">${gs.students.length-gs.swf}</td>
+        <td style="text-align:center;color:var(--red-text);font-weight:600">${gs.swf}</td>
+        <td class="grade-cell ${pctCls}" style="text-align:center;font-weight:700">${gs.pctR}%</td>
+        <td class="grade-cell ${aprovCls}" style="text-align:center;font-weight:700">${gs.aprov}</td>
+      </tr>`;
+    });
+    stbl+='</tbody></table></div>';
+    summaryEl.innerHTML=stbl;
+    if(tabState[tab].selectedGroup!=null&&tabState[tab].groups[tabState[tab].selectedGroup]){
+      showGroupDetail(tab,tabState[tab].selectedGroup);
+    } else {
+      tableArea.innerHTML='';
+    }
+  }
+}
+
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+
+function showGroupDetail(tab,idx){
+  const g=tabState[tab].groups[idx];
+  if(!g)return;
+  tabState[tab].selectedGroup=idx;
+  const col=tabState[tab].col;
+  const gs=computeStats(g.rows,col);
+  const gMeta={grado:g.grado,grupo:g.grupo,carrera:g.carrera,modalidad:g.modalidad,campus:g.campus};
+  const label=[g.grado,'Grupo '+g.grupo,g.carrera,g.modalidad,g.campus].filter(Boolean).join(' - ');
+  let html=`<div class="group-separator"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>${gs.students.length} alumnos | Reprobados: ${gs.swf} (${gs.pctR}%) | Promedio: ${gs.aprov}</div>`;
+  html+=buildTableHTML(gs.materias,gs.profMap,gs.students,0,gMeta,col);
+  const tableArea=document.getElementById('tableArea'+cap(tab));
+  tableArea.innerHTML=html;
+  tableArea.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+let docentesData={};
+
+function renderDocentes(data,col){
+  const searchInput=document.getElementById('docenteSearch');
+  if(searchInput)searchInput.value='';
+  const statsEl=document.getElementById('statsDocentes');
+  const tableArea=document.getElementById('tableAreaDocentes');
+  statsEl.innerHTML='';
+
+  const profMap=new Map();
+  data.forEach(r=>{
+    if(!r.Profesor||!r.Materia)return;
+    const key=r.Profesor;
+    if(!profMap.has(key))profMap.set(key,{profesor:r.Profesor,materias:new Set(),records:[]});
+    const p=profMap.get(key);
+    p.materias.add(r.Materia);
+    p.records.push(r);
+  });
+
+  const docentes=[...profMap.values()].map(p=>{
+    const alumnosSet=new Set();
+    let sumCal=0,cntCal=0,aprob=0,reprob=0;
+    const alumnoMateriaGrades=new Map();
+    p.records.forEach(r=>{
+      const v=r[col];
+      if(v==null||v===''||isNaN(v))return;
+      const num=Number(v);
+      const key=r.Matricula+'|'+r.Materia;
+      if(!alumnoMateriaGrades.has(key)){
+        alumnoMateriaGrades.set(key,num);
+        alumnosSet.add(r.Matricula);
+        sumCal+=num;cntCal++;
+        if(num>=7)aprob++;else reprob++;
+      }
+    });
+    const alumnosReprobSet=new Set();
+    alumnoMateriaGrades.forEach((v,k)=>{if(v<7)alumnosReprobSet.add(k.split('|')[0])});
+    return{
+      profesor:p.profesor,
+      records:p.records,
+      materias:p.materias.size,
+      alumnos:alumnosSet.size,
+      aprov:cntCal>0?(sumCal/cntCal).toFixed(1):'N/A',
+      aprobados:aprob,
+      reprobados:reprob,
+      alumnosReprob:alumnosReprobSet.size,
+      pctReprob:alumnosSet.size>0?((alumnosReprobSet.size/alumnosSet.size)*100).toFixed(1):'0'
+    };
+  }).sort((a,b)=>Number(b.pctReprob)-Number(a.pctReprob));
+
+  docentesData={};
+  docentes.forEach((d,i)=>{docentesData['d'+i]=d});
+
+  if(!docentes.length){
+    tableArea.innerHTML='<div class="no-data"><h3>Sin datos</h3><p>No hay docentes con el filtro aplicado</p></div>';
+    return;
+  }
+
+  let html='<div class="table-wrapper"><table><thead><tr>'+
+    '<th style="text-align:center;min-width:40px">Núm.</th>'+
+    '<th>Docente</th>'+
+    '<th style="text-align:center">Materias</th>'+
+    '<th style="text-align:center">Alumnos atendidos</th>'+
+    '<th style="text-align:center">Aprovechamiento</th>'+
+    '<th style="text-align:center">Aprobados</th>'+
+    '<th style="text-align:center">Reprobados</th>'+
+    '<th style="text-align:center">% Reprobación</th>'+
+    '</tr></thead><tbody>';
+  docentes.forEach((d,i)=>{
+    const aprovCls=d.aprov!=='N/A'&&parseFloat(d.aprov)<7?'fail':'pass';
+    const pctCls=Number(d.pctReprob)>=20?'fail':'pass';
+    html+=`<tr>
+      <td style="text-align:center;color:var(--text2);font-size:11px">${i+1}</td>
+      <td class="name-cell"><a href="#" onclick="showDocenteDetail('d${i}');return false" style="color:var(--accent2);text-decoration:none;font-weight:600;cursor:pointer">${decodeHtml(d.profesor)}</a></td>
+      <td style="text-align:center">${d.materias}</td>
+      <td style="text-align:center;font-weight:600">${d.alumnos}</td>
+      <td class="grade-cell ${aprovCls}" style="text-align:center;font-weight:700">${d.aprov}</td>
+      <td style="text-align:center;color:var(--green-text);font-weight:600">${d.aprobados}</td>
+      <td style="text-align:center;color:var(--red-text);font-weight:600">${d.reprobados}</td>
+      <td class="grade-cell ${pctCls}" style="text-align:center;font-weight:700">${d.pctReprob}%</td>
+    </tr>`;
+  });
+  html+='</tbody></table></div>';
+  html+='<div id="docenteDetail" style="margin-top:20px"></div>';
+  tableArea.innerHTML=html;
+}
+
+function showDocenteDetail(key){
+  navGrupalRegistry=[];
+  const d=docentesData[key];
+  if(!d)return;
+  const col=tabState.docentes.col;
+  const groupMap=new Map();
+  d.records.forEach(r=>{
+    const gk=(r.Materia||'')+'|||'+(r.Grupo||'')+'|||'+(r.Grado||'')+'|||'+(r.Alias||'')+'|||'+(r.Modalidad||'')+'|||'+(r.Campus||'');
+    if(!groupMap.has(gk))groupMap.set(gk,{materia:r.Materia||'',grupo:r.Grupo||'',grado:r.Grado||'',carrera:r.Alias||'',modalidad:r.Modalidad||'',campus:r.Campus||'',rows:[]});
+    groupMap.get(gk).rows.push(r);
+  });
+  const groups=[...groupMap.values()].map(g=>{
+    const alumnos=new Set();let aprob=0,reprob=0,sum=0,cnt=0;
+    g.rows.forEach(r=>{
+      const v=r[col];
+      if(v==null||v===''||isNaN(v))return;
+      alumnos.add(r.Matricula);
+      const num=Number(v);
+      sum+=num;cnt++;
+      if(num>=7)aprob++;else reprob++;
+    });
+    const pct=alumnos.size>0?((reprob/alumnos.size)*100).toFixed(1):'0';
+    const aprov=cnt>0?(sum/cnt).toFixed(1):'N/A';
+    return{...g,alumnos:alumnos.size,aprob,reprob,pct,aprov};
+  }).sort((a,b)=>(a.materia+a.grupo).localeCompare(b.materia+b.grupo));
+
+  let html=`<div style="background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:12px 18px;font-size:14px;font-weight:700;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;gap:8px">
+    <span style="flex:1">Detalle por grupo: ${decodeHtml(d.profesor)}</span>
+    <button onclick="showDocenteEvolution('${key}')" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px" title="Ver evolución por parcial"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M3.5 18.5l6-6 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>Evolución</button>
+    <button onclick="closeDocenteDetail()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:16px;font-weight:700">×</button>
+  </div>`;
+  html+='<div class="table-wrapper" style="border-radius:0 0 8px 8px;margin-bottom:0"><table><thead><tr>'+
+    '<th>Materia</th>'+
+    '<th>Grupo</th>'+
+    '<th style="text-align:center">Alumnos atendidos</th>'+
+    '<th style="text-align:center">Aprobados</th>'+
+    '<th style="text-align:center">Reprobados</th>'+
+    '<th style="text-align:center">% Reprobación</th>'+
+    '<th style="text-align:center">Aprovechamiento</th>'+
+    '</tr></thead><tbody>';
+  groups.forEach((g,gi)=>{
+    const aprovCls=g.aprov!=='N/A'&&parseFloat(g.aprov)<7?'fail':'pass';
+    const pctCls=Number(g.pct)>=20?'fail':'pass';
+    const grupoLabel=[g.grado,'Grupo '+g.grupo,g.carrera,g.modalidad,g.campus].filter(Boolean).join(' - ');
+    const navIdx=navGrupalRegistry.length;
+    navGrupalRegistry.push({Alias:g.carrera,Campus:g.campus,Modalidad:g.modalidad,Grado:g.grado,Grupo:g.grupo});
+    html+=`<tr>
+      <td class="name-cell">${decodeHtml(g.materia)}</td>
+      <td><a href="#" onclick="navigateToGrupal(${navIdx});return false" style="font-size:11px;color:var(--accent2);text-decoration:none;cursor:pointer" title="Ver en pestaña Grupal">${decodeHtml(grupoLabel)}</a></td>
+      <td style="text-align:center;font-weight:600">${g.alumnos}</td>
+      <td style="text-align:center;color:var(--green-text);font-weight:600">${g.aprob}</td>
+      <td style="text-align:center;color:var(--red-text);font-weight:600">${g.reprob}</td>
+      <td class="grade-cell ${pctCls}" style="text-align:center;font-weight:700">${g.pct}%</td>
+      <td class="grade-cell ${aprovCls}" style="text-align:center;font-weight:700">${g.aprov}</td>
+    </tr>`;
+  });
+  html+='</tbody>';
+  let totAlumnos=0,totAprob=0,totReprob=0,sumPct=0,cntPct=0,sumAprov=0,cntAprov=0;
+  groups.forEach(g=>{
+    totAlumnos+=g.alumnos;
+    totAprob+=g.aprob;
+    totReprob+=g.reprob;
+    if(!isNaN(parseFloat(g.pct))){sumPct+=parseFloat(g.pct);cntPct++}
+    if(g.aprov!=='N/A'){sumAprov+=parseFloat(g.aprov);cntAprov++}
+  });
+  const avgPct=cntPct>0?(sumPct/cntPct).toFixed(1):'0';
+  const avgAprov=cntAprov>0?(sumAprov/cntAprov).toFixed(1):'N/A';
+  const totPctCls=Number(avgPct)>=20?'fail':'pass';
+  const totAprovCls=avgAprov!=='N/A'&&parseFloat(avgAprov)<7?'fail':'pass';
+  html+=`<tfoot><tr style="background:#f0f2f5;border-top:2px solid var(--accent)">
+    <td style="font-weight:700;padding:10px;color:var(--accent)">TOTALES</td>
+    <td></td>
+    <td style="text-align:center;font-weight:700;font-size:13px">${totAlumnos}</td>
+    <td style="text-align:center;color:var(--green-text);font-weight:700;font-size:13px">${totAprob}</td>
+    <td style="text-align:center;color:var(--red-text);font-weight:700;font-size:13px">${totReprob}</td>
+    <td class="grade-cell ${totPctCls}" style="text-align:center;font-weight:700;font-size:13px">${avgPct}%</td>
+    <td class="grade-cell ${totAprovCls}" style="text-align:center;font-weight:700;font-size:13px">${avgAprov}</td>
+  </tr></tfoot>`;
+  html+='</table></div>';
+  document.getElementById('docenteDetail').innerHTML=html;
+  document.getElementById('docenteDetail').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function closeDocenteDetail(){
+  const el=document.getElementById('docenteDetail');
+  if(el)el.innerHTML='';
+}
+
+let evoChartInstance=null;
+
+function showDocenteEvolution(key){
+  const d=docentesData[key];
+  if(!d)return;
+  document.getElementById('evoTitle').textContent='Evolución por parcial: '+decodeHtml(d.profesor);
+
+  const cols=['Cal_P1','Cal_EF','Cal_CF'];
+  const colNames=['1er Parcial','Parcial Final','Calificación Final'];
+  const groupMap=new Map();
+  d.records.forEach(r=>{
+    if(!r.Materia)return;
+    const gk=(r.Materia||'')+'|||'+(r.Grupo||'')+'|||'+(r.Grado||'')+'|||'+(r.Alias||'')+'|||'+(r.Modalidad||'')+'|||'+(r.Campus||'');
+    if(!groupMap.has(gk))groupMap.set(gk,{materia:r.Materia||'',grupo:r.Grupo||'',grado:r.Grado||'',carrera:r.Alias||'',modalidad:r.Modalidad||'',campus:r.Campus||'',rows:[]});
+    groupMap.get(gk).rows.push(r);
+  });
+
+  const rows=[];
+  groupMap.forEach(g=>{
+    const entry={materia:g.materia,grupo:[g.grado,'Grupo '+g.grupo,g.carrera,g.modalidad,g.campus].filter(Boolean).join(' - '),periods:[]};
+    cols.forEach(col=>{
+      const alumnos=new Set();let aprob=0,reprob=0,sum=0,cnt=0;
+      const seen=new Map();
+      g.rows.forEach(r=>{
+        const v=r[col];
+        if(v==null||v===''||isNaN(v))return;
+        const mk=r.Matricula+'|'+r.Materia;
+        if(!seen.has(mk)){
+          seen.set(mk,Number(v));
+          alumnos.add(r.Matricula);
+          const num=Number(v);sum+=num;cnt++;
+          if(num>=7)aprob++;else reprob++;
+        }
+      });
+      const pct=alumnos.size>0?((reprob/alumnos.size)*100).toFixed(1):'0';
+      const aprov=cnt>0?(sum/cnt).toFixed(1):'—';
+      entry.periods.push({alumnos:alumnos.size,aprob,reprob,pct,aprov});
+    });
+    rows.push(entry);
+  });
+  rows.sort((a,b)=>(a.materia+a.grupo).localeCompare(b.materia+b.grupo));
+
+  let tbl='<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr>'+
+    '<th rowspan="2" style="background:#1a1a2e;color:#fff;padding:8px;text-align:left;border:1px solid rgba(255,255,255,.2)">Materia</th>'+
+    '<th rowspan="2" style="background:#1a1a2e;color:#fff;padding:8px;text-align:left;border:1px solid rgba(255,255,255,.2)">Grupo</th>'+
+    '<th rowspan="2" style="background:#1a1a2e;color:#fff;padding:8px;text-align:center;border:1px solid rgba(255,255,255,.2)">Alumnos<br>atendidos</th>';
+  colNames.forEach(cn=>{
+    tbl+=`<th colspan="4" style="background:var(--accent2);color:#fff;padding:8px;text-align:center;border:1px solid rgba(255,255,255,.2)">${cn}</th>`;
+  });
+  tbl+='</tr><tr>';
+  for(let i=0;i<3;i++){
+    tbl+='<th style="background:#2d5f8a;color:#fff;padding:6px;text-align:center;border:1px solid rgba(255,255,255,.2);font-size:10px">Aprobados</th>';
+    tbl+='<th style="background:#2d5f8a;color:#fff;padding:6px;text-align:center;border:1px solid rgba(255,255,255,.2);font-size:10px">Reprobados</th>';
+    tbl+='<th style="background:#2d5f8a;color:#fff;padding:6px;text-align:center;border:1px solid rgba(255,255,255,.2);font-size:10px">% Reprob.</th>';
+    tbl+='<th style="background:#2d5f8a;color:#fff;padding:6px;text-align:center;border:1px solid rgba(255,255,255,.2);font-size:10px">Aprovech.</th>';
+  }
+  tbl+='</tr></thead><tbody>';
+
+  rows.forEach(r=>{
+    tbl+=`<tr><td style="padding:6px 8px;border:1px solid var(--border);font-weight:500">${decodeHtml(r.materia)}</td>`;
+    tbl+=`<td style="padding:6px 8px;border:1px solid var(--border);font-size:10px;color:var(--text2)">${decodeHtml(r.grupo)}</td>`;
+    tbl+=`<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;font-weight:600">${r.periods[0].alumnos}</td>`;
+    r.periods.forEach(p=>{
+      const aprovCls=p.aprov!=='—'&&parseFloat(p.aprov)<7?'color:var(--red-text)':'color:var(--green-text)';
+      const pctNum=parseFloat(p.pct);
+      const repCls=pctNum>=20?'color:var(--red-text);font-weight:700':'';
+      tbl+=`<td style="padding:6px;border:1px solid var(--border);text-align:center;color:var(--green-text);font-weight:600">${p.aprob}</td>`;
+      tbl+=`<td style="padding:6px;border:1px solid var(--border);text-align:center;color:var(--red-text);font-weight:600">${p.reprob}</td>`;
+      tbl+=`<td style="padding:6px;border:1px solid var(--border);text-align:center;font-weight:700;${repCls}">${p.pct}%</td>`;
+      tbl+=`<td style="padding:6px;border:1px solid var(--border);text-align:center;font-weight:700;${aprovCls}">${p.aprov}</td>`;
+    });
+    tbl+='</tr>';
+  });
+
+  const totPeriods=cols.map((col,ci)=>{
+    let tAprob=0,tReprob=0,tAlumnos=0;
+    rows.forEach(r=>{tAprob+=r.periods[ci].aprob;tReprob+=r.periods[ci].reprob;tAlumnos+=r.periods[ci].alumnos});
+    const sumAprov=rows.reduce((s,r)=>s+(r.periods[ci].aprov!=='—'?parseFloat(r.periods[ci].aprov):0),0);
+    const cntAprov=rows.filter(r=>r.periods[ci].aprov!=='—').length;
+    const avgAprov=cntAprov>0?(sumAprov/cntAprov).toFixed(1):'—';
+    const avgPct=(tAprob+tReprob)>0?((tReprob/(tAprob+tReprob))*100).toFixed(1):'0';
+    return{alumnos:tAlumnos,aprob:tAprob,reprob:tReprob,pct:avgPct,aprov:avgAprov};
+  });
+  tbl+='</tbody><tfoot><tr style="background:#f0f2f5;border-top:2px solid var(--accent)">';
+  tbl+='<td colspan="2" style="padding:8px;font-weight:700;color:var(--accent);border:1px solid var(--border)">TOTALES</td>';
+  tbl+=`<td style="padding:8px;border:1px solid var(--border);text-align:center;font-weight:700">${totPeriods[0].alumnos}</td>`;
+  totPeriods.forEach(tp=>{
+    const pctCls=parseFloat(tp.pct)>=20?'color:var(--red-text)':'';
+    const aprovCls=tp.aprov!=='—'&&parseFloat(tp.aprov)<7?'color:var(--red-text)':'color:var(--green-text)';
+    tbl+=`<td style="padding:8px;border:1px solid var(--border);text-align:center;color:var(--green-text);font-weight:700">${tp.aprob}</td>`;
+    tbl+=`<td style="padding:8px;border:1px solid var(--border);text-align:center;color:var(--red-text);font-weight:700">${tp.reprob}</td>`;
+    tbl+=`<td style="padding:8px;border:1px solid var(--border);text-align:center;font-weight:700;${pctCls}">${tp.pct}%</td>`;
+    tbl+=`<td style="padding:8px;border:1px solid var(--border);text-align:center;font-weight:700;${aprovCls}">${tp.aprov}</td>`;
+  });
+  tbl+='</tr></tfoot></table>';
+  document.getElementById('evoTableContent').innerHTML=tbl;
+
+  const globalPeriods=cols.map(col=>{
+    let sumAprov=0,cntAprov=0,totReprob=0,totAprob=0,totAlumnos=new Set();
+    d.records.forEach(r=>{
+      const v=r[col];
+      if(v==null||v===''||isNaN(v))return;
+      totAlumnos.add(r.Matricula);
+      const num=Number(v);
+      if(num>=7)totAprob++;else totReprob++;
+      sumAprov+=num;cntAprov++;
+    });
+    return{
+      pctReprob:cntAprov>0?((totReprob/cntAprov)*100):0,
+      aprov:cntAprov>0?(sumAprov/cntAprov):0
+    };
+  });
+
+  const repData=globalPeriods.map(p=>Math.round(p.pctReprob*10)/10);
+  const aprovData=globalPeriods.map(p=>Math.round(p.aprov*10)/10);
+
+  if(evoChartInstance){evoChartInstance.destroy();evoChartInstance=null}
+  document.getElementById('evoModal').classList.add('visible');
+  setTimeout(()=>{
+    const ctx=document.getElementById('evoChart').getContext('2d');
+    evoChartInstance=new Chart(ctx,{
+      type:'line',
+      data:{
+        labels:colNames,
+        datasets:[
+          {label:'% Reprobación',data:repData,borderColor:'#c0392b',backgroundColor:'rgba(192,57,43,0.1)',fill:true,tension:0.3,pointRadius:6,pointBackgroundColor:'#c0392b',yAxisID:'y'},
+          {label:'Aprovechamiento',data:aprovData,borderColor:'#27ae60',backgroundColor:'rgba(39,174,96,0.1)',fill:true,tension:0.3,pointRadius:6,pointBackgroundColor:'#27ae60',yAxisID:'y1'}
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{position:'top',labels:{font:{size:12},boxWidth:14}},
+          title:{display:true,text:'Evolución del rendimiento docente a lo largo de los parciales',font:{size:13,weight:'bold'}},
+          tooltip:{callbacks:{label:function(c){
+            const dsIdx=c.datasetIndex;
+            const i=c.dataIndex;
+            const val=c.parsed.y;
+            const suffix=dsIdx===0?'%':'';
+            let line=c.dataset.label+': '+val+suffix;
+            if(i>0){
+              const prev=c.dataset.data[i-1];
+              const delta=Math.round((val-prev)*10)/10;
+              if(dsIdx===0){
+                if(delta<0)line+='  ▼ '+Math.abs(delta)+'% (mejoró)';
+                else if(delta>0)line+='  ▲ +'+delta+'% (empeoró)';
+                else line+='  = sin cambio';
+              } else {
+                if(delta>0)line+='  ▲ +'+delta+' (mejoró)';
+                else if(delta<0)line+='  ▼ '+Math.abs(delta)+' (empeoró)';
+                else line+='  = sin cambio';
+              }
+            }
+            return line;
+          }}}
+        },
+        scales:{
+          y:{position:'left',title:{display:true,text:'% Reprobación',font:{size:11,weight:'bold'},color:'#c0392b'},beginAtZero:true,ticks:{color:'#c0392b',callback:v=>v+'%'}},
+          y1:{position:'right',title:{display:true,text:'Aprovechamiento',font:{size:11,weight:'bold'},color:'#27ae60'},min:0,max:10,grid:{drawOnChartArea:false},ticks:{color:'#27ae60'}}
+        }
+      }
+    });
+  },80);
+}
+
+function closeEvo(){
+  document.getElementById('evoModal').classList.remove('visible');
+  if(evoChartInstance){evoChartInstance.destroy();evoChartInstance=null}
+}
+
+let studentRadarInstance=null;
+let studentMateriaData=null;
+let studentRadarPeriod='p1';
+
+function switchRadarPeriod(btn,period){
+  document.querySelectorAll('.radar-period-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  studentRadarPeriod=period;
+  renderStudentRadar();
+}
+
+function switchStudentTab(t){
+  const gBtn=document.getElementById('stTabGeneral');
+  const aBtn=document.getElementById('stTabAnalisis');
+  const gDiv=document.getElementById('studentTabGeneral');
+  const aDiv=document.getElementById('studentTabAnalisis');
+  if(t==='general'){
+    gBtn.style.borderBottomColor='var(--accent)';gBtn.style.color='var(--accent)';
+    aBtn.style.borderBottomColor='transparent';aBtn.style.color='var(--text2)';
+    gDiv.style.display='';aDiv.style.display='none';
+  } else {
+    aBtn.style.borderBottomColor='var(--accent)';aBtn.style.color='var(--accent)';
+    gBtn.style.borderBottomColor='transparent';gBtn.style.color='var(--text2)';
+    gDiv.style.display='none';aDiv.style.display='';
+    renderStudentRadar();
+  }
+}
+
+function renderStudentRadar(){
+  if(!studentMateriaData||!studentMateriaData.length)return;
+  if(studentRadarInstance){studentRadarInstance.destroy();studentRadarInstance=null}
+  const d=studentMateriaData;
+  const periodLabels={p1:'Parcial 1',pf:'Parcial Final',cr:'Calif. Resultante'};
+  const labels=d.map(m=>decodeHtml(m.materia).length>25?decodeHtml(m.materia).substring(0,25)+'…':decodeHtml(m.materia));
+  const vals=d.map(m=>{
+    if(studentRadarPeriod==='p1')return m.p1;
+    if(studentRadarPeriod==='pf')return m.p2;
+    return m.cr;
+  });
+  const borderColors=vals.map(v=>v!==null&&v>=7?'#27ae60':'#e74c3c');
+  const thresholdData=d.map(()=>7);
+
+  const ctx=document.getElementById('studentRadarChart').getContext('2d');
+  studentRadarInstance=new Chart(ctx,{
+    type:'radar',
+    data:{
+      labels:labels,
+      datasets:[
+        {label:'Nivel de competencia requerido (7.0)',data:thresholdData,borderColor:'#27ae60',backgroundColor:'transparent',borderWidth:2.5,borderDash:[6,4],pointRadius:0,fill:false,order:1},
+        {label:periodLabels[studentRadarPeriod]||'Perfil del alumno',data:vals.map(v=>v!==null?v:0),borderColor:'#2d5f8a',backgroundColor:'rgba(45,95,138,0.2)',borderWidth:2,pointRadius:5,pointBackgroundColor:borderColors,pointBorderColor:borderColors,pointHoverRadius:8,fill:true,order:2}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom',labels:{font:{size:11},boxWidth:14,padding:16}},
+        title:{display:true,text:'Perfil de competencias — '+periodLabels[studentRadarPeriod],font:{size:14,weight:'bold'},padding:{bottom:12}},
+        tooltip:{callbacks:{label:function(c){
+          if(c.datasetIndex===0)return'Nivel requerido: 7.0';
+          const idx=c.dataIndex;
+          const m=studentMateriaData[idx];
+          const v=vals[idx];
+          const val=v!==null?v:'Sin calificación';
+          const status=v!==null&&v>=7?'✓ Competencia alcanzada':'⚠ Zona crítica';
+          return[decodeHtml(m.materia)+': '+val,status];
+        }}}
+      },
+      scales:{
+        r:{
+          min:0,max:10,
+          ticks:{stepSize:1,font:{size:9},backdropColor:'transparent',callback:v=>v.toFixed(1)},
+          pointLabels:{font:{size:10,weight:'600'},color:function(ctx){
+            const idx=ctx.index;
+            const v=vals[idx];
+            return v!==null&&v>=7?'#27ae60':'#c0392b';
+          },callback:function(label,idx){
+            const v=vals[idx];
+            return label+' ('+(v!==null?v:'—')+')';
+          }},
+          grid:{color:'rgba(0,0,0,0.08)'},
+          angleLines:{color:'rgba(0,0,0,0.08)'}
+        }
+      }
+    }
+  });
+}
+
+function showStudentDetail(matricula){
+  const studentRows=rawData.filter(r=>r.Matricula===matricula);
+  if(!studentRows.length)return;
+  const first=studentRows[0];
+  const tab=activeTab;
+  const col=tabState[tab]?tabState[tab].col:'Cal_P1';
+
+  const grupoKey=[first.Grado||'',first.Grupo||'',first.Alias||'',first.Modalidad||'',first.Campus||''].join('|||');
+  const grupoMaterias=new Set();
+  rawData.forEach(r=>{
+    const k=[r.Grado||'',r.Grupo||'',r.Alias||'',r.Modalidad||'',r.Campus||''].join('|||');
+    if(k===grupoKey&&r.Materia)grupoMaterias.add(r.Materia);
+  });
+
+  document.getElementById('studentModalTitle').textContent=decodeHtml((first.Paterno||'')+' '+(first.Materno||'')+' '+(first.Nombre||''));
+
+  const sx=first.Sexo==='Masculino'?'Hombre':first.Sexo==='Femenino'?'Mujer':(first.Sexo||'');
+  document.getElementById('studentModalInfo').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px 20px;background:var(--badge);padding:14px 18px;border-radius:8px;font-size:12px">
+      <div><strong>Matrícula:</strong> ${first.Matricula}</div>
+      <div><strong>CURP:</strong> ${first.CURP||'—'}</div>
+      <div><strong>Sexo:</strong> ${sx}</div>
+      <div><strong>Carrera:</strong> ${decodeHtml(first.Alias||first.Carrera||'')}</div>
+      <div><strong>Generación:</strong> ${decodeHtml(first.Generacion||'—')}</div>
+      <div><strong>Campus:</strong> ${decodeHtml(first.Campus||'')}</div>
+      <div><strong>Grado:</strong> ${decodeHtml(first.Grado||'—')}</div>
+      <div><strong>Grupo:</strong> ${decodeHtml(first.Grupo||'—')}</div>
+      <div><strong>Modalidad:</strong> ${decodeHtml(first.Modalidad||'—')}</div>
+    </div>`;
+
+  const materiaMap=new Map();
+  const recurMap=new Map();
+  studentRows.forEach(r=>{
+    if(!r.Materia)return;
+    const isRecur=!grupoMaterias.has(r.Materia);
+    const target=isRecur?recurMap:materiaMap;
+    if(!target.has(r.Materia)){
+      target.set(r.Materia,{
+        materia:r.Materia,
+        profesor:r.Profesor||'',
+        p1:null,p2:null,cf:null,ex1:null,ex2:null,es1:null,es2:null,
+        f1:null,f2:null,cr:null
+      });
+    }
+    const m=target.get(r.Materia);
+    const parse=v=>v!=null&&v!==''&&!isNaN(v)?Number(v):null;
+    m.p1=parse(r.Cal_P1);m.p2=parse(r.Cal_EF);m.cf=parse(r.Cal_CF);
+    m.ex1=parse(r.Cal_EX1);m.ex2=parse(r.Cal_EX2);
+    m.es1=parse(r.Cal_ES1);m.es2=parse(r.Cal_ES2);
+    m.f1=parse(r.Fal_P1);m.f2=parse(r.Fal_EF);
+  });
+
+  function computeCR(m){
+    if(m.cf!==null&&m.cf>=7)return m.cf;
+    let best=m.cf;
+    [m.ex1,m.ex2,m.es1,m.es2].forEach(v=>{if(v!==null&&v>=7&&(best===null||v>best))best=v});
+    if(best===null&&m.cf!==null)best=m.cf;
+    return best;
+  }
+  materiaMap.forEach(m=>{m.cr=computeCR(m)});
+  recurMap.forEach(m=>{m.cr=computeCR(m)});
+
+  studentMateriaData=[...materiaMap.values(),...recurMap.values()].filter(m=>!isEstadia(m.materia));
+
+  function gradeCell(v){
+    if(v===null)return '<td style="text-align:center;color:#bbb;font-size:12px">--</td>';
+    const c=v<7?'color:var(--red-text);font-weight:700':'color:var(--green-text);font-weight:600';
+    return `<td style="text-align:center;${c};font-size:12px">${v}</td>`;
+  }
+
+  function buildMateriaTable(map,title){
+    if(!map.size)return'';
+    const rows=[...map.values()].sort((a,b)=>a.materia.localeCompare(b.materia));
+    let html='';
+    if(title)html+=`<div style="margin:14px 0 6px;font-weight:700;font-size:13px;color:var(--accent)">${title}</div>`;
+    html+='<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr>'+
+      '<th style="text-align:left;padding:10px;background:var(--accent2);color:#fff;border-radius:6px 0 0 0">Materias</th>'+
+      '<th style="text-align:center;padding:10px;background:var(--accent2);color:#fff;min-width:42px">P1</th>'+
+      '<th style="text-align:center;padding:10px;background:var(--accent2);color:#fff;min-width:42px">PF</th>'+
+      '<th style="text-align:center;padding:10px;background:var(--accent2);color:#fff;min-width:42px">CF</th>'+
+      '<th style="text-align:center;padding:10px;background:#e67e22;color:#fff;min-width:42px">EX1</th>'+
+      '<th style="text-align:center;padding:10px;background:#e67e22;color:#fff;min-width:42px">EX2</th>'+
+      '<th style="text-align:center;padding:10px;background:#8e44ad;color:#fff;min-width:42px">ES1</th>'+
+      '<th style="text-align:center;padding:10px;background:#8e44ad;color:#fff;min-width:42px">ES2</th>'+
+      '<th style="text-align:center;padding:10px;background:var(--accent);color:#fff;min-width:42px">CR</th>'+
+      '<th style="text-align:center;padding:10px;background:var(--accent);color:#fff;min-width:42px">F1</th>'+
+      '<th style="text-align:center;padding:10px;background:var(--accent);color:#fff;border-radius:0 6px 0 0;min-width:42px">F2</th>'+
+      '</tr></thead><tbody>';
+    rows.forEach(m=>{
+      html+=`<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px 10px;font-weight:500">${decodeHtml(m.materia)}</td>
+        ${gradeCell(m.p1)}${gradeCell(m.p2)}${gradeCell(m.cf)}
+        ${gradeCell(m.ex1)}${gradeCell(m.ex2)}
+        ${gradeCell(m.es1)}${gradeCell(m.es2)}
+        ${gradeCell(m.cr)}
+        <td style="text-align:center;font-size:12px;${m.f1&&m.f1>0?'color:var(--red-text);font-weight:700':'color:var(--text2)'}">${m.f1!==null?m.f1:'0'}</td>
+        <td style="text-align:center;font-size:12px;${m.f2&&m.f2>0?'color:var(--red-text);font-weight:700':'color:var(--text2)'}">${m.f2!==null?m.f2:'0'}</td>
+      </tr>`;
+    });
+    html+='</tbody></table>';
+    return html;
+  }
+
+  let content=buildMateriaTable(materiaMap,'');
+  content+=buildMateriaTable(recurMap,'MATERIAS EN RECURSAMIENTO');
+
+  document.getElementById('studentTabGeneral').innerHTML=content;
+  if(studentRadarInstance){studentRadarInstance.destroy();studentRadarInstance=null}
+  studentRadarPeriod='p1';
+  document.querySelectorAll('.radar-period-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
+  switchStudentTab('general');
+  document.getElementById('studentModal').classList.add('visible');
+}
+
+function closeStudentModal(){
+  document.getElementById('studentModal').classList.remove('visible');
+  if(studentRadarInstance){studentRadarInstance.destroy();studentRadarInstance=null}
+}
+
+let navGrupalRegistry=[];
+
+function navigateToGrupal(idx){
+  const filters=navGrupalRegistry[idx];
+  if(!filters)return;
+  const ms=tabState.grupal.ms;
+  Object.keys(ms).forEach(key=>{
+    const val=filters[key];
+    if(val){
+      ms[key].selected=[val];
+    } else {
+      ms[key].selected=[];
+    }
+    ms[key].renderOptions();
+    ms[key].renderTags();
+  });
+  switchMainTab('grupal');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function filterDocenteRows(query){
+  const q=(query||'').toLowerCase().trim();
+  const area=document.getElementById('tableAreaDocentes');
+  if(!area)return;
+  const rows=area.querySelectorAll('tbody tr');
+  rows.forEach(r=>{
+    const cells=r.querySelectorAll('td');
+    if(cells.length<2)return;
+    const name=(cells[1].textContent||'').toLowerCase();
+    r.style.display=!q||name.includes(q)?'':'none';
+  });
+}
+
+function exportDocentesTable(){
+  const area=document.getElementById('tableAreaDocentes');
+  const t=area.querySelector('table');
+  if(!t)return;
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.table_to_sheet(t,{raw:true});
+  XLSX.utils.book_append_sheet(wb,ws,'Docentes');
+  XLSX.writeFile(wb,`Reporte_Docentes_${tabState.docentes.col}.xlsx`);
+}
+
+function switchMainTab(tab){
+  activeTab=tab;
+  const idx={grupal:0,generacional:1,docentes:2}[tab];
+  document.querySelectorAll('.main-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab'+cap(tab)).classList.add('active');
+  renderTab(tab);
+}
+
+function switchCol(btn,tab){
+  const selector=document.getElementById('colSwitch'+cap(tab));
+  if(selector)selector.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  tabState[tab].col=btn.dataset.col;
+  renderTab(tab);
+}
+
+const tipEl=document.getElementById('barTooltip');
+function showBarTip(e){tipEl.textContent=decodeHtml(e.currentTarget.dataset.tip);tipEl.style.display='block';moveBarTip(e)}
+function moveBarTip(e){tipEl.style.left=Math.min(e.clientX+12,window.innerWidth-tipEl.offsetWidth-16)+'px';tipEl.style.top=(e.clientY-tipEl.offsetHeight-10)+'px'}
+function hideBarTip(){tipEl.style.display='none'}
+
+function toggleReprobados(btn){
+  const table=btn.closest('div').nextElementSibling.querySelector('table');
+  if(!table)return;
+  const rows=table.querySelectorAll('tbody tr');
+  const active=btn.classList.toggle('active');
+  if(active){
+    btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>Todos los alumnos';
+    btn.style.background='var(--red-text)';btn.style.color='#fff';
+    rows.forEach(r=>{
+      const cells=r.querySelectorAll('td.grade-cell:not(.falta-col):not(.na)');
+      let hasReprob=false;
+      cells.forEach(c=>{
+        const v=parseFloat(c.textContent);
+        if(!isNaN(v)&&v<7)hasReprob=true;
+      });
+      r.style.display=hasReprob?'':'none';
+    });
+  } else {
+    btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>Solo reprobados';
+    btn.style.background='';btn.style.color='';
+    rows.forEach(r=>r.style.display='');
+  }
+}
+
+function toggleFaltas(btn){
+  const show=!btn.classList.contains('active');
+  btn.classList.toggle('active');
+  btn.innerHTML=show
+    ?'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46A11.8 11.8 0 001 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>Ocultar faltas'
+    :'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>Mostrar faltas';
+  const wrapper=btn.parentElement.nextElementSibling;
+  if(!wrapper)return;
+  wrapper.querySelectorAll('.falta-col').forEach(el=>{
+    el.style.display=show?'':'none';
+  });
+}
+
+function showProgress(pct,title,msg){
+  document.getElementById('progressOverlay').classList.add('visible');
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('progressPct').textContent=Math.round(pct)+'%';
+  if(title)document.getElementById('progressTitle').textContent=title;
+  if(msg)document.getElementById('progressMsg').textContent=msg;
+}
+function hideProgress(){document.getElementById('progressOverlay').classList.remove('visible')}
+
+const dropZone=document.getElementById('dropZone');
+dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('drag')});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('drag');if(e.dataTransfer.files.length)handleFile(e.dataTransfer.files[0])});
+document.getElementById('fileInput').addEventListener('change',e=>{if(e.target.files.length)handleFile(e.target.files[0])});
+
+const REQUIRED_COLUMNS=['Matricula','Paterno','Materno','Nombre','Sexo','Carrera','Alias','Generacion','Campus','Modalidad','Grado','Grupo','Materia','Profesor','Cal_P1','Fal_P1','Cal_EF','Fal_EF','Cal_CF'];
+
+function showError(title,msg,detail){
+  document.getElementById('errorTitle').textContent=title;
+  document.getElementById('errorMsg').textContent=msg;
+  const d=document.getElementById('errorDetail');
+  if(detail){d.textContent=detail;d.classList.remove('hidden')}
+  else{d.classList.add('hidden')}
+  document.getElementById('errorModal').classList.add('visible');
+  hideProgress();
+  document.getElementById('fileInput').value='';
+}
+function closeError(){document.getElementById('errorModal').classList.remove('visible')}
+
+let distChartInstance=null;
+const distRegistry={nextId:0};
+let currentDistData=null;
+let distHighlight=null;
+
+function highlightDistLine(key){
+  distHighlight=key;
+  if(distChartInstance)distChartInstance.update('none');
+  const summary=document.getElementById('distSummary');
+  if(!summary)return;
+  summary.querySelectorAll('[data-line]').forEach(el=>{
+    if(key===null){el.style.background='';el.style.textShadow=''}
+    else if(el.dataset.line===key){el.style.background='rgba(0,0,0,.06)';el.style.textShadow='0 0 6px currentColor'}
+    else{el.style.background='';el.style.textShadow='';el.style.opacity='0.3'}
+  });
+  if(key===null)summary.querySelectorAll('[data-line]').forEach(el=>{el.style.opacity=''});
+}
+
+function decodeHtml(s){
+  if(s==null)return'';
+  const str=String(s);
+  if(!str)return'';
+  const t=document.createElement('textarea');
+  t.innerHTML=str;
+  return t.value;
+}
+
+function showDistribution(distId){
+  const reg=distRegistry[distId];
+  if(!reg)return;
+  currentDistData=reg;
+  document.getElementById('distTitle').textContent=decodeHtml(reg.title);
+  const sel=document.getElementById('distMateriaSelect');
+  const matNames=Object.keys(reg.materias).sort();
+  currentDistData.matNames=matNames;
+  sel.innerHTML=matNames.map((m,i)=>{
+    const prof=decodeHtml(reg.profMap[m]||'');
+    const label=decodeHtml(m).replace(/</g,'&lt;').replace(/>/g,'&gt;')+(prof?' - '+prof.replace(/</g,'&lt;').replace(/>/g,'&gt;'):'');
+    return`<option value="${i}">${label}</option>`;
+  }).join('');
+  document.getElementById('distModal').classList.add('visible');
+  setTimeout(()=>updateDistChart(),50);
+}
+
+function updateDistChart(){
+  if(!currentDistData)return;
+  const sel=document.getElementById('distMateriaSelect');
+  const idx=parseInt(sel.value);
+  const materia=currentDistData.matNames[idx];
+  const grades=materia?currentDistData.materias[materia]:[];
+  if(!grades||!grades.length){
+    document.getElementById('distSummary').textContent='Sin datos';
+    if(distChartInstance){distChartInstance.destroy();distChartInstance=null}
+    return;
+  }
+  const n=grades.length;
+  const mean=grades.reduce((a,b)=>a+b,0)/n;
+  const variance=grades.reduce((a,b)=>a+Math.pow(b-mean,2),0)/n;
+  const sd=Math.sqrt(variance);
+  const min=Math.min(...grades),max=Math.max(...grades);
+  const sortedGrades=[...grades].sort((a,b)=>a-b);
+  const median=n%2===0?(sortedGrades[n/2-1]+sortedGrades[n/2])/2:sortedGrades[Math.floor(n/2)];
+  const freq={};
+  grades.forEach(v=>{const k=v.toFixed(1);freq[k]=(freq[k]||0)+1});
+  let maxFreq=0,modeVal=null;
+  Object.keys(freq).forEach(k=>{if(freq[k]>maxFreq){maxFreq=freq[k];modeVal=parseFloat(k)}});
+  const bins=10;
+  const binSize=1;
+  const hist=new Array(bins+1).fill(0);
+  grades.forEach(v=>{
+    let idx=Math.floor(v);
+    if(idx>bins)idx=bins;
+    if(idx<0)idx=0;
+    hist[idx]++;
+  });
+  hist[bins-1]+=hist[bins];
+  const histFinal=hist.slice(0,bins);
+  const density=histFinal.map(c=>c/n);
+  const labels=[];
+  for(let i=0;i<bins;i++)labels.push(i+0.5);
+  const curveX=[],curveY=[];
+  const steps=100;
+  for(let i=0;i<=steps;i++){
+    const x=i*(10/steps);
+    const y=sd>0?(1/(sd*Math.sqrt(2*Math.PI)))*Math.exp(-0.5*Math.pow((x-mean)/sd,2)):0;
+    curveX.push(x);curveY.push(y);
+  }
+  const cAprob='#27ae60',cMean='#2980b9',cMed='#8e44ad',cMode='#e67e22';
+  const hoverStyle='cursor:pointer;padding:2px 6px;border-radius:4px;transition:background .15s';
+  document.getElementById('distSummary').innerHTML=
+    `<div style="display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:center">`+
+    `<span><strong>n = ${n}</strong></span>`+
+    `<span data-line="aprob" style="color:${cAprob};font-weight:700;${hoverStyle}" onmouseenter="highlightDistLine('aprob')" onmouseleave="highlightDistLine(null)">Aprobatorio: 7</span>`+
+    `<span data-line="mean" style="color:${cMean};font-weight:700;${hoverStyle}" onmouseenter="highlightDistLine('mean')" onmouseleave="highlightDistLine(null)">Media: ${mean.toFixed(2)}</span>`+
+    `<span data-line="median" style="color:${cMed};font-weight:700;${hoverStyle}" onmouseenter="highlightDistLine('median')" onmouseleave="highlightDistLine(null)">Mediana: ${median.toFixed(2)}</span>`+
+    `<span data-line="mode" style="color:${cMode};font-weight:700;${hoverStyle}" onmouseenter="highlightDistLine('mode')" onmouseleave="highlightDistLine(null)">Moda: ${modeVal!==null?modeVal.toFixed(1):'—'}</span>`+
+    `<span><strong>σ = ${sd.toFixed(2)}</strong></span>`+
+    `</div>`;
+
+  const gaussAt=function(xv){
+    return sd>0?(1/(sd*Math.sqrt(2*Math.PI)))*Math.exp(-0.5*Math.pow((xv-mean)/sd,2)):0;
+  };
+
+  const refLinesPlugin={
+    id:'refLines',
+    afterDatasetsDraw(chart){
+      const{ctx,chartArea:{top,bottom},scales:{x,y}}=chart;
+      const hl=distHighlight;
+      const lines=[
+        {val:7,color:cAprob,full:true,key:'aprob'},
+        {val:mean,color:cMean,full:false,key:'mean'},
+        {val:median,color:cMed,full:false,key:'median'}
+      ];
+      if(modeVal!==null)lines.push({val:modeVal,color:cMode,full:false,key:'mode'});
+      ctx.save();
+      lines.forEach(ln=>{
+        const px=x.getPixelForValue(ln.val);
+        if(px<x.left||px>x.right)return;
+        let lineTop=top;
+        if(!ln.full){
+          const gY=gaussAt(ln.val);
+          lineTop=y.getPixelForValue(gY);
+          if(lineTop<top)lineTop=top;
+        }
+        const isHl=hl===ln.key;
+        const isDimmed=hl!==null&&!isHl;
+        ctx.setLineDash([6,4]);
+        ctx.lineWidth=isHl?4:2;
+        ctx.strokeStyle=ln.color;
+        ctx.globalAlpha=isDimmed?0.15:1;
+        ctx.beginPath();
+        ctx.moveTo(px,lineTop);
+        ctx.lineTo(px,bottom);
+        ctx.stroke();
+        if(isHl){
+          ctx.setLineDash([]);
+          ctx.globalAlpha=0.12;
+          ctx.fillStyle=ln.color;
+          ctx.fillRect(px-12,lineTop,24,bottom-lineTop);
+          ctx.globalAlpha=1;
+        }
+      });
+      ctx.setLineDash([]);
+      ctx.globalAlpha=1;
+      ctx.restore();
+    }
+  };
+
+  if(distChartInstance){distChartInstance.destroy();distChartInstance=null}
+  const ctx=document.getElementById('distChart').getContext('2d');
+  distChartInstance=new Chart(ctx,{
+    data:{
+      datasets:[
+        {type:'bar',label:'Densidad de calificaciones',data:density.map((d,i)=>({x:i+0.5,y:d})),backgroundColor:'rgba(135,206,250,0.55)',borderColor:'rgba(70,130,180,0.8)',borderWidth:1,barPercentage:0.95,categoryPercentage:1.0,order:2},
+        {type:'line',label:`Distribución gaussiana (μ=${mean.toFixed(2)}, σ=${sd.toFixed(2)})`,data:curveX.map((x,i)=>({x:x,y:curveY[i]})),borderColor:'#c0392b',backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:0.4,order:1}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'top',labels:{font:{size:11},boxWidth:14}},
+        title:{display:true,text:'Distribución de calificaciones vs. curva de Gauss',font:{size:13,weight:'bold'}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(3)}}
+      },
+      scales:{
+        x:{title:{display:true,text:'Calificación',font:{size:11,weight:'bold'}},type:'linear',min:0,max:10,ticks:{stepSize:1,callback:v=>Math.round(v).toString()}},
+        y:{title:{display:true,text:'Densidad de probabilidad',font:{size:11,weight:'bold'}},beginAtZero:true}
+      }
+    },
+    plugins:[refLinesPlugin]
+  });
+}
+
+function closeDist(){
+  document.getElementById('distModal').classList.remove('visible');
+  if(distChartInstance){distChartInstance.destroy();distChartInstance=null}
+  currentDistData=null;
+}
+
+function showHeatmap(){
+  const docentes=Object.values(docentesData);
+  if(!docentes.length){
+    showError('Sin datos','Primero selecciona los filtros para generar la tabla de docentes.');
+    return;
+  }
+  const sorted=[...docentes].sort((a,b)=>Number(b.pctReprob)-Number(a.pctReprob));
+
+  const aprovValues=sorted.map(d=>d.aprov!=='N/A'?parseFloat(d.aprov):null).filter(v=>v!==null);
+  const aprobValues=sorted.map(d=>d.aprobados);
+  const reprobValues=sorted.map(d=>d.reprobados);
+  const pctValues=sorted.map(d=>parseFloat(d.pctReprob));
+
+  function colorAprov(v){
+    if(v===null)return '#eee';
+    if(v>=9)return '#3aa055';
+    if(v>=7)return '#cfe797';
+    if(v>=6)return '#fbe488';
+    if(v>=5)return '#f4a85a';
+    return '#a31a1a';
+  }
+  function colorPct(v){
+    if(v>=20)return '#a31a1a';
+    if(v>=15)return '#f4a85a';
+    if(v>=10)return '#fbe488';
+    if(v>=5)return '#cfe797';
+    return '#3aa055';
+  }
+  function textColor(bg){
+    const dark=['#3aa055','#a31a1a','#f4a85a'];
+    return dark.includes(bg)?'#fff':'#1a1a2e';
+  }
+
+  let html='<div id="heatmapTable"><table style="width:100%;border-collapse:separate;border-spacing:2px;font-size:11px;background:#fff"><thead><tr>'+
+    '<th style="text-align:right;padding:6px 10px;font-weight:600;color:#555;background:#fff;border:none"></th>'+
+    '<th style="text-align:center;padding:8px 10px;font-weight:600;color:#1a1a2e;background:#fff;border:none">Aprovechamiento</th>'+
+    '<th style="text-align:center;padding:8px 10px;font-weight:600;color:#1a1a2e;background:#fff;border:none">Aprobados</th>'+
+    '<th style="text-align:center;padding:8px 10px;font-weight:600;color:#1a1a2e;background:#fff;border:none">Reprobados</th>'+
+    '<th style="text-align:center;padding:8px 10px;font-weight:600;color:#1a1a2e;background:#fff;border:none">% Reprobación</th>'+
+    '</tr></thead><tbody>';
+  sorted.forEach(d=>{
+    const av=d.aprov!=='N/A'?parseFloat(d.aprov):null;
+    const cAprov=colorAprov(av);
+    const cPct=colorPct(parseFloat(d.pctReprob));
+    html+=`<tr>
+      <td style="text-align:right;padding:6px 10px;font-size:11px;color:#1a1a2e;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis" title="${decodeHtml(d.profesor)}">${decodeHtml(d.profesor)}</td>
+      <td style="background:${cAprov};color:${textColor(cAprov)};text-align:center;padding:10px;font-weight:600;border-radius:4px">${d.aprov}</td>
+      <td style="background:${cPct};color:${textColor(cPct)};text-align:center;padding:10px;font-weight:600;border-radius:4px">${d.aprobados}</td>
+      <td style="background:${cPct};color:${textColor(cPct)};text-align:center;padding:10px;font-weight:600;border-radius:4px">${d.reprobados}</td>
+      <td style="background:${cPct};color:${textColor(cPct)};text-align:center;padding:10px;font-weight:600;border-radius:4px">${d.pctReprob}</td>
+    </tr>`;
+  });
+  html+='</tbody></table></div>';
+  document.getElementById('heatContent').innerHTML=html;
+  document.getElementById('heatModal').classList.add('visible');
+}
+
+function downloadHeatmap(){
+  const el=document.getElementById('heatmapTable');
+  if(!el)return;
+  html2canvas(el,{backgroundColor:'#ffffff',scale:2}).then(c=>{
+    const a=document.createElement('a');
+    a.download='Mapa_calor_docentes.png';
+    a.href=c.toDataURL('image/png');
+    a.click();
+  });
+}
+
+function closeHeat(){
+  document.getElementById('heatModal').classList.remove('visible');
+}
+
+function handleFile(file){
+  const name=file.name||'';
+  const ext=name.split('.').pop().toLowerCase();
+  if(ext!=='xlsx'&&ext!=='xls'){
+    showError('Formato de archivo no válido','El archivo seleccionado no tiene la extensión correcta. Por favor carga un archivo con extensión .xlsx o .xls',`Archivo: ${name}`);
+    return;
+  }
+  showProgress(0,'Cargando archivo...','Leyendo datos del archivo Excel');
+  const reader=new FileReader();
+  reader.onprogress=function(e){if(e.lengthComputable)showProgress(Math.round(e.loaded/e.total*30),'Leyendo archivo...',`${(e.loaded/1024/1024).toFixed(1)} MB de ${(e.total/1024/1024).toFixed(1)} MB`)};
+  reader.onerror=function(){showError('Error de lectura','No se pudo leer el archivo seleccionado. Verifica que el archivo no esté dañado.')};
+  reader.onload=function(e){
+    showProgress(35,'Procesando...','Interpretando estructura del archivo');
+    setTimeout(()=>{
+      let wb;
+      try{wb=XLSX.read(e.target.result,{type:'array',cellDates:true})}
+      catch(err){showError('Archivo dañado o inválido','No se pudo interpretar el archivo como un libro de Excel válido. Verifica que el archivo esté en formato .xlsx y no esté corrupto.',err.message);return}
+      if(!wb.SheetNames||!wb.SheetNames.length){showError('Archivo vacío','El archivo no contiene hojas de cálculo.');return}
+      showProgress(55,'Procesando...','Extrayendo datos de las hojas');
+      setTimeout(()=>{
+        let parsed;
+        try{parsed=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:null})}
+        catch(err){showError('Error al procesar datos','No se pudieron extraer los datos de la primera hoja.',err.message);return}
+        if(!parsed.length){showError('Archivo sin datos','El archivo no contiene registros en la primera hoja.');return}
+        const firstRow=parsed[0];
+        const availableCols=Object.keys(firstRow);
+        const missingCols=REQUIRED_COLUMNS.filter(c=>!availableCols.includes(c));
+        if(missingCols.length>0){
+          showError('Estructura de archivo inválida','El archivo no cumple con la estructura esperada del reporte de Control Escolar. Faltan columnas obligatorias. Por favor verifica que estés cargando el archivo correcto.',`Columnas faltantes: ${missingCols.join(', ')}`);
+          return;
+        }
+        rawData=parsed;
+        showProgress(75,'Preparando datos...',`${rawData.length.toLocaleString()} registros encontrados`);
+        setTimeout(()=>{
+          buildFilters('grupal',['Alias','Campus','Modalidad','Grado','Grupo'],document.getElementById('filtersGrupal'));
+          buildFilters('generacional',['Generacion','Alias','Campus','Modalidad','Grado'],document.getElementById('filtersGeneracional'));
+          buildFilters('docentes',['Alias','Campus','Modalidad','Grado','Grupo'],document.getElementById('filtersDocentes'));
+          populateTabFilters('grupal');populateTabFilters('generacional');populateTabFilters('docentes');
+          showProgress(90,'Preparando interfaz...','Configurando filtros y controles');
+          setTimeout(()=>{
+            document.getElementById('fileName').textContent=`Archivo cargado: ${file.name} — ${rawData.length.toLocaleString()} registros`;
+            document.getElementById('fileInfo').classList.remove('hidden');
+            document.getElementById('uploadSection').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            showProgress(100,'¡Listo!','Selecciona los filtros para ver datos');
+            setTimeout(hideProgress,600);
+          },80);
+        },80);
+      },80);
+    },80);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function exportTab(tab){
+  const area=document.getElementById('tableArea'+cap(tab));
+  const tables=area.querySelectorAll('table');
+  if(!tables.length)return;
+  const wb=XLSX.utils.book_new();
+  tables.forEach((t,i)=>{
+    const ws=XLSX.utils.table_to_sheet(t,{raw:true});
+    const ths=t.querySelectorAll('thead tr th');
+    ths.forEach((th,c)=>{
+      const addr=XLSX.utils.encode_cell({r:0,c:c});
+      const exp=th.getAttribute('data-export');
+      if(exp&&ws[addr]){
+        ws[addr].v=exp;
+      }
+    });
+    const headerDiv=t.closest('.table-wrapper')?.previousElementSibling;
+    let sheetName=tab==='generacional'?`Grupo_${i+1}`:'Calificaciones';
+    if(headerDiv&&headerDiv.textContent&&headerDiv.style.background){
+      sheetName=headerDiv.textContent.trim().substring(0,31);
+    }
+    XLSX.utils.book_append_sheet(wb,ws,sheetName.substring(0,31));
+  });
+  XLSX.writeFile(wb,`Reporte_${cap(tab)}_${tabState[tab].col}.xlsx`);
+}
+
+function exportChartImg(tab){
+  const chart=tabState[tab].chart;
+  if(!chart)return;
+  const canvas=chart.canvas;
+  const tmp=document.createElement('canvas');
+  tmp.width=canvas.width;tmp.height=canvas.height;
+  const ctx=tmp.getContext('2d');
+  ctx.fillStyle='#ffffff';
+  ctx.fillRect(0,0,tmp.width,tmp.height);
+  ctx.drawImage(canvas,0,0);
+  const a=document.createElement('a');
+  a.download='Diagnostico_aprendizaje_'+tab+'.png';
+  a.href=tmp.toDataURL('image/png');
+  a.click();
+}
+
+function exportBarsImg(containerId){
+  const el=document.getElementById(containerId);
+  if(!el)return;
+  html2canvas(el,{backgroundColor:'#ffffff',scale:2}).then(c=>{
+    const a=document.createElement('a');
+    a.download='Materias_reprobados_'+containerId+'.png';
+    a.href=c.toDataURL('image/png');
+    a.click();
+  });
+}
+</script>
+<script>
+(function(){
+  const iconSvg=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%231a1a2e'/><path d='M256 120L100 200l60 33v110L256 400l96-57V233l24-13v130h28V200L256 120zm103 80L256 253 153 200l103-53 103 53zM336 318l-80 47-80-47V253l80 47 80-47v65z' fill='%23fff'/></svg>`;
+  const iconUrl='data:image/svg+xml,'+encodeURIComponent(iconSvg.replace(/%23/g,'#'));
+
+  function createIcon(size){
+    return new Promise(res=>{
+      const c=document.createElement('canvas');c.width=size;c.height=size;
+      const ctx=c.getContext('2d');const img=new Image();
+      img.onload=()=>{ctx.drawImage(img,0,0,size,size);res(c.toDataURL('image/png'))};
+      img.src=iconUrl;
+    });
+  }
+
+  async function initPWA(){
+    const icon192=await createIcon(192);
+    const icon512=await createIcon(512);
+    const manifest={
+      name:'Dashboard Control de Calificaciones',
+      short_name:'Control Calif.',
+      description:'Dashboard de seguimiento académico',
+      start_url:location.href,
+      display:'standalone',
+      background_color:'#f0f2f5',
+      theme_color:'#1a1a2e',
+      orientation:'any',
+      icons:[
+        {src:icon192,sizes:'192x192',type:'image/png'},
+        {src:icon512,sizes:'512x512',type:'image/png',purpose:'any maskable'}
+      ]
+    };
+    const manifestBlob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+    const manifestUrl=URL.createObjectURL(manifestBlob);
+    const link=document.createElement('link');
+    link.rel='manifest';link.href=manifestUrl;
+    document.head.appendChild(link);
+
+    if('serviceWorker' in navigator){
+      const swCode=`
+        const CACHE='calif-dash-v1';
+        const URLS_TO_CACHE=[
+          'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+          'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js',
+          'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+        ];
+        self.addEventListener('install',e=>{
+          e.waitUntil(caches.open(CACHE).then(c=>{
+            return Promise.all([
+              c.add(self.location.href.replace(/\\/sw\\.js.*$/,'')),
+              ...URLS_TO_CACHE.map(u=>c.add(u).catch(()=>{}))
+            ]);
+          }));
+          self.skipWaiting();
+        });
+        self.addEventListener('activate',e=>{
+          e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
+          self.clients.claim();
+        });
+        self.addEventListener('fetch',e=>{
+          e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(resp=>{
+            if(resp.ok&&resp.type==='basic'){
+              const cl=resp.clone();
+              caches.open(CACHE).then(c=>c.put(e.request,cl));
+            }
+            return resp;
+          }).catch(()=>caches.match(self.location.href.replace(/\\/sw\\.js.*$/,'')))));
+        });
+      `;
+      const swBlob=new Blob([swCode],{type:'application/javascript'});
+      const swUrl=URL.createObjectURL(swBlob);
+      try{await navigator.serviceWorker.register(swUrl,{scope:location.pathname})}catch(e){}
+    }
+  }
+  initPWA();
+})();
+</script>
+</body>
+</html>
