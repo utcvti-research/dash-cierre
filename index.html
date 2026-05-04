@@ -3469,7 +3469,11 @@ function exportarMaterias(v, notes, periodo) {
       else estado = 'INCOMPLETO';
       row.push(estado);
       const nk = getNoteKey(d.nombre, m.grupo, m.nombre);
-      row.push(notes[nk] || '');
+      const docNotesMat = DOCUMENTOS_MATERIA
+        .map(doc => { const t = notes[getNoteKeyDoc(d.nombre, m.grupo, m.nombre, doc.id)]; return t ? `${doc.titulo}: ${t}` : ''; })
+        .filter(Boolean);
+      const allNotesMat = [notes[nk] || '', ...docNotesMat].filter(Boolean).join('\n');
+      row.push(allNotesMat);
       rows.push(row);
     });
   });
@@ -3510,7 +3514,11 @@ function exportarEstadias(v, notes, periodo) {
       else estado = 'INCOMPLETO';
       row.push(estado);
       const nk = getNoteKeyEstadia(d.nombre, a.matricula, a.nombre);
-      row.push(notes[nk] || '');
+      const docNotesEst = DOCUMENTOS_ESTADIA
+        .map(doc => { const t = notes[getNoteKeyDocEstadia(d.nombre, a.matricula, a.nombre, doc.id)]; return t ? `${doc.titulo}: ${t}` : ''; })
+        .filter(Boolean);
+      const allNotesEst = [notes[nk] || '', ...docNotesEst].filter(Boolean).join('\n');
+      row.push(allNotesEst);
       rows.push(row);
     });
   });
