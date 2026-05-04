@@ -3434,12 +3434,13 @@ function exportarExcel() {
 
 function exportarMaterias(v, notes, periodo) {
   const BOM = '\uFEFF';
-  const headers = ['Docente', 'Grupo', 'Carrera', 'Materia', ...DOCUMENTOS_MATERIA.map(d => d.titulo), 'Completitud', 'Validación', 'Observaciones'];
+  const headers = ['Docente', 'Carpeta', ...DOCUMENTOS_MATERIA.map(d => d.titulo), 'Completitud', 'Validación', 'Observaciones'];
   const rows = [headers];
 
   STATE.docentes.forEach(d => {
     (d.materias || []).forEach(m => {
-      const row = [d.nombre, m.grupo, m.carrera || '', m.nombre];
+      const carpeta = [m.grupo, m.carrera || '', m.nombre].filter(Boolean).join(' - ');
+      const row = [d.nombre, carpeta];
       let existen = 0, validados = 0;
       DOCUMENTOS_MATERIA.forEach(doc => {
         const f = m.archivos.find(x => x.id === doc.id);
