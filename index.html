@@ -34,7 +34,7 @@
   --purple:#6c3483;
 }
 html, body { height: 100%; }
-body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-text-size-adjust:100%}
 
 /* === BARRA SUPERIOR DE NAVEGACIÓN ENTRE APPS === */
 .app-switcher{
@@ -47,6 +47,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   position:sticky;
   top:0;
   z-index:200;
+  min-width:0;
 }
 .app-switcher-brand{
   padding:14px 20px;
@@ -57,7 +58,10 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   font-size:13px;
   letter-spacing:.3px;
   border-right:1px solid rgba(255,255,255,.1);
+  min-width:0;
+  flex-shrink:1;
 }
+.app-switcher-brand span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .app-switcher-brand svg{width:22px;height:22px;fill:#fff;flex-shrink:0}
 .app-switcher-tabs{
   display:flex;
@@ -202,7 +206,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 }
 
 /* Wrappers de cada app: ocultos por defecto */
-.app-calif, .app-validador { display: none; }
+.app-calif, .app-validador { display: none; max-width:100%; }
 .app-calif.active, .app-validador.active { display: block; }
 
 /* MOBILE: hamburguesa */
@@ -247,7 +251,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 }
 @media(max-width:480px){.app-calif .header{padding:10px 12px}.app-calif .header h1{font-size:14px}.app-calif .header p{font-size:10px}.app-calif .container{padding:8px 6px}.app-calif .main-tab{padding:8px 10px;font-size:11px}.app-calif .filters{grid-template-columns:1fr;gap:6px;padding:10px 12px}.app-calif .stats-row{grid-template-columns:1fr;gap:6px}.app-calif .stat-card{padding:10px 14px}.app-calif .stat-card .value{font-size:16px}.app-calif .toolbar{flex-direction:column;align-items:stretch}.app-calif .radio-group{width:100%}.app-calif .radio-group button{flex:1;text-align:center;padding:8px 6px;font-size:10px}.app-calif .export-btn{width:100%;justify-content:center}.app-calif #docenteSearch{width:100%!important}.app-calif .analysis-header{padding:10px 14px;font-size:12px}.app-calif .upload-zone{padding:20px 12px}.app-calif .upload-zone svg{width:36px;height:36px}.app-calif .group-separator{font-size:10px;padding:7px 10px}.app-calif .faltas-toggle-btn{font-size:10px;padding:4px 8px}.app-calif .img-export-btn{font-size:9px;padding:2px 6px}.app-calif .bar-tooltip{max-width:260px;font-size:11px}.app-calif .error-box{max-width:100%}.app-calif .dist-chart-wrap{height:260px!important}.app-calif .error-modal{padding:8px}
 }
-@media(max-width:768px){.app-calif .error-box{max-height:88vh;padding:16px 14px!important}.app-calif .student-info-grid{grid-template-columns:repeat(2,1fr);gap:6px 10px;padding:10px 12px;font-size:11px}.app-calif .student-radar-wrap{flex-direction:column}.app-calif .student-radar-chart{height:280px;width:100%}.app-calif .student-radar-panel{flex-direction:row;flex-wrap:wrap;min-width:auto;gap:4px}.app-calif .student-radar-panel .radar-period-btn{flex:1;text-align:center;padding:8px 10px}.app-calif #evoTableContent{overflow-x:auto}.app-calif #heatContent{overflow-x:auto}
+@media(max-width:768px){.app-calif .error-box{max-height:88vh;max-width:100%!important;width:100%;box-sizing:border-box;padding:16px 14px!important}.app-calif .student-info-grid{grid-template-columns:repeat(2,1fr);gap:6px 10px;padding:10px 12px;font-size:11px}.app-calif .student-radar-wrap{flex-direction:column}.app-calif .student-radar-chart{height:280px;width:100%}.app-calif .student-radar-panel{flex-direction:row;flex-wrap:wrap;min-width:auto;gap:4px}.app-calif .student-radar-panel .radar-period-btn{flex:1;text-align:center;padding:8px 10px}.app-calif #evoTableContent{overflow-x:auto}.app-calif #heatContent{overflow-x:auto}
 }
 @media(max-width:480px){.app-calif .error-box{padding:12px 10px!important;max-height:85vh}.app-calif .error-modal{align-items:flex-start;padding-top:16px}.app-calif .student-info-grid{grid-template-columns:1fr;font-size:11px;padding:8px 10px}.app-calif .student-radar-chart{height:240px}
 }
@@ -292,33 +296,44 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .install-banner{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;display:none;align-items:center;gap:12px;z-index:100;box-shadow:0 4px 16px rgba(0,0,0,.15);border:1px solid var(--border)}.app-validador .install-banner.show{display:flex}.app-validador .install-banner .btn-install{background:var(--accent);color:#fff;border:none;padding:5px 12px;border-radius:5px;font-size:11px;font-weight:700;text-transform:uppercase;cursor:pointer;font-family:inherit}.app-validador .install-banner .btn-install:hover{background:var(--accent2)}.app-validador .install-banner .btn-dismiss{background:none;border:none;color:var(--text2);font-size:18px;width:22px;height:22px;cursor:pointer;display:flex;align-items:center;justify-content:center}.app-validador .hidden{display:none}.app-validador .fade-in{animation:fadeIn .25s ease}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}.app-validador /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
-  .header{padding:14px 16px;gap:10px}
-  .header h1{font-size:16px}
-  .header svg.logo{width:28px;height:28px}
-  .header p{font-size:10px}
-  .header-actions .header-btn span{display:none}
-  .container{padding:12px 10px}
-  .filters{grid-template-columns:1fr;padding:12px 14px;gap:8px}
-  .stats-row{grid-template-columns:1fr 1fr;gap:8px}
-  .stat-card .value{font-size:18px}
-  .toolbar{gap:8px}
-  .radio-group{width:100%;overflow-x:auto;flex-shrink:0}
-  .radio-group button{padding:7px 10px;font-size:11px;flex:1;white-space:nowrap}
-  .docente-header{grid-template-columns:auto 1fr auto;gap:10px;padding:12px 14px}
-  .docente-count,.progress-wrap{display:none}
-  .docente-body{padding:0 14px 12px}
-  .materia{grid-template-columns:1fr auto;padding:10px 12px}
-  .materia-code{grid-column:1 / -1;justify-self:start;margin-bottom:2px}
-  .dots{display:none}
-  .detail-header{padding:18px 20px}
-  .detail-title{font-size:18px}
-  .document{padding:12px 14px;gap:10px}
-  .doc-num{width:34px;height:34px;font-size:12px}
-  .val-btn{font-size:10px;padding:6px 4px;gap:3px}
-  .modal-box{margin:10px}
-  .modal-header,.modal-body,.modal-footer{padding-left:16px;padding-right:16px}
+  .app-validador .header{padding:14px 16px;gap:10px}
+  .app-validador .header h1{font-size:16px}
+  .app-validador .header svg.logo{width:28px;height:28px}
+  .app-validador .header p{font-size:10px}
+  .app-validador .header-actions .header-btn span{display:none}
+  .app-validador .container{padding:12px 10px}
+  .app-validador .filters{grid-template-columns:1fr;padding:12px 14px;gap:8px}
+  .app-validador .stats-row{grid-template-columns:1fr 1fr;gap:8px}
+  .app-validador .stat-card .value{font-size:18px}
+  .app-validador .toolbar{gap:8px}
+  .app-validador .radio-group{width:100%;overflow-x:auto;flex-shrink:0}
+  .app-validador .radio-group button{padding:7px 10px;font-size:11px;flex:1;white-space:nowrap}
+  .app-validador .docente-header{grid-template-columns:auto 1fr auto;gap:10px;padding:12px 14px}
+  .app-validador .docente-count,.app-validador .progress-wrap{display:none}
+  .app-validador .docente-body{padding:0 14px 12px}
+  .app-validador .materia{grid-template-columns:1fr auto;padding:10px 12px}
+  .app-validador .materia-code{grid-column:1 / -1;justify-self:start;margin-bottom:2px}
+  .app-validador .dots{display:none}
+  .app-validador .detail-header{padding:18px 20px}
+  .app-validador .detail-title{font-size:18px}
+  .app-validador .document{padding:12px 14px;gap:10px}
+  .app-validador .doc-num{width:34px;height:34px;font-size:12px}
+  .app-validador .val-btn{font-size:10px;padding:6px 4px;gap:3px}
+  .app-validador .modal-box{margin:10px}
+  .app-validador .modal-header,.app-validador .modal-body,.app-validador .modal-footer{padding-left:16px;padding-right:16px}
+  .app-validador .main-tabs{gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
+  .app-validador .main-tab{padding:10px 14px;font-size:12px;gap:5px;white-space:nowrap;flex-shrink:0}
+  .app-validador .main-tab svg{width:15px;height:15px}
+  .app-validador .progress-box{min-width:0;width:min(100%,380px);padding:24px 28px}
+  .app-validador .toast-container{left:12px;right:12px;bottom:16px;max-width:none}
+  .app-validador .toast{max-width:100%}
+  .app-validador .install-banner{left:12px;right:12px;width:auto;max-width:none;transform:none;flex-wrap:wrap;justify-content:center;text-align:center}
+  .app-validador .detail-actions{flex-direction:column;align-items:stretch}
+  .app-validador .detail-actions .header-btn{justify-content:center}
+  .app-validador .modal-footer{flex-wrap:wrap}
+  .app-validador .modal-footer .modal-btn{min-width:0;flex:1}
 }
-@media(max-width:480px){.app-validador .container{padding:8px 6px}.app-validador .stats-row{grid-template-columns:1fr;gap:6px}.app-validador .section-title{padding:10px 14px;font-size:12px}.app-validador .welcome-zone{padding:24px 16px}.app-validador .welcome-zone svg{width:44px;height:44px}.app-validador .welcome-zone h3{font-size:15px}
+@media(max-width:480px){.app-validador .container{padding:8px 6px}.app-validador .stats-row{grid-template-columns:1fr;gap:6px}.app-validador .section-title{padding:10px 14px;font-size:12px}.app-validador .welcome-zone{padding:24px 16px}.app-validador .welcome-zone svg{width:44px;height:44px}.app-validador .welcome-zone h3{font-size:15px}.app-validador .main-tab{padding:8px 10px;font-size:11px}.app-validador .toolbar{flex-direction:column;align-items:stretch}.app-validador .export-btn{width:100%;justify-content:center}.app-validador .header-actions{width:100%;justify-content:flex-end;flex-wrap:wrap}.app-validador .modal-footer{flex-direction:column}.app-validador .modal-footer .modal-btn{width:100%}
 }
 
 </style>
