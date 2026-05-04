@@ -3333,14 +3333,9 @@ async function sincronizar() {
 }
 
 async function syncValidationToBackend(key, status) {
-  if (!STATE.config.scriptUrl) return;
-  try {
-    await fetch(STATE.config.scriptUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: 'saveValidation', key, status, periodo: STATE.config.periodo || 'default' })
-    });
-  } catch (err) { console.warn('Backend sync failed:', err); }
+  // No-op: las validaciones se guardan SOLO en localStorage del navegador.
+  // El backend ya no almacena nada, evitando que se creen archivos de Sheets.
+  return;
 }
 
 // === EXPORT ===
