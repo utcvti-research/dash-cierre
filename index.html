@@ -351,7 +351,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 <!-- Pantalla selector inicial -->
 
 <div class="app-launcher" id="appLauncher">
-  <h1>Sistema de Coordinación T.I.</h1>
+  <h1>Sistema de seguimiento académico UTCV.</h1>
   <p class="subtitle">Selecciona la herramienta con la que deseas trabajar. Puedes cambiar entre ellas en cualquier momento desde la barra superior.</p>
   
   <div class="app-launcher-grid">
@@ -367,8 +367,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
     </button>
     
     <button class="app-card" onclick="showApp('valid')">
-      <div class="app-card-icon purple">
-        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      <div class="app-card-icon">
+        <svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
       </div>
       <div class="app-card-title">Validador de Guías</div>
       <div class="app-card-desc">Revisa y valida las evidencias académicas que los docentes suben a Google Drive. Materias y estadías en una sola vista.</div>
@@ -772,15 +772,9 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   window.showApp = showApp;
   window.toggleAppSwitcherMenu = toggleMobileMenu;
   
-  // Restaurar última app al cargar (si existe)
+  // Siempre mostrar el launcher al iniciar
   document.addEventListener('DOMContentLoaded', function(){
-    var last = null;
-    try { last = localStorage.getItem('lastApp'); } catch(e){}
-    if (last === 'calif' || last === 'valid') {
-      showApp(last);
-    } else {
-      showApp('launcher');
-    }
+    showApp('launcher');
   });
   
   // Cerrar menú móvil al hacer click afuera
