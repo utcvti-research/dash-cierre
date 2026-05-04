@@ -275,7 +275,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   --hover:#f5f7fa;
   --badge:#eef2f7;
   --purple:#6c3483;
-}.app-validador{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}.app-validador /* ===== HEADER ===== */
+}.app-validador{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}.app-validador /* ===== HEADER ===== */
 .header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;padding:20px 32px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 12px rgba(0,0,0,.15)}.app-validador .header svg.logo{width:36px;height:36px;fill:#fff;flex-shrink:0}.app-validador .header .h-text{flex:1;min-width:0}.app-validador .header h1{font-size:20px;font-weight:600;letter-spacing:-.3px}.app-validador .header p{font-size:12px;opacity:.7;margin-top:2px}.app-validador .header-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}.app-validador .header-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;padding:8px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;font-family:inherit}.app-validador .header-btn:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.3)}.app-validador .header-btn svg{width:14px;height:14px;fill:currentColor}.app-validador .header-btn.icon-only{padding:8px}.app-validador .header-btn.icon-only svg{width:16px;height:16px}.app-validador /* ===== CONTAINER ===== */
 .container{max-width:100%;padding:20px 24px}.app-validador /* ===== MAIN TABS ===== */
 .main-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:3px solid var(--border)}.app-validador .main-tab{padding:12px 28px;font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;margin-bottom:-3px;transition:all .2s;display:flex;align-items:center;gap:8px;font-family:inherit}.app-validador .main-tab:hover{color:var(--accent)}.app-validador .main-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--card)}.app-validador .main-tab svg{width:18px;height:18px;fill:currentColor}.app-validador /* ===== WELCOME ===== */
@@ -296,14 +296,16 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .install-banner{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;display:none;align-items:center;gap:12px;z-index:100;box-shadow:0 4px 16px rgba(0,0,0,.15);border:1px solid var(--border)}.app-validador .install-banner.show{display:flex}.app-validador .install-banner .btn-install{background:var(--accent);color:#fff;border:none;padding:5px 12px;border-radius:5px;font-size:11px;font-weight:700;text-transform:uppercase;cursor:pointer;font-family:inherit}.app-validador .install-banner .btn-install:hover{background:var(--accent2)}.app-validador .install-banner .btn-dismiss{background:none;border:none;color:var(--text2);font-size:18px;width:22px;height:22px;cursor:pointer;display:flex;align-items:center;justify-content:center}.app-validador .hidden{display:none}.app-validador .fade-in{animation:fadeIn .25s ease}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}.app-validador /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
-  .app-validador .header{padding:14px 16px;gap:10px}
+  .app-validador .header{padding:14px 16px;gap:10px;flex-wrap:wrap}
   .app-validador .header h1{font-size:16px}
   .app-validador .header svg.logo{width:28px;height:28px}
   .app-validador .header p{font-size:10px}
   .app-validador .header-actions .header-btn span{display:none}
+  .app-validador .header-actions{gap:6px}
   .app-validador .container{padding:12px 10px}
   .app-validador .filters{grid-template-columns:1fr;padding:12px 14px;gap:8px}
   .app-validador .stats-row{grid-template-columns:1fr 1fr;gap:8px}
+  .app-validador .stat-card{padding:10px 14px}
   .app-validador .stat-card .value{font-size:18px}
   .app-validador .toolbar{gap:8px}
   .app-validador .radio-group{width:100%;overflow-x:auto;flex-shrink:0}
@@ -314,12 +316,20 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   .app-validador .materia{grid-template-columns:1fr auto;padding:10px 12px}
   .app-validador .materia-code{grid-column:1 / -1;justify-self:start;margin-bottom:2px}
   .app-validador .dots{display:none}
-  .app-validador .detail-header{padding:18px 20px}
+  .app-validador .detail-header{padding:18px 16px;border-radius:8px}
   .app-validador .detail-title{font-size:18px}
-  .app-validador .document{padding:12px 14px;gap:10px}
+  .app-validador .detail-eyebrow{font-size:10px}
+  .app-validador .detail-subtitle{font-size:12px;margin-bottom:12px}
+  .app-validador .document{padding:12px 14px;gap:10px;grid-template-columns:auto 1fr;grid-template-rows:auto auto}
+  .app-validador .doc-actions{grid-column:1 / -1;justify-content:flex-start;gap:6px;padding-top:6px}
   .app-validador .doc-num{width:34px;height:34px;font-size:12px}
-  .app-validador .val-btn{font-size:10px;padding:6px 4px;gap:3px}
-  .app-validador .modal-box{margin:10px}
+  .app-validador .doc-title{font-size:13px}
+  .app-validador .doc-filename{font-size:10px}
+  .app-validador .val-bar{flex-wrap:wrap;gap:4px}
+  .app-validador .val-btn{font-size:10px;padding:6px 4px;gap:3px;min-width:0}
+  .app-validador .val-btn svg{width:11px;height:11px}
+  .app-validador .modal-overlay{padding:12px}
+  .app-validador .modal-box{margin:0;max-height:95vh;border-radius:10px}
   .app-validador .modal-header,.app-validador .modal-body,.app-validador .modal-footer{padding-left:16px;padding-right:16px}
   .app-validador .main-tabs{gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
   .app-validador .main-tab{padding:10px 14px;font-size:12px;gap:5px;white-space:nowrap;flex-shrink:0}
@@ -332,8 +342,94 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   .app-validador .detail-actions .header-btn{justify-content:center}
   .app-validador .modal-footer{flex-wrap:wrap}
   .app-validador .modal-footer .modal-btn{min-width:0;flex:1}
+  .app-validador .welcome-zone{padding:32px 20px}
+  .app-validador .welcome-zone p{font-size:12px}
+  .app-validador .welcome-actions{flex-direction:column;align-items:stretch}
+  .app-validador .welcome-actions .export-btn{width:100%;justify-content:center}
+  .app-validador .doc-note{padding:6px 10px}
+  .app-validador .doc-note-text{font-size:11px}
+  .app-validador .confirm-modal-title{font-size:16px}
+  .app-validador .confirm-modal-desc{font-size:12px}
+  .app-validador .section-title{padding:10px 16px;font-size:12px}
+  .app-validador .section-title .count{font-size:10px;padding:2px 8px}
 }
-@media(max-width:480px){.app-validador .container{padding:8px 6px}.app-validador .stats-row{grid-template-columns:1fr;gap:6px}.app-validador .section-title{padding:10px 14px;font-size:12px}.app-validador .welcome-zone{padding:24px 16px}.app-validador .welcome-zone svg{width:44px;height:44px}.app-validador .welcome-zone h3{font-size:15px}.app-validador .main-tab{padding:8px 10px;font-size:11px}.app-validador .toolbar{flex-direction:column;align-items:stretch}.app-validador .export-btn{width:100%;justify-content:center}.app-validador .header-actions{width:100%;justify-content:flex-end;flex-wrap:wrap}.app-validador .modal-footer{flex-direction:column}.app-validador .modal-footer .modal-btn{width:100%}
+@media(max-width:480px){
+  .app-validador .header{padding:12px 12px;gap:8px}
+  .app-validador .header h1{font-size:14px}
+  .app-validador .header p{font-size:9px}
+  .app-validador .header svg.logo{width:24px;height:24px}
+  .app-validador .header .h-text{flex:1;min-width:0}
+  .app-validador .header-actions{gap:4px}
+  .app-validador .header-btn{padding:6px}
+  .app-validador .header-btn.icon-only{padding:6px}
+  .app-validador .header-btn.icon-only svg{width:14px;height:14px}
+  .app-validador .container{padding:8px 6px}
+  .app-validador .stats-row{grid-template-columns:1fr 1fr;gap:6px}
+  .app-validador .stat-card{padding:8px 10px}
+  .app-validador .stat-card .label{font-size:9px;letter-spacing:.3px}
+  .app-validador .stat-card .value{font-size:16px}
+  .app-validador .stat-card .sub{font-size:9px}
+  .app-validador .section-title{padding:10px 12px;font-size:11px}
+  .app-validador .welcome-zone{padding:24px 14px}
+  .app-validador .welcome-zone svg{width:44px;height:44px}
+  .app-validador .welcome-zone h3{font-size:15px}
+  .app-validador .main-tab{padding:8px 10px;font-size:11px}
+  .app-validador .toolbar{flex-direction:column;align-items:stretch}
+  .app-validador .export-btn{width:100%;justify-content:center}
+  .app-validador .modal-footer{flex-direction:column}
+  .app-validador .modal-footer .modal-btn{width:100%}
+  .app-validador .docente-header{padding:10px 12px;gap:8px}
+  .app-validador .docente-avatar{width:32px;height:32px;font-size:11px;border-radius:6px}
+  .app-validador .docente-name{font-size:13px}
+  .app-validador .docente-body{padding:0 10px 10px}
+  .app-validador .materia{padding:8px 10px;gap:8px}
+  .app-validador .materia-code{font-size:10px;padding:2px 6px}
+  .app-validador .materia-name{font-size:12px}
+  .app-validador .materia-score{font-size:11px}
+  .app-validador .document{padding:10px 12px;gap:8px}
+  .app-validador .doc-num{width:30px;height:30px;font-size:11px;border-radius:6px}
+  .app-validador .doc-info .doc-title{font-size:12px}
+  .app-validador .doc-info .doc-filename{font-size:9px}
+  .app-validador .doc-info .doc-missing-note{font-size:10px}
+  .app-validador .doc-actions{gap:4px}
+  .app-validador .doc-btn{font-size:10px;padding:3px 8px}
+  .app-validador .badge{font-size:9px;padding:3px 8px}
+  .app-validador .val-bar{gap:3px}
+  .app-validador .val-btn{font-size:9px;padding:5px 3px;gap:2px}
+  .app-validador .val-btn svg{width:10px;height:10px}
+  .app-validador .detail-header{padding:16px 14px;border-radius:8px;margin-bottom:12px}
+  .app-validador .detail-eyebrow{font-size:9px}
+  .app-validador .detail-title{font-size:16px}
+  .app-validador .detail-subtitle{font-size:11px}
+  .app-validador .detail-actions .header-btn{font-size:11px;padding:7px 10px}
+  .app-validador .back-btn{font-size:11px;padding:5px 10px;margin-bottom:10px}
+  .app-validador .filters{padding:10px 12px;gap:6px}
+  .app-validador .filter-group label{font-size:10px}
+  .app-validador .filter-group input,.app-validador .filter-group select{font-size:12px;padding:6px 8px;min-height:30px}
+  .app-validador .radio-group button{padding:6px 8px;font-size:10px}
+  .app-validador .doc-meta{font-size:9px}
+  .app-validador .modal-header h3{font-size:15px}
+  .app-validador .modal-header p{font-size:11px}
+  .app-validador .field-label{font-size:10px}
+  .app-validador .field-input,.app-validador .field-textarea{font-size:12px;padding:7px 10px}
+  .app-validador .field-hint{font-size:10px}
+  .app-validador .progress-box{padding:20px 16px}
+  .app-validador .progress-box h3{font-size:14px}
+  .app-validador .confirm-modal-list li{font-size:11px}
+}
+@media(max-width:360px){
+  .app-validador .header{padding:10px 10px;gap:6px}
+  .app-validador .header h1{font-size:13px}
+  .app-validador .header p{display:none}
+  .app-validador .stats-row{grid-template-columns:1fr;gap:4px}
+  .app-validador .val-btn{flex-direction:column;font-size:8px;padding:5px 2px;gap:1px}
+  .app-validador .val-btn svg{width:12px;height:12px}
+  .app-validador .detail-title{font-size:14px}
+  .app-validador .detail-actions .header-btn{font-size:10px;padding:6px 8px}
+  .app-validador .doc-num{width:28px;height:28px;font-size:10px}
+  .app-validador .document{padding:8px 10px;gap:6px}
+  .app-validador .filters{padding:8px 10px}
+  .app-validador .radio-group button{padding:5px 6px;font-size:9px}
 }
 
 </style>
@@ -2621,8 +2717,8 @@ function renderWelcome() {
       <svg viewBox="0 0 24 24">
         <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
       </svg>
-      <h3>Bienvenido al Validador de Guías T.I.</h3>
-      <p>Revisa y valida las evidencias académicas de los 18 docentes del programa en un solo lugar. Comienza ${hasConfig ? 'sincronizando la carpeta de Drive' : 'configurando los parámetros del sistema'}.</p>
+      <h3>Bienvenido al Validador de evidencias académicas</h3>
+      <p>Revisa y valida las evidencias académicas de los  docentes del programa en un solo lugar. Comienza ${hasConfig ? 'sincronizando la carpeta de Drive' : 'configurando los parámetros del sistema'}.</p>
       <div class="welcome-actions">
         ${hasConfig
           ? `<button class="export-btn" onclick="VAL.sincronizar()">
