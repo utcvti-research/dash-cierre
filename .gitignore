@@ -1,0 +1,15 @@
+# macOS
+
+.DS_Store
+
+# Archivos temporales
+
+*.log
+
+# Node (si usas JS)
+
+node_modules/
+
+# Variables de entorno
+
+.env

@@ -6,238 +6,385 @@
 <meta name="theme-color" content="#1a1a2e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Control Calif.">
+<meta name="apple-mobile-web-app-title" content="Coord. T.I.">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="description" content="Dashboard de seguimiento académico - Control de captura de calificaciones">
-<title>Dashboard Control de Calificaciones</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%231a1a2e'/%3E%3Cpath d='M256 120L100 200l60 33v110L256 400l96-57V233l24-13v130h28V200L256 120zm103 80L256 253 153 200l103-53 103 53zM336 318l-80 47-80-47V253l80 47 80-47v65z' fill='%23fff'/%3E%3C/svg%3E">
+<meta name="description" content="Sistema de coordinación T.I. UTCV - Calificaciones y Validador de Guías">
+<title>Coordinación T.I. · UTCV</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%231a1a2e'/%3E%3Cpath d='M256 120L100 200l60 33v110L256 400l96-57V233l24-13v130h28V200L256 120z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%231a1a2e'/%3E%3Cpath d='M256 120L100 200l60 33v110L256 400l96-57V233l24-13v130h28V200L256 120z' fill='%23fff'/%3E%3C/svg%3E">
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <style>
+
+/* === ESTILOS COMUNES Y SELECTOR === */
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#f0f2f5;--card:#fff;--text:#1a1a2e;--text2:#555;--accent:#1e3a5f;--accent2:#2d5f8a;--border:#dde1e6;--red-bg:#fde8e8;--red-text:#c0392b;--green-bg:#e8f5e9;--green-text:#27ae60;--hover:#f5f7fa;--badge:#eef2f7;--purple:#6c3483}
+:root{
+  --bg:#f0f2f5;
+  --card:#fff;
+  --text:#1a1a2e;
+  --text2:#555;
+  --accent:#1e3a5f;
+  --accent2:#2d5f8a;
+  --border:#dde1e6;
+  --hover:#f5f7fa;
+  --badge:#eef2f7;
+  --purple:#6c3483;
+}
+html, body { height: 100%; }
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-.header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;padding:20px 32px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 12px rgba(0,0,0,.15)}
-.header svg{width:36px;height:36px;fill:#fff;flex-shrink:0}
-.header h1{font-size:20px;font-weight:600;letter-spacing:-.3px}
-.header p{font-size:12px;opacity:.7;margin-top:2px}
-.container{max-width:100%;padding:20px 24px}
-.upload-zone{background:var(--card);border:2px dashed var(--border);border-radius:12px;padding:48px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:20px}
-.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--badge)}
-.upload-zone svg{width:48px;height:48px;fill:var(--accent2);margin-bottom:12px}
-.upload-zone h3{font-size:16px;color:var(--accent);margin-bottom:4px}
-.upload-zone p{font-size:13px;color:var(--text2)}
-.filters{background:var(--card);border-radius:10px;padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);border:1px solid var(--border)}
-.filter-group{display:flex;flex-direction:column;gap:4px;position:relative}
-.filter-group label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
-.ms-trigger{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:34px;user-select:none}
-.ms-trigger:hover{border-color:var(--accent2)}
-.ms-trigger .ms-tags{display:flex;flex-wrap:wrap;gap:3px;flex:1;min-width:0}
-.ms-trigger .ms-tag{background:var(--badge);color:var(--accent);font-size:11px;padding:1px 7px;border-radius:4px;white-space:nowrap;max-width:100px;overflow:hidden;text-overflow:ellipsis}
-.ms-trigger .ms-placeholder{color:#999;font-size:12px}
-.ms-trigger .ms-arrow{font-size:10px;color:#999;margin-left:6px;flex-shrink:0}
-.ms-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:100;margin-top:4px;display:none;max-height:260px;overflow:hidden;flex-direction:column}
-.ms-dropdown.open{display:flex}
-.ms-search{padding:8px 10px;border:none;border-bottom:1px solid var(--border);font-size:12px;outline:none;width:100%}
-.ms-options{overflow-y:auto;flex:1}
-.ms-option{padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
-.ms-option:hover{background:var(--hover)}
-.ms-option.selected{background:#eef2ff;color:var(--accent);font-weight:600}
-.ms-option .ms-check{width:14px;height:14px;border:1.5px solid var(--border);border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:#fff}
-.ms-option.selected .ms-check{background:var(--accent);border-color:var(--accent)}
-.ms-clear{padding:6px 12px;font-size:11px;color:var(--accent2);cursor:pointer;border-top:1px solid var(--border);text-align:center;font-weight:600}
-.ms-clear:hover{background:var(--hover)}
-.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
-.stat-card{background:var(--card);border-radius:10px;padding:14px 18px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.stat-card .label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:600}
-.stat-card .value{font-size:22px;font-weight:700;color:var(--accent);margin-top:2px}
-.stat-card .sub{font-size:11px;color:var(--text2);margin-top:2px}
-.stat-card .gender-badges{display:flex;gap:8px;margin-top:6px}
-.stat-card .gender-badges span{font-size:11px;font-weight:600;padding:2px 10px;border-radius:10px}
-.stat-card .gender-badges .badge-h{background:#dbeafe;color:#1e40af}
-.stat-card .gender-badges .badge-m{background:#fce7f3;color:#be185d}
-.stat-card.danger .value{color:var(--red-text)}
-.stat-card.success .value{color:var(--green-text)}
-.analysis-section{background:var(--card);border-radius:10px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:16px;overflow:hidden}
-.analysis-header{background:var(--purple);color:#fff;padding:12px 20px;font-size:14px;font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:10px}
-.analysis-header svg{width:20px;height:20px;fill:#fff}
-.analysis-body{display:grid;grid-template-columns:1fr auto 1fr;gap:0;min-height:380px}
-.analysis-panel{padding:20px;display:flex;flex-direction:column;min-width:0}
-.analysis-panel h3{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:center;justify-content:space-between}
-.img-export-btn{background:none;border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);font-weight:600;transition:all .15s;text-transform:none;letter-spacing:0}
-.img-export-btn:hover{background:var(--badge);border-color:var(--accent2);color:var(--accent)}
-.img-export-btn svg{width:13px;height:13px;fill:currentColor}
-.analysis-divider{width:1px;background:var(--border)}
-.top-materia-item{display:flex;align-items:center;gap:8px;margin-bottom:5px}
-.top-materia-rank{font-size:11px;font-weight:700;color:var(--text2);min-width:22px;text-align:right}
-.top-materia-bar-bg{flex:1;background:#f0ecf5;border-radius:4px;height:26px;position:relative;overflow:hidden;cursor:pointer}
-.top-materia-bar{height:100%;background:var(--purple);border-radius:4px;display:flex;align-items:center;padding-left:8px;min-width:30px;transition:width .3s}
-.top-materia-bar span{font-size:10px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.top-materia-pct{font-size:12px;font-weight:700;color:var(--text);min-width:55px;text-align:right}
-.top-materias-scroll{flex:1;overflow-y:auto;max-height:340px}
-.bar-tooltip{position:fixed;background:rgba(26,26,46,.94);color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;z-index:999;pointer-events:none;max-width:350px;line-height:1.5;white-space:normal;box-shadow:0 4px 16px rgba(0,0,0,.2)}
-.radio-group{display:flex;gap:0;background:var(--card);border-radius:8px;border:1px solid var(--border);overflow:hidden;width:fit-content}
-.radio-group button{padding:8px 18px;font-size:13px;border:none;background:transparent;cursor:pointer;color:var(--text2);font-weight:500;transition:all .15s;border-right:1px solid var(--border)}
-.radio-group button:last-child{border-right:none}
-.radio-group button.active{background:var(--accent);color:#fff}
-.period-selector{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
-.period-group{display:flex;flex-direction:column;gap:3px}
-.period-group-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);padding-left:4px}
-.period-group-label.ord{color:var(--accent)}
-.period-group-label.ext{color:#e67e22}
-.period-group-label.esp{color:#8e44ad}
-.period-group .radio-group.ext-group{border-color:#e67e22}
-.period-group .radio-group.ext-group button.active{background:#e67e22}
-.period-group .radio-group.esp-group{border-color:#8e44ad}
-.period-group .radio-group.esp-group button.active{background:#8e44ad}
-.radar-period-btn{padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--card);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;text-align:left}
-.radar-period-btn:hover{background:var(--hover);border-color:var(--accent2)}
-.radar-period-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
-.table-wrapper{background:var(--card);border-radius:10px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:auto;max-height:70vh;margin-bottom:20px}
-table{width:100%;border-collapse:collapse;font-size:12px}
-thead{position:sticky;top:0;z-index:2}
-thead th{background:#1a1a2e;color:#fff;padding:8px 10px;text-align:left;font-weight:600;font-size:11px;white-space:nowrap;border-right:1px solid rgba(255,255,255,.1)}
-thead th.materia-header{writing-mode:horizontal-tb;min-width:70px;max-width:120px;font-size:10px;text-align:center;white-space:normal;line-height:1.2}
-thead th:last-child{border-right:none}
-tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
-tbody tr:hover{background:var(--hover)}
-tbody td{padding:6px 10px;white-space:nowrap}
-td.student-id{font-family:'Consolas',monospace;font-size:11px;color:var(--accent2);font-weight:600}
-td.name-cell{font-weight:500}
-td.grade-cell{text-align:center;font-weight:600;font-size:12px;min-width:60px;border-left:1px solid #eee}
-td.grade-cell.fail{background:var(--red-bg);color:var(--red-text);font-weight:700}
-td.grade-cell.pass{color:var(--green-text)}
-td.grade-cell.na{color:#bbb;font-style:italic;font-weight:400}
-td.has-obs{position:relative}
-td.has-obs:hover{box-shadow:inset 0 0 12px rgba(45,95,138,.2);transition:box-shadow .15s}
-td.has-obs:hover::after{content:attr(data-obs);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:rgba(26,26,46,.92);color:#fff;font-size:11px;font-weight:500;padding:6px 14px;border-radius:6px;white-space:nowrap;z-index:50;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.25);max-width:420px;line-height:1.4}
-td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--badge);border-left:2px solid var(--border)}
-.no-data{padding:60px;text-align:center;color:var(--text2)}
-.no-data svg{width:64px;height:64px;fill:var(--border);margin-bottom:12px}
-.no-data h3{font-size:16px;margin-bottom:4px}
-.file-info{background:var(--green-bg);border:1px solid #c8e6c9;border-radius:8px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--green-text)}
-.file-info svg{width:20px;height:20px;fill:var(--green-text);flex-shrink:0}
-.hidden{display:none}
-.export-btn{margin-left:auto;padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:6px}
-.export-btn:hover{background:var(--accent2)}
-.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
-.progress-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(240,242,245,.92);z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
-.progress-overlay.visible{display:flex}
-.progress-box{background:var(--card);border-radius:12px;padding:32px 48px;box-shadow:0 8px 32px rgba(0,0,0,.12);text-align:center;min-width:360px}
-.progress-box h3{font-size:16px;color:var(--accent);margin-bottom:4px}
-.progress-box p{font-size:12px;color:var(--text2);margin-bottom:16px}
-.progress-track{width:100%;height:10px;background:#e8eaed;border-radius:5px;overflow:hidden}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:5px;width:0%;transition:width .3s}
-.progress-pct{font-size:13px;font-weight:700;color:var(--accent);margin-top:8px}
-.main-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:3px solid var(--border)}
-.main-tab{padding:12px 28px;font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;margin-bottom:-3px;transition:all .2s;display:flex;align-items:center;gap:8px}
-.main-tab:hover{color:var(--accent)}
-.main-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--card)}
-.main-tab svg{width:18px;height:18px;fill:currentColor}
-.tab-content{display:none}
-.tab-content.active{display:block}
-.group-separator{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:10px 16px;font-size:13px;font-weight:700;letter-spacing:.3px;border-radius:8px;margin:16px 0 8px;display:flex;align-items:center;gap:8px}
-.group-separator svg{width:16px;height:16px;fill:#fff}
-.faltas-toggle-btn{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);font-weight:600;transition:all .15s}
-.faltas-toggle-btn:hover{background:var(--badge);border-color:var(--accent2);color:var(--accent)}
-.faltas-toggle-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.faltas-toggle-btn.active svg{fill:#fff}
-.error-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
-.error-modal.visible{display:flex}
-.error-box{background:var(--card);border-radius:12px;padding:28px 32px;box-shadow:0 12px 40px rgba(0,0,0,.25);max-width:520px;width:100%;border-top:4px solid var(--red-text);overflow-y:auto;max-height:92vh}
-.modal-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;flex-wrap:wrap}
-.student-info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 20px;background:var(--badge);padding:14px 18px;border-radius:8px;font-size:12px}
-.student-radar-wrap{display:flex;gap:16px;align-items:flex-start}
-.student-radar-panel{min-width:140px;display:flex;flex-direction:column;gap:6px;padding-top:8px}
-.student-radar-chart{flex:1;position:relative;height:420px}
-.error-box .error-icon{width:56px;height:56px;background:var(--red-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
-.error-box .error-icon svg{width:32px;height:32px;fill:var(--red-text)}
-.error-box h3{font-size:17px;color:var(--text);margin-bottom:8px;font-weight:700}
-.error-box p{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px}
-.error-box .error-detail{background:var(--hover);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--text2);margin:12px 0;font-family:Consolas,monospace;word-break:break-word}
-.error-box .error-btn{background:var(--accent);color:#fff;border:none;padding:10px 24px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;width:100%}
-.error-box .error-btn:hover{background:var(--accent2)}
-@media(max-width:960px){.analysis-body{grid-template-columns:1fr}.analysis-divider{display:none}}
+
+/* === BARRA SUPERIOR DE NAVEGACIÓN ENTRE APPS === */
+.app-switcher{
+  background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+  color:#fff;
+  padding:0;
+  display:flex;
+  align-items:stretch;
+  box-shadow:0 2px 12px rgba(0,0,0,.15);
+  position:sticky;
+  top:0;
+  z-index:200;
+}
+.app-switcher-brand{
+  padding:14px 20px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:600;
+  font-size:13px;
+  letter-spacing:.3px;
+  border-right:1px solid rgba(255,255,255,.1);
+}
+.app-switcher-brand svg{width:22px;height:22px;fill:#fff;flex-shrink:0}
+.app-switcher-tabs{
+  display:flex;
+  flex:1;
+  align-items:stretch;
+}
+.app-switcher-tab{
+  background:transparent;
+  border:none;
+  color:rgba(255,255,255,.7);
+  padding:0 24px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  transition:all .15s;
+  border-bottom:3px solid transparent;
+  font-family:inherit;
+  white-space:nowrap;
+}
+.app-switcher-tab:hover{
+  background:rgba(255,255,255,.05);
+  color:#fff;
+}
+.app-switcher-tab.active{
+  background:rgba(255,255,255,.1);
+  color:#fff;
+  border-bottom-color:#fff;
+}
+.app-switcher-tab svg{width:18px;height:18px;fill:currentColor;flex-shrink:0}
+
+.app-switcher-menu-btn{
+  display:none;
+  background:transparent;
+  border:none;
+  color:#fff;
+  width:48px;
+  cursor:pointer;
+  align-items:center;
+  justify-content:center;
+  border-left:1px solid rgba(255,255,255,.1);
+}
+.app-switcher-menu-btn svg{width:22px;height:22px;fill:#fff}
+
+/* === SELECTOR INICIAL (pantalla de bienvenida) === */
+.app-launcher{
+  min-height:calc(100vh - 50px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:40px 20px;
+  background:linear-gradient(135deg,#f0f2f5 0%,#e8eaf0 100%);
+}
+.app-launcher.hidden{display:none}
+.app-launcher h1{
+  font-size:28px;
+  color:var(--text);
+  margin-bottom:8px;
+  font-weight:700;
+  text-align:center;
+  letter-spacing:-.4px;
+}
+.app-launcher .subtitle{
+  font-size:14px;
+  color:var(--text2);
+  margin-bottom:36px;
+  text-align:center;
+  max-width:520px;
+}
+.app-launcher-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:20px;
+  max-width:780px;
+  width:100%;
+}
+.app-card{
+  background:#fff;
+  border-radius:14px;
+  padding:28px 24px;
+  border:1px solid var(--border);
+  box-shadow:0 2px 10px rgba(0,0,0,.05);
+  cursor:pointer;
+  transition:all .25s;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  text-align:left;
+}
+.app-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 8px 24px rgba(0,0,0,.1);
+  border-color:var(--accent);
+}
+.app-card-icon{
+  width:54px;
+  height:54px;
+  border-radius:12px;
+  background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.app-card-icon.purple{
+  background:linear-gradient(135deg,#6c3483 0%,#8e44ad 100%);
+}
+.app-card-icon svg{width:26px;height:26px;fill:#fff}
+.app-card-title{
+  font-size:18px;
+  font-weight:700;
+  color:var(--text);
+  letter-spacing:-.2px;
+}
+.app-card-desc{
+  font-size:13px;
+  color:var(--text2);
+  line-height:1.55;
+}
+.app-card-cta{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  font-weight:700;
+  color:var(--accent2);
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  margin-top:auto;
+}
+.app-card-cta svg{width:14px;height:14px;fill:currentColor}
+
+.launcher-footer{
+  margin-top:36px;
+  font-size:11px;
+  color:var(--text2);
+  text-align:center;
+  opacity:.7;
+}
+
+/* Wrappers de cada app: ocultos por defecto */
+.app-calif, .app-validador { display: none; }
+.app-calif.active, .app-validador.active { display: block; }
+
+/* MOBILE: hamburguesa */
+@media(max-width:768px){
+  .app-switcher-tabs{
+    display:none;
+    position:absolute;
+    top:50px;
+    left:0;
+    right:0;
+    flex-direction:column;
+    background:#1a1a2e;
+    box-shadow:0 8px 24px rgba(0,0,0,.2);
+    z-index:199;
+  }
+  .app-switcher-tabs.open{
+    display:flex;
+  }
+  .app-switcher-tab{
+    width:100%;
+    padding:14px 20px;
+    border-bottom:1px solid rgba(255,255,255,.05);
+    border-left:3px solid transparent;
+  }
+  .app-switcher-tab.active{
+    border-bottom-color:transparent;
+    border-left-color:#fff;
+  }
+  .app-switcher-menu-btn{display:flex}
+  .app-switcher-brand{flex:1;border-right:none}
+  .app-launcher h1{font-size:22px}
+  .app-launcher .subtitle{font-size:13px;margin-bottom:24px}
+  .app-launcher-grid{grid-template-columns:1fr}
+  .app-card{padding:22px 18px}
+}
+
+
+/* ===== ESTILOS DE CALIFICACIONES (prefijados con .app-calif) ===== */
+.app-calif *{margin:0;padding:0;box-sizing:border-box}:root{--bg:#f0f2f5;--card:#fff;--text:#1a1a2e;--text2:#555;--accent:#1e3a5f;--accent2:#2d5f8a;--border:#dde1e6;--red-bg:#fde8e8;--red-text:#c0392b;--green-bg:#e8f5e9;--green-text:#27ae60;--hover:#f5f7fa;--badge:#eef2f7;--purple:#6c3483}.app-calif{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}.app-calif .header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;padding:20px 32px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 12px rgba(0,0,0,.15)}.app-calif .header svg{width:36px;height:36px;fill:#fff;flex-shrink:0}.app-calif .header h1{font-size:20px;font-weight:600;letter-spacing:-.3px}.app-calif .header p{font-size:12px;opacity:.7;margin-top:2px}.app-calif .container{max-width:100%;padding:20px 24px}.app-calif .upload-zone{background:var(--card);border:2px dashed var(--border);border-radius:12px;padding:48px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:20px}.app-calif .upload-zone:hover, .app-calif .upload-zone.drag{border-color:var(--accent);background:var(--badge)}.app-calif .upload-zone svg{width:48px;height:48px;fill:var(--accent2);margin-bottom:12px}.app-calif .upload-zone h3{font-size:16px;color:var(--accent);margin-bottom:4px}.app-calif .upload-zone p{font-size:13px;color:var(--text2)}.app-calif .filters{background:var(--card);border-radius:10px;padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);border:1px solid var(--border)}.app-calif .filter-group{display:flex;flex-direction:column;gap:4px;position:relative}.app-calif .filter-group label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}.app-calif .ms-trigger{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:34px;user-select:none}.app-calif .ms-trigger:hover{border-color:var(--accent2)}.app-calif .ms-trigger .ms-tags{display:flex;flex-wrap:wrap;gap:3px;flex:1;min-width:0}.app-calif .ms-trigger .ms-tag{background:var(--badge);color:var(--accent);font-size:11px;padding:1px 7px;border-radius:4px;white-space:nowrap;max-width:100px;overflow:hidden;text-overflow:ellipsis}.app-calif .ms-trigger .ms-placeholder{color:#999;font-size:12px}.app-calif .ms-trigger .ms-arrow{font-size:10px;color:#999;margin-left:6px;flex-shrink:0}.app-calif .ms-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:100;margin-top:4px;display:none;max-height:260px;overflow:hidden;flex-direction:column}.app-calif .ms-dropdown.open{display:flex}.app-calif .ms-search{padding:8px 10px;border:none;border-bottom:1px solid var(--border);font-size:12px;outline:none;width:100%}.app-calif .ms-options{overflow-y:auto;flex:1}.app-calif .ms-option{padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}.app-calif .ms-option:hover{background:var(--hover)}.app-calif .ms-option.selected{background:#eef2ff;color:var(--accent);font-weight:600}.app-calif .ms-option .ms-check{width:14px;height:14px;border:1.5px solid var(--border);border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:#fff}.app-calif .ms-option.selected .ms-check{background:var(--accent);border-color:var(--accent)}.app-calif .ms-clear{padding:6px 12px;font-size:11px;color:var(--accent2);cursor:pointer;border-top:1px solid var(--border);text-align:center;font-weight:600}.app-calif .ms-clear:hover{background:var(--hover)}.app-calif .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}.app-calif .stat-card{background:var(--card);border-radius:10px;padding:14px 18px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06)}.app-calif .stat-card .label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:600}.app-calif .stat-card .value{font-size:22px;font-weight:700;color:var(--accent);margin-top:2px}.app-calif .stat-card .sub{font-size:11px;color:var(--text2);margin-top:2px}.app-calif .stat-card .gender-badges{display:flex;gap:8px;margin-top:6px}.app-calif .stat-card .gender-badges span{font-size:11px;font-weight:600;padding:2px 10px;border-radius:10px}.app-calif .stat-card .gender-badges .badge-h{background:#dbeafe;color:#1e40af}.app-calif .stat-card .gender-badges .badge-m{background:#fce7f3;color:#be185d}.app-calif .stat-card.danger .value{color:var(--red-text)}.app-calif .stat-card.success .value{color:var(--green-text)}.app-calif .analysis-section{background:var(--card);border-radius:10px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:16px;overflow:hidden}.app-calif .analysis-header{background:var(--purple);color:#fff;padding:12px 20px;font-size:14px;font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:10px}.app-calif .analysis-header svg{width:20px;height:20px;fill:#fff}.app-calif .analysis-body{display:grid;grid-template-columns:1fr auto 1fr;gap:0;min-height:380px}.app-calif .analysis-panel{padding:20px;display:flex;flex-direction:column;min-width:0}.app-calif .analysis-panel h3{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:center;justify-content:space-between}.app-calif .img-export-btn{background:none;border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);font-weight:600;transition:all .15s;text-transform:none;letter-spacing:0}.app-calif .img-export-btn:hover{background:var(--badge);border-color:var(--accent2);color:var(--accent)}.app-calif .img-export-btn svg{width:13px;height:13px;fill:currentColor}.app-calif .analysis-divider{width:1px;background:var(--border)}.app-calif .top-materia-item{display:flex;align-items:center;gap:8px;margin-bottom:5px}.app-calif .top-materia-rank{font-size:11px;font-weight:700;color:var(--text2);min-width:22px;text-align:right}.app-calif .top-materia-bar-bg{flex:1;background:#f0ecf5;border-radius:4px;height:26px;position:relative;overflow:hidden;cursor:pointer}.app-calif .top-materia-bar{height:100%;background:var(--purple);border-radius:4px;display:flex;align-items:center;padding-left:8px;min-width:30px;transition:width .3s}.app-calif .top-materia-bar span{font-size:10px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.app-calif .top-materia-pct{font-size:12px;font-weight:700;color:var(--text);min-width:55px;text-align:right}.app-calif .top-materias-scroll{flex:1;overflow-y:auto;max-height:340px}.app-calif .bar-tooltip{position:fixed;background:rgba(26,26,46,.94);color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;z-index:999;pointer-events:none;max-width:350px;line-height:1.5;white-space:normal;box-shadow:0 4px 16px rgba(0,0,0,.2)}.app-calif .radio-group{display:flex;gap:0;background:var(--card);border-radius:8px;border:1px solid var(--border);overflow:hidden;width:fit-content}.app-calif .radio-group button{padding:8px 18px;font-size:13px;border:none;background:transparent;cursor:pointer;color:var(--text2);font-weight:500;transition:all .15s;border-right:1px solid var(--border)}.app-calif .radio-group button:last-child{border-right:none}.app-calif .radio-group button.active{background:var(--accent);color:#fff}.app-calif .period-selector{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}.app-calif .period-group{display:flex;flex-direction:column;gap:3px}.app-calif .period-group-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);padding-left:4px}.app-calif .period-group-label.ord{color:var(--accent)}.app-calif .period-group-label.ext{color:#e67e22}.app-calif .period-group-label.esp{color:#8e44ad}.app-calif .period-group .radio-group.ext-group{border-color:#e67e22}.app-calif .period-group .radio-group.ext-group button.active{background:#e67e22}.app-calif .period-group .radio-group.esp-group{border-color:#8e44ad}.app-calif .period-group .radio-group.esp-group button.active{background:#8e44ad}.app-calif .radar-period-btn{padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--card);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;text-align:left}.app-calif .radar-period-btn:hover{background:var(--hover);border-color:var(--accent2)}.app-calif .radar-period-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}.app-calif .table-wrapper{background:var(--card);border-radius:10px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:auto;max-height:70vh;margin-bottom:20px}.app-calif table{width:100%;border-collapse:collapse;font-size:12px}.app-calif thead{position:sticky;top:0;z-index:2}.app-calif thead th{background:#1a1a2e;color:#fff;padding:8px 10px;text-align:left;font-weight:600;font-size:11px;white-space:nowrap;border-right:1px solid rgba(255,255,255,.1)}.app-calif thead th.materia-header{writing-mode:horizontal-tb;min-width:70px;max-width:120px;font-size:10px;text-align:center;white-space:normal;line-height:1.2}.app-calif thead th:last-child{border-right:none}.app-calif tbody tr{border-bottom:1px solid var(--border);transition:background .1s}.app-calif tbody tr:hover{background:var(--hover)}.app-calif tbody td{padding:6px 10px;white-space:nowrap}.app-calif td.student-id{font-family:'Consolas',monospace;font-size:11px;color:var(--accent2);font-weight:600}.app-calif td.name-cell{font-weight:500}.app-calif td.grade-cell{text-align:center;font-weight:600;font-size:12px;min-width:60px;border-left:1px solid #eee}.app-calif td.grade-cell.fail{background:var(--red-bg);color:var(--red-text);font-weight:700}.app-calif td.grade-cell.pass{color:var(--green-text)}.app-calif td.grade-cell.na{color:#bbb;font-style:italic;font-weight:400}.app-calif td.has-obs{position:relative}.app-calif td.has-obs:hover{box-shadow:inset 0 0 12px rgba(45,95,138,.2);transition:box-shadow .15s}.app-calif td.has-obs:hover::after{content:attr(data-obs);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:rgba(26,26,46,.92);color:#fff;font-size:11px;font-weight:500;padding:6px 14px;border-radius:6px;white-space:nowrap;z-index:50;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.25);max-width:420px;line-height:1.4}.app-calif td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--badge);border-left:2px solid var(--border)}.app-calif .no-data{padding:60px;text-align:center;color:var(--text2)}.app-calif .no-data svg{width:64px;height:64px;fill:var(--border);margin-bottom:12px}.app-calif .no-data h3{font-size:16px;margin-bottom:4px}.app-calif .file-info{background:var(--green-bg);border:1px solid #c8e6c9;border-radius:8px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--green-text)}.app-calif .file-info svg{width:20px;height:20px;fill:var(--green-text);flex-shrink:0}.app-calif .hidden{display:none}.app-calif .export-btn{margin-left:auto;padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:6px}.app-calif .export-btn:hover{background:var(--accent2)}.app-calif .toolbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}.app-calif .progress-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(240,242,245,.92);z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}.app-calif .progress-overlay.visible{display:flex}.app-calif .progress-box{background:var(--card);border-radius:12px;padding:32px 48px;box-shadow:0 8px 32px rgba(0,0,0,.12);text-align:center;min-width:360px}.app-calif .progress-box h3{font-size:16px;color:var(--accent);margin-bottom:4px}.app-calif .progress-box p{font-size:12px;color:var(--text2);margin-bottom:16px}.app-calif .progress-track{width:100%;height:10px;background:#e8eaed;border-radius:5px;overflow:hidden}.app-calif .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:5px;width:0%;transition:width .3s}.app-calif .progress-pct{font-size:13px;font-weight:700;color:var(--accent);margin-top:8px}.app-calif .main-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:3px solid var(--border)}.app-calif .main-tab{padding:12px 28px;font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;margin-bottom:-3px;transition:all .2s;display:flex;align-items:center;gap:8px}.app-calif .main-tab:hover{color:var(--accent)}.app-calif .main-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--card)}.app-calif .main-tab svg{width:18px;height:18px;fill:currentColor}.app-calif .tab-content{display:none}.app-calif .tab-content.active{display:block}.app-calif .group-separator{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:10px 16px;font-size:13px;font-weight:700;letter-spacing:.3px;border-radius:8px;margin:16px 0 8px;display:flex;align-items:center;gap:8px}.app-calif .group-separator svg{width:16px;height:16px;fill:#fff}.app-calif .faltas-toggle-btn{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);font-weight:600;transition:all .15s}.app-calif .faltas-toggle-btn:hover{background:var(--badge);border-color:var(--accent2);color:var(--accent)}.app-calif .faltas-toggle-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}.app-calif .faltas-toggle-btn.active svg{fill:#fff}.app-calif .error-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto}.app-calif .error-modal.visible{display:flex}.app-calif .error-box{background:var(--card);border-radius:12px;padding:28px 32px;box-shadow:0 12px 40px rgba(0,0,0,.25);max-width:520px;width:100%;border-top:4px solid var(--red-text);overflow-y:auto;max-height:92vh}.app-calif .modal-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;flex-wrap:wrap}.app-calif .student-info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 20px;background:var(--badge);padding:14px 18px;border-radius:8px;font-size:12px}.app-calif .student-radar-wrap{display:flex;gap:16px;align-items:flex-start}.app-calif .student-radar-panel{min-width:140px;display:flex;flex-direction:column;gap:6px;padding-top:8px}.app-calif .student-radar-chart{flex:1;position:relative;height:420px}.app-calif .error-box .error-icon{width:56px;height:56px;background:var(--red-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:14px}.app-calif .error-box .error-icon svg{width:32px;height:32px;fill:var(--red-text)}.app-calif .error-box h3{font-size:17px;color:var(--text);margin-bottom:8px;font-weight:700}.app-calif .error-box p{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px}.app-calif .error-box .error-detail{background:var(--hover);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--text2);margin:12px 0;font-family:Consolas,monospace;word-break:break-word}.app-calif .error-box .error-btn{background:var(--accent);color:#fff;border:none;padding:10px 24px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;width:100%}.app-calif .error-box .error-btn:hover{background:var(--accent2)}
+@media(max-width:960px){.app-calif .analysis-body{grid-template-columns:1fr}.app-calif .analysis-divider{display:none}}
+@media(max-width:768px){.app-calif .header{padding:14px 16px;gap:10px}.app-calif .header h1{font-size:16px}.app-calif .header svg{width:28px;height:28px}.app-calif .container{padding:12px 10px}.app-calif .main-tabs{gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}.app-calif .main-tab{padding:10px 14px;font-size:12px;gap:5px;white-space:nowrap;flex-shrink:0}.app-calif .main-tab svg{width:15px;height:15px}.app-calif .filters{grid-template-columns:1fr 1fr;padding:12px 14px;gap:8px}.app-calif .stats-row{grid-template-columns:1fr 1fr;gap:8px}.app-calif .stat-card .value{font-size:18px}.app-calif .toolbar{gap:8px}.app-calif .radio-group{width:100%;overflow-x:auto;flex-shrink:0}.app-calif .radio-group button{padding:7px 12px;font-size:11px;flex-shrink:0}.app-calif .period-selector{gap:6px}.app-calif .period-group .radio-group{width:auto}.app-calif .export-btn{padding:7px 12px;font-size:11px}.app-calif #docenteSearch{min-width:0!important;width:100%}.app-calif .upload-zone{padding:28px 16px}.app-calif .upload-zone h3{font-size:14px}.app-calif .progress-box{min-width:auto;width:90%;padding:24px 20px}.app-calif .error-box{padding:20px 18px;margin:10px}.app-calif .group-separator{font-size:11px;padding:8px 12px;flex-wrap:wrap}.app-calif .analysis-panel{padding:12px}.app-calif .analysis-panel h3{font-size:11px;flex-wrap:wrap;gap:6px}.app-calif .top-materias-scroll{max-height:260px}.app-calif .table-wrapper{max-height:60vh;border-radius:8px}.app-calif table{font-size:11px}.app-calif thead th{padding:6px 7px;font-size:10px}.app-calif tbody td{padding:5px 7px;font-size:11px}.app-calif td.grade-cell{min-width:45px}.app-calif .faltas-toggle-btn{padding:4px 10px;font-size:11px}.app-calif .file-info{font-size:11px;padding:8px 12px}
+}
+@media(max-width:480px){.app-calif .header{padding:10px 12px}.app-calif .header h1{font-size:14px}.app-calif .header p{font-size:10px}.app-calif .container{padding:8px 6px}.app-calif .main-tab{padding:8px 10px;font-size:11px}.app-calif .filters{grid-template-columns:1fr;gap:6px;padding:10px 12px}.app-calif .stats-row{grid-template-columns:1fr;gap:6px}.app-calif .stat-card{padding:10px 14px}.app-calif .stat-card .value{font-size:16px}.app-calif .toolbar{flex-direction:column;align-items:stretch}.app-calif .radio-group{width:100%}.app-calif .radio-group button{flex:1;text-align:center;padding:8px 6px;font-size:10px}.app-calif .export-btn{width:100%;justify-content:center}.app-calif #docenteSearch{width:100%!important}.app-calif .analysis-header{padding:10px 14px;font-size:12px}.app-calif .upload-zone{padding:20px 12px}.app-calif .upload-zone svg{width:36px;height:36px}.app-calif .group-separator{font-size:10px;padding:7px 10px}.app-calif .faltas-toggle-btn{font-size:10px;padding:4px 8px}.app-calif .img-export-btn{font-size:9px;padding:2px 6px}.app-calif .bar-tooltip{max-width:260px;font-size:11px}.app-calif .error-box{max-width:100%}.app-calif .dist-chart-wrap{height:260px!important}.app-calif .error-modal{padding:8px}
+}
+@media(max-width:768px){.app-calif .error-box{max-height:88vh;padding:16px 14px!important}.app-calif .student-info-grid{grid-template-columns:repeat(2,1fr);gap:6px 10px;padding:10px 12px;font-size:11px}.app-calif .student-radar-wrap{flex-direction:column}.app-calif .student-radar-chart{height:280px;width:100%}.app-calif .student-radar-panel{flex-direction:row;flex-wrap:wrap;min-width:auto;gap:4px}.app-calif .student-radar-panel .radar-period-btn{flex:1;text-align:center;padding:8px 10px}.app-calif #evoTableContent{overflow-x:auto}.app-calif #heatContent{overflow-x:auto}
+}
+@media(max-width:480px){.app-calif .error-box{padding:12px 10px!important;max-height:85vh}.app-calif .error-modal{align-items:flex-start;padding-top:16px}.app-calif .student-info-grid{grid-template-columns:1fr;font-size:11px;padding:8px 10px}.app-calif .student-radar-chart{height:240px}
+}
+
+
+/* ===== ESTILOS DE VALIDADOR (prefijados con .app-validador) ===== */
+.app-validador *{margin:0;padding:0;box-sizing:border-box}:root{
+  --bg:#f0f2f5;
+  --card:#fff;
+  --text:#1a1a2e;
+  --text2:#555;
+  --accent:#1e3a5f;
+  --accent2:#2d5f8a;
+  --border:#dde1e6;
+  --red-bg:#fde8e8;
+  --red-text:#c0392b;
+  --green-bg:#e8f5e9;
+  --green-text:#27ae60;
+  --amber-bg:#fff3e0;
+  --amber-text:#e67e22;
+  --hover:#f5f7fa;
+  --badge:#eef2f7;
+  --purple:#6c3483;
+}.app-validador{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}.app-validador /* ===== HEADER ===== */
+.header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;padding:20px 32px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 12px rgba(0,0,0,.15)}.app-validador .header svg.logo{width:36px;height:36px;fill:#fff;flex-shrink:0}.app-validador .header .h-text{flex:1;min-width:0}.app-validador .header h1{font-size:20px;font-weight:600;letter-spacing:-.3px}.app-validador .header p{font-size:12px;opacity:.7;margin-top:2px}.app-validador .header-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}.app-validador .header-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;padding:8px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;font-family:inherit}.app-validador .header-btn:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.3)}.app-validador .header-btn svg{width:14px;height:14px;fill:currentColor}.app-validador .header-btn.icon-only{padding:8px}.app-validador .header-btn.icon-only svg{width:16px;height:16px}.app-validador /* ===== CONTAINER ===== */
+.container{max-width:100%;padding:20px 24px}.app-validador /* ===== MAIN TABS ===== */
+.main-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:3px solid var(--border)}.app-validador .main-tab{padding:12px 28px;font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;margin-bottom:-3px;transition:all .2s;display:flex;align-items:center;gap:8px;font-family:inherit}.app-validador .main-tab:hover{color:var(--accent)}.app-validador .main-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--card)}.app-validador .main-tab svg{width:18px;height:18px;fill:currentColor}.app-validador /* ===== WELCOME ===== */
+.welcome-zone{background:var(--card);border:2px dashed var(--border);border-radius:12px;padding:48px;text-align:center;margin-bottom:20px}.app-validador .welcome-zone svg{width:56px;height:56px;fill:var(--accent2);margin-bottom:14px}.app-validador .welcome-zone h3{font-size:18px;color:var(--accent);margin-bottom:6px}.app-validador .welcome-zone p{font-size:13px;color:var(--text2);margin-bottom:18px;max-width:460px;margin-left:auto;margin-right:auto}.app-validador .welcome-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.app-validador /* ===== STATS ===== */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}.app-validador .stat-card{background:var(--card);border-radius:10px;padding:14px 18px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06)}.app-validador .stat-card .label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:600}.app-validador .stat-card .value{font-size:22px;font-weight:700;color:var(--accent);margin-top:2px}.app-validador .stat-card .sub{font-size:11px;color:var(--text2);margin-top:2px}.app-validador .stat-card.danger .value{color:var(--red-text)}.app-validador .stat-card.success .value{color:var(--green-text)}.app-validador .stat-card.warn .value{color:var(--amber-text)}.app-validador /* ===== FILTERS ===== */
+.filters{background:var(--card);border-radius:10px;padding:16px 20px;display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);border:1px solid var(--border)}.app-validador .filter-group{display:flex;flex-direction:column;gap:4px}.app-validador .filter-group label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}.app-validador .filter-group input, .app-validador .filter-group select{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff;color:var(--text);min-height:34px;outline:none;font-family:inherit;width:100%}.app-validador .filter-group input:focus, .app-validador .filter-group select:focus{border-color:var(--accent2)}.app-validador /* ===== TOOLBAR ===== */
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}.app-validador .export-btn{padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:6px;font-family:inherit;transition:background .15s}.app-validador .export-btn:hover{background:var(--accent2)}.app-validador .export-btn svg{width:14px;height:14px;fill:currentColor}.app-validador .export-btn.secondary{background:var(--card);color:var(--accent);border:1px solid var(--border)}.app-validador .export-btn.secondary:hover{background:var(--badge)}.app-validador /* ===== RADIO GROUP (filtros) ===== */
+.radio-group{display:flex;gap:0;background:var(--card);border-radius:8px;border:1px solid var(--border);overflow:hidden;width:fit-content}.app-validador .radio-group button{padding:8px 18px;font-size:13px;border:none;background:transparent;cursor:pointer;color:var(--text2);font-weight:500;transition:all .15s;border-right:1px solid var(--border);font-family:inherit}.app-validador .radio-group button:last-child{border-right:none}.app-validador .radio-group button.active{background:var(--accent);color:#fff}.app-validador .radio-group button:hover:not(.active){background:var(--hover)}.app-validador /* ===== DOCENTES LIST ===== */
+.docentes-section{background:var(--card);border-radius:10px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden;margin-bottom:20px}.app-validador .section-title{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:12px 20px;font-size:13px;font-weight:700;letter-spacing:.3px;display:flex;align-items:center;justify-content:space-between;gap:10px}.app-validador .section-title .left{display:flex;align-items:center;gap:10px}.app-validador .section-title svg{width:18px;height:18px;fill:#fff}.app-validador .section-title .count{font-size:11px;font-weight:600;background:rgba(255,255,255,.2);padding:3px 10px;border-radius:10px}.app-validador .docente{border-bottom:1px solid var(--border)}.app-validador .docente:last-child{border-bottom:none}.app-validador .docente-header{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:16px;align-items:center;padding:14px 20px;cursor:pointer;transition:background .1s}.app-validador .docente-header:hover{background:var(--hover)}.app-validador .docente-avatar{width:38px;height:38px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}.app-validador .docente-avatar.c2{background:#6c3483}.app-validador .docente-avatar.c3{background:#c0392b}.app-validador .docente-avatar.c4{background:#27ae60}.app-validador .docente-avatar.c5{background:#e67e22}.app-validador .docente-name{font-size:14px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.app-validador .docente-count{font-size:11px;color:var(--text2);font-weight:600;white-space:nowrap;background:var(--badge);padding:3px 10px;border-radius:10px}.app-validador .progress-wrap{display:flex;align-items:center;gap:10px}.app-validador .progress-bar{width:100px;height:6px;background:#e8eaed;border-radius:3px;overflow:hidden}.app-validador .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s;border-radius:3px}.app-validador .progress-fill.full{background:linear-gradient(90deg,#27ae60,#2ecc71)}.app-validador .progress-fill.partial{background:linear-gradient(90deg,#e67e22,#f39c12)}.app-validador .progress-fill.low{background:linear-gradient(90deg,#c0392b,#e74c3c)}.app-validador .progress-text{font-size:12px;font-weight:700;color:var(--text);min-width:42px;text-align:right;font-family:'Consolas',monospace}.app-validador .chevron{width:14px;height:14px;color:var(--text2);transition:transform .2s;fill:currentColor}.app-validador .docente.open .chevron{transform:rotate(90deg)}.app-validador .docente-body{display:none;padding:0 20px 14px;background:var(--hover)}.app-validador .docente.open .docente-body{display:block}.app-validador /* ===== MATERIAS ===== */
+.materias-list{display:flex;flex-direction:column;gap:6px;padding-top:10px}.app-validador .materia{display:grid;grid-template-columns:auto 1fr auto auto;gap:12px;align-items:center;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .1s}.app-validador .materia:hover{border-color:var(--accent2);background:#fafbfc}.app-validador .materia-code{font-size:11px;color:var(--accent);font-weight:700;background:var(--badge);padding:3px 8px;border-radius:5px;white-space:nowrap;font-family:'Consolas',monospace}.app-validador .materia-name{font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.app-validador .dots{display:flex;gap:3px}.app-validador .dot{width:8px;height:8px;border-radius:50%;background:var(--border)}.app-validador .dot.valid{background:var(--green-text)}.app-validador .dot.invalid{background:var(--red-text)}.app-validador .dot.pending{background:var(--amber-text)}.app-validador .dot.missing{background:transparent;border:1.5px dashed #bbb}.app-validador .materia-score{font-size:12px;font-weight:700;color:var(--text);min-width:38px;text-align:right;font-family:'Consolas',monospace}.app-validador /* ===== DETAIL ===== */
+.back-btn{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);font-weight:600;transition:all .15s;font-family:inherit;margin-bottom:14px}.app-validador .back-btn:hover{background:var(--badge);border-color:var(--accent2);color:var(--accent)}.app-validador .back-btn svg{width:13px;height:13px;fill:currentColor}.app-validador .detail-header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;padding:24px 28px;border-radius:10px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.1)}.app-validador .detail-eyebrow{font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:6px}.app-validador .detail-title{font-size:22px;font-weight:600;letter-spacing:-.3px;margin-bottom:4px}.app-validador .detail-subtitle{font-size:13px;opacity:.85;margin-bottom:16px}.app-validador .detail-actions{display:flex;gap:8px;flex-wrap:wrap}.app-validador .detail-actions .header-btn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2)}.app-validador .detail-actions .header-btn:hover{background:rgba(255,255,255,.2)}.app-validador .documents-card{background:var(--card);border-radius:10px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden}.app-validador .document{padding:14px 20px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;transition:background .1s}.app-validador .document:last-child{border-bottom:none}.app-validador .document:hover{background:var(--hover)}.app-validador .doc-num{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;font-family:'Consolas',monospace}.app-validador .doc-num.valid{background:var(--green-bg);color:var(--green-text)}.app-validador .doc-num.invalid{background:var(--red-bg);color:var(--red-text)}.app-validador .doc-num.pending{background:var(--amber-bg);color:var(--amber-text)}.app-validador .doc-num.missing{background:var(--hover);color:#999}.app-validador .doc-num.none{background:var(--badge);color:var(--accent)}.app-validador .doc-info{min-width:0}.app-validador .doc-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}.app-validador .doc-filename{font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Consolas',monospace}.app-validador .doc-missing-note{font-size:11px;color:var(--red-text);margin-top:4px;font-weight:600}.app-validador .doc-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.app-validador .badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}.app-validador .badge-valid{background:var(--green-bg);color:var(--green-text)}.app-validador .badge-invalid{background:var(--red-bg);color:var(--red-text)}.app-validador .badge-pending{background:var(--amber-bg);color:var(--amber-text)}.app-validador .badge-missing{background:var(--hover);color:#999}.app-validador .badge-none{background:var(--badge);color:var(--accent)}.app-validador .doc-btn{background:var(--card);border:1px solid var(--border);border-radius:5px;padding:4px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);font-weight:600;transition:all .15s;font-family:inherit;text-decoration:none}.app-validador .doc-btn:hover{background:var(--badge);border-color:var(--accent2);color:var(--accent)}.app-validador .doc-btn svg{width:11px;height:11px;fill:currentColor}.app-validador .val-bar{grid-column:1 / -1;display:flex;gap:6px;padding-top:12px;margin-top:6px;border-top:1px solid var(--border)}.app-validador .val-btn{flex:1;padding:7px;background:var(--card);border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-family:inherit;text-transform:uppercase;letter-spacing:.3px}.app-validador .val-btn:hover{background:var(--hover)}.app-validador .val-btn svg{width:12px;height:12px;fill:currentColor}.app-validador .val-btn.active-valid{background:var(--green-text);color:#fff;border-color:var(--green-text)}.app-validador .val-btn.active-invalid{background:var(--red-text);color:#fff;border-color:var(--red-text)}.app-validador .val-btn.active-pending{background:var(--amber-text);color:#fff;border-color:var(--amber-text)}.app-validador .doc-meta{grid-column:2 / -1;font-size:10px;color:var(--text2);margin-top:4px;font-family:'Consolas',monospace}.app-validador /* ===== MODAL ===== */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}.app-validador .modal-overlay.visible{display:flex}.app-validador .modal-box{background:var(--card);border-radius:12px;padding:0;box-shadow:0 12px 40px rgba(0,0,0,.25);max-width:560px;width:100%;max-height:90vh;overflow-y:auto;border-top:4px solid var(--accent)}.app-validador .modal-header{padding:20px 24px 12px}.app-validador .modal-header h3{font-size:17px;color:var(--text);font-weight:700;margin-bottom:4px}.app-validador .modal-header p{font-size:12px;color:var(--text2)}.app-validador .modal-body{padding:12px 24px 20px}.app-validador .modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--hover);border-radius:0 0 10px 10px}.app-validador .field{margin-bottom:14px}.app-validador .field:last-child{margin-bottom:0}.app-validador .field-label{display:block;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}.app-validador .field-input, .app-validador .field-textarea{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff;color:var(--text);outline:none;font-family:inherit;transition:border-color .15s}.app-validador .field-input:focus, .app-validador .field-textarea:focus{border-color:var(--accent2)}.app-validador .field-textarea{min-height:90px;resize:vertical;line-height:1.5}.app-validador .field-hint{font-size:11px;color:var(--text2);margin-top:4px;font-style:italic}.app-validador .modal-btn{padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text);font-family:inherit;transition:all .15s}.app-validador .modal-btn:hover{background:var(--hover)}.app-validador .modal-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.app-validador .modal-btn.primary:hover{background:var(--accent2)}.app-validador /* ===== TOAST ===== */
+.toast-container{position:fixed;bottom:20px;right:20px;z-index:3000;display:flex;flex-direction:column;gap:8px}.app-validador .toast{background:var(--card);color:var(--text);padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;max-width:360px;box-shadow:0 4px 16px rgba(0,0,0,.15);border-left:4px solid var(--accent);animation:toastIn .25s ease}.app-validador .toast.success{border-left-color:var(--green-text)}.app-validador .toast.warn{border-left-color:var(--amber-text)}.app-validador .toast.danger{border-left-color:var(--red-text)}.app-validador .toast svg{width:15px;height:15px;flex-shrink:0;fill:currentColor}.app-validador .toast.success svg{fill:var(--green-text)}.app-validador .toast.warn svg{fill:var(--amber-text)}.app-validador .toast.danger svg{fill:var(--red-text)}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}.app-validador /* ===== LOADING ===== */
+.progress-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(240,242,245,.92);z-index:1500;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}.app-validador .progress-overlay.visible{display:flex}.app-validador .progress-box{background:var(--card);border-radius:12px;padding:32px 48px;box-shadow:0 8px 32px rgba(0,0,0,.12);text-align:center;min-width:320px}.app-validador .progress-box h3{font-size:16px;color:var(--accent);margin-bottom:6px}.app-validador .progress-box p{font-size:12px;color:var(--text2);margin-bottom:16px}.app-validador .progress-spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}.app-validador /* ===== EMPTY ===== */
+.empty-state{padding:60px 20px;text-align:center;color:var(--text2)}.app-validador .empty-state svg{width:56px;height:56px;fill:var(--border);margin-bottom:12px}.app-validador .empty-state h3{font-size:15px;color:var(--text);margin-bottom:4px}.app-validador .empty-state p{font-size:13px}.app-validador /* ===== INSTALL ===== */
+.install-banner{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;display:none;align-items:center;gap:12px;z-index:100;box-shadow:0 4px 16px rgba(0,0,0,.15);border:1px solid var(--border)}.app-validador .install-banner.show{display:flex}.app-validador .install-banner .btn-install{background:var(--accent);color:#fff;border:none;padding:5px 12px;border-radius:5px;font-size:11px;font-weight:700;text-transform:uppercase;cursor:pointer;font-family:inherit}.app-validador .install-banner .btn-install:hover{background:var(--accent2)}.app-validador .install-banner .btn-dismiss{background:none;border:none;color:var(--text2);font-size:18px;width:22px;height:22px;cursor:pointer;display:flex;align-items:center;justify-content:center}.app-validador .hidden{display:none}.app-validador .fade-in{animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}.app-validador /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
   .header{padding:14px 16px;gap:10px}
   .header h1{font-size:16px}
-  .header svg{width:28px;height:28px}
+  .header svg.logo{width:28px;height:28px}
+  .header p{font-size:10px}
+  .header-actions .header-btn span{display:none}
   .container{padding:12px 10px}
-  .main-tabs{gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
-  .main-tab{padding:10px 14px;font-size:12px;gap:5px;white-space:nowrap;flex-shrink:0}
-  .main-tab svg{width:15px;height:15px}
-  .filters{grid-template-columns:1fr 1fr;padding:12px 14px;gap:8px}
+  .filters{grid-template-columns:1fr;padding:12px 14px;gap:8px}
   .stats-row{grid-template-columns:1fr 1fr;gap:8px}
   .stat-card .value{font-size:18px}
   .toolbar{gap:8px}
   .radio-group{width:100%;overflow-x:auto;flex-shrink:0}
-  .radio-group button{padding:7px 12px;font-size:11px;flex-shrink:0}
-  .period-selector{gap:6px}
-  .period-group .radio-group{width:auto}
-  .export-btn{padding:7px 12px;font-size:11px}
-  #docenteSearch{min-width:0!important;width:100%}
-  .upload-zone{padding:28px 16px}
-  .upload-zone h3{font-size:14px}
-  .progress-box{min-width:auto;width:90%;padding:24px 20px}
-  .error-box{padding:20px 18px;margin:10px}
-  .group-separator{font-size:11px;padding:8px 12px;flex-wrap:wrap}
-  .analysis-panel{padding:12px}
-  .analysis-panel h3{font-size:11px;flex-wrap:wrap;gap:6px}
-  .top-materias-scroll{max-height:260px}
-  .table-wrapper{max-height:60vh;border-radius:8px}
-  table{font-size:11px}
-  thead th{padding:6px 7px;font-size:10px}
-  tbody td{padding:5px 7px;font-size:11px}
-  td.grade-cell{min-width:45px}
-  .faltas-toggle-btn{padding:4px 10px;font-size:11px}
-  .file-info{font-size:11px;padding:8px 12px}
+  .radio-group button{padding:7px 10px;font-size:11px;flex:1;white-space:nowrap}
+  .docente-header{grid-template-columns:auto 1fr auto;gap:10px;padding:12px 14px}
+  .docente-count,.progress-wrap{display:none}
+  .docente-body{padding:0 14px 12px}
+  .materia{grid-template-columns:1fr auto;padding:10px 12px}
+  .materia-code{grid-column:1 / -1;justify-self:start;margin-bottom:2px}
+  .dots{display:none}
+  .detail-header{padding:18px 20px}
+  .detail-title{font-size:18px}
+  .document{padding:12px 14px;gap:10px}
+  .doc-num{width:34px;height:34px;font-size:12px}
+  .val-btn{font-size:10px;padding:6px 4px;gap:3px}
+  .modal-box{margin:10px}
+  .modal-header,.modal-body,.modal-footer{padding-left:16px;padding-right:16px}
 }
-@media(max-width:480px){
-  .header{padding:10px 12px}
-  .header h1{font-size:14px}
-  .header p{font-size:10px}
-  .container{padding:8px 6px}
-  .main-tab{padding:8px 10px;font-size:11px}
-  .filters{grid-template-columns:1fr;gap:6px;padding:10px 12px}
-  .stats-row{grid-template-columns:1fr;gap:6px}
-  .stat-card{padding:10px 14px}
-  .stat-card .value{font-size:16px}
-  .toolbar{flex-direction:column;align-items:stretch}
-  .radio-group{width:100%}
-  .radio-group button{flex:1;text-align:center;padding:8px 6px;font-size:10px}
-  .export-btn{width:100%;justify-content:center}
-  #docenteSearch{width:100%!important}
-  .analysis-header{padding:10px 14px;font-size:12px}
-  .upload-zone{padding:20px 12px}
-  .upload-zone svg{width:36px;height:36px}
-  .group-separator{font-size:10px;padding:7px 10px}
-  .faltas-toggle-btn{font-size:10px;padding:4px 8px}
-  .img-export-btn{font-size:9px;padding:2px 6px}
-  .bar-tooltip{max-width:260px;font-size:11px}
-  .error-box{max-width:100%}
-  .dist-chart-wrap{height:260px!important}
-  .error-modal{padding:8px}
+@media(max-width:480px){.app-validador .container{padding:8px 6px}.app-validador .stats-row{grid-template-columns:1fr;gap:6px}.app-validador .section-title{padding:10px 14px;font-size:12px}.app-validador .welcome-zone{padding:24px 16px}.app-validador .welcome-zone svg{width:44px;height:44px}.app-validador .welcome-zone h3{font-size:15px}
 }
-@media(max-width:768px){
-  .error-box{max-height:88vh;padding:16px 14px!important}
-  .student-info-grid{grid-template-columns:repeat(2,1fr);gap:6px 10px;padding:10px 12px;font-size:11px}
-  .student-radar-wrap{flex-direction:column}
-  .student-radar-chart{height:280px;width:100%}
-  .student-radar-panel{flex-direction:row;flex-wrap:wrap;min-width:auto;gap:4px}
-  .student-radar-panel .radar-period-btn{flex:1;text-align:center;padding:8px 10px}
-  #evoTableContent{overflow-x:auto}
-  #heatContent{overflow-x:auto}
-}
-@media(max-width:480px){
-  .error-box{padding:12px 10px!important;max-height:85vh}
-  .error-modal{align-items:flex-start;padding-top:16px}
-  .student-info-grid{grid-template-columns:1fr;font-size:11px;padding:8px 10px}
-  .student-radar-chart{height:240px}
-}
+
 </style>
 </head>
 <body>
+
+<!-- Barra superior de navegación -->
+
+<div class="app-switcher" id="appSwitcher" style="display:none">
+  <div class="app-switcher-brand" onclick="showApp('launcher')" style="cursor:pointer">
+    <svg viewBox="0 0 512 512"><path d="M256 120L100 200l60 33v110L256 400l96-57V233l24-13v130h28V200L256 120zm103 80L256 253 153 200l103-53 103 53zM336 318l-80 47-80-47V253l80 47 80-47v65z"/></svg>
+    <span>Coordinación T.I.</span>
+  </div>
+  <div class="app-switcher-tabs" id="appSwitcherTabs">
+    <button class="app-switcher-tab" data-app="calif" onclick="showApp('calif')">
+      <svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+      Calificaciones
+    </button>
+    <button class="app-switcher-tab" data-app="valid" onclick="showApp('valid')">
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      Validador de Guías
+    </button>
+  </div>
+  <button class="app-switcher-menu-btn" id="appSwitcherMenuBtn" onclick="toggleAppSwitcherMenu()" aria-label="Menú">
+    <svg viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+  </button>
+</div>
+
+
+<!-- Pantalla selector inicial -->
+
+<div class="app-launcher" id="appLauncher">
+  <h1>Sistema de Coordinación T.I.</h1>
+  <p class="subtitle">Selecciona la herramienta con la que deseas trabajar. Puedes cambiar entre ellas en cualquier momento desde la barra superior.</p>
+  
+  <div class="app-launcher-grid">
+    <button class="app-card" onclick="showApp('calif')">
+      <div class="app-card-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+      </div>
+      <div class="app-card-title">Control de Calificaciones</div>
+      <div class="app-card-desc">Dashboard de seguimiento académico. Carga el archivo Excel de Control Escolar y analiza calificaciones por grupo, generación o docente.</div>
+      <div class="app-card-cta">
+        Abrir <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+      </div>
+    </button>
+    
+    <button class="app-card" onclick="showApp('valid')">
+      <div class="app-card-icon purple">
+        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      </div>
+      <div class="app-card-title">Validador de Guías</div>
+      <div class="app-card-desc">Revisa y valida las evidencias académicas que los docentes suben a Google Drive. Materias y estadías en una sola vista.</div>
+      <div class="app-card-cta">
+        Abrir <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+      </div>
+    </button>
+  </div>
+  
+  <div class="launcher-footer">Coordinación de Tecnologías de la Información · UTCV</div>
+</div>
+
+
+<!-- App: Control de Calificaciones -->
+<div class="app-calif">
+
 <div class="progress-overlay" id="progressOverlay">
 <div class="progress-box">
 <h3 id="progressTitle">Cargando archivo...</h3>
@@ -250,8 +397,8 @@ td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--
 <div class="error-box" style="max-width:1100px;border-top:4px solid var(--purple)">
 <div class="modal-header-row">
 <h3 id="heatTitle" style="margin:0;flex:1;min-width:0">Semáforo de desempeño académico por docente</h3>
-<button onclick="downloadHeatmap()" class="img-export-btn" style="padding:6px 12px;font-size:11px;flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Descargar imagen</button>
-<button onclick="closeHeat()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px;flex-shrink:0">×</button>
+<button onclick="CALIF.downloadHeatmap()" class="img-export-btn" style="padding:6px 12px;font-size:11px;flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Descargar imagen</button>
+<button onclick="CALIF.closeHeat()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px;flex-shrink:0">×</button>
 </div>
 <p style="font-size:11px;color:var(--text2);margin-bottom:12px">Rojo = Crítico &nbsp;|&nbsp; Amarillo = Alerta &nbsp;|&nbsp; Verde = Óptimo</p>
 <div id="heatContent" style="max-height:65vh;overflow:auto"></div>
@@ -261,20 +408,20 @@ td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--
 <div class="error-box" style="max-width:960px;border-top:4px solid var(--accent)">
 <div class="modal-header-row">
 <h3 id="studentModalTitle" style="margin:0;flex:1;min-width:0">Detalle del alumno</h3>
-<button onclick="closeStudentModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px;flex-shrink:0">×</button>
+<button onclick="CALIF.closeStudentModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px;flex-shrink:0">×</button>
 </div>
 <div id="studentModalInfo" style="margin-bottom:10px"></div>
 <div style="display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid var(--border)">
-<button id="stTabGeneral" class="active" onclick="switchStudentTab('general')" style="padding:8px 20px;border:none;background:transparent;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px">General</button>
-<button id="stTabAnalisis" onclick="switchStudentTab('analisis')" style="padding:8px 20px;border:none;background:transparent;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px">Análisis</button>
+<button id="stTabGeneral" class="active" onclick="CALIF.switchStudentTab('general')" style="padding:8px 20px;border:none;background:transparent;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px">General</button>
+<button id="stTabAnalisis" onclick="CALIF.switchStudentTab('analisis')" style="padding:8px 20px;border:none;background:transparent;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px">Análisis</button>
 </div>
 <div id="studentTabGeneral" style="max-height:55vh;overflow:auto;overflow-x:auto"></div>
 <div id="studentTabAnalisis" style="display:none">
 <div class="student-radar-wrap">
 <div class="student-radar-panel">
 <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text2);letter-spacing:.5px;margin-bottom:2px">Periodo</span>
-<button class="radar-period-btn active" onclick="switchRadarPeriod(this,'p1')">Parcial 1</button>
-<button class="radar-period-btn" onclick="switchRadarPeriod(this,'pf')">Parcial Final</button>
+<button class="radar-period-btn active" onclick="CALIF.switchRadarPeriod(this,'p1')">Parcial 1</button>
+<button class="radar-period-btn" onclick="CALIF.switchRadarPeriod(this,'pf')">Parcial Final</button>
 </div>
 <div class="student-radar-chart"><canvas id="studentRadarChart"></canvas></div>
 </div>
@@ -285,7 +432,7 @@ td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--
 <div class="error-box" style="max-width:1200px;border-top:4px solid var(--accent2)">
 <div class="modal-header-row" style="margin-bottom:12px">
 <h3 id="evoTitle" style="margin:0;flex:1;min-width:0">Evolución por parcial</h3>
-<button onclick="closeEvo()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px;flex-shrink:0">×</button>
+<button onclick="CALIF.closeEvo()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px;flex-shrink:0">×</button>
 </div>
 <div id="evoTableContent" style="max-height:40vh;overflow:auto;overflow-x:auto;margin-bottom:16px"></div>
 <div style="position:relative;width:100%;height:300px"><canvas id="evoChart"></canvas></div>
@@ -295,11 +442,11 @@ td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--
 <div class="error-box" style="max-width:780px;border-top:4px solid var(--accent2)">
 <div class="modal-header-row">
 <h3 id="distTitle" style="margin:0;flex:1;min-width:0">Distribución de calificaciones</h3>
-<button onclick="closeDist()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px;flex-shrink:0">×</button>
+<button onclick="CALIF.closeDist()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);width:32px;height:32px;border-radius:6px;flex-shrink:0">×</button>
 </div>
 <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
 <label style="font-size:12px;font-weight:600;color:var(--text2)">Materia:</label>
-<select id="distMateriaSelect" onchange="updateDistChart()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:#fff;flex:1;min-width:220px;cursor:pointer"></select>
+<select id="distMateriaSelect" onchange="CALIF.updateDistChart()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:#fff;flex:1;min-width:220px;cursor:pointer"></select>
 </div>
 <div id="distSummary" style="font-size:12px;color:var(--text2);margin-bottom:10px"></div>
 <div style="position:relative;width:100%;height:360px;min-height:250px" class="dist-chart-wrap"><canvas id="distChart"></canvas></div>
@@ -311,7 +458,7 @@ td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--
 <h3 id="errorTitle">Error al cargar archivo</h3>
 <p id="errorMsg">El archivo no cumple con el formato esperado.</p>
 <div class="error-detail hidden" id="errorDetail"></div>
-<button class="error-btn" onclick="closeError()">Entendido</button>
+<button class="error-btn" onclick="CALIF.closeError()">Entendido</button>
 </div>
 </div>
 <div class="header">
@@ -333,9 +480,9 @@ td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--
 </div>
 <div id="dashboard" class="hidden">
 <div class="main-tabs">
-<button class="main-tab active" onclick="switchMainTab('grupal')"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Grupal</button>
-<button class="main-tab" onclick="switchMainTab('generacional')"><svg viewBox="0 0 24 24"><path d="M12 12.75c1.63 0 3.07.39 4.24.9 1.08.48 1.76 1.56 1.76 2.73V18H6v-1.61c0-1.18.68-2.26 1.76-2.73 1.17-.52 2.61-.91 4.24-.91zM4 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm1.13 1.1C4.76 14.04 4.39 14 4 14c-.99 0-1.93.21-2.78.58A2.01 2.01 0 000 16.43V18h4.5v-1.61c0-.83.23-1.61.63-2.29zM20 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm4 3.43c0-.81-.48-1.53-1.22-1.85A6.95 6.95 0 0020 14c-.39 0-.76.04-1.13.1.4.68.63 1.46.63 2.29V18H24v-1.57zM12 6c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/></svg>Generacional</button>
-<button class="main-tab" onclick="switchMainTab('docentes')"><svg viewBox="0 0 24 24"><path d="M20 17a2 2 0 002-2V5a2 2 0 00-2-2H9.46c.35.61.54 1.3.54 2h10v10h-7v2M15 7v2H9v3H7V9H1V7h6V4h2v3h6M7 15h6v3l5-4-5-4v3H5v8h2v-6z"/></svg>Docentes</button>
+<button class="main-tab active" onclick="CALIF.switchMainTab('grupal')"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Grupal</button>
+<button class="main-tab" onclick="CALIF.switchMainTab('generacional')"><svg viewBox="0 0 24 24"><path d="M12 12.75c1.63 0 3.07.39 4.24.9 1.08.48 1.76 1.56 1.76 2.73V18H6v-1.61c0-1.18.68-2.26 1.76-2.73 1.17-.52 2.61-.91 4.24-.91zM4 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm1.13 1.1C4.76 14.04 4.39 14 4 14c-.99 0-1.93.21-2.78.58A2.01 2.01 0 000 16.43V18h4.5v-1.61c0-.83.23-1.61.63-2.29zM20 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm4 3.43c0-.81-.48-1.53-1.22-1.85A6.95 6.95 0 0020 14c-.39 0-.76.04-1.13.1.4.68.63 1.46.63 2.29V18H24v-1.57zM12 6c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/></svg>Generacional</button>
+<button class="main-tab" onclick="CALIF.switchMainTab('docentes')"><svg viewBox="0 0 24 24"><path d="M20 17a2 2 0 002-2V5a2 2 0 00-2-2H9.46c.35.61.54 1.3.54 2h10v10h-7v2M15 7v2H9v3H7V9H1V7h6V4h2v3h6M7 15h6v3l5-4-5-4v3H5v8h2v-6z"/></svg>Docentes</button>
 </div>
 
 <!-- TAB GRUPAL -->
@@ -345,28 +492,28 @@ td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--
 <div class="analysis-section hidden" id="analysisGrupal">
 <div class="analysis-header"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>Análisis de cátedra (docentes y materias)</div>
 <div class="analysis-body">
-<div class="analysis-panel"><h3>Diagnóstico de aprendizaje por materia<button class="img-export-btn" onclick="exportChartImg('grupal')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Imagen</button></h3><div style="position:relative;width:100%;flex:1;min-height:300px"><canvas id="chartGrupal"></canvas></div>
+<div class="analysis-panel"><h3>Diagnóstico de aprendizaje por materia<button class="img-export-btn" onclick="CALIF.exportChartImg('grupal')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Imagen</button></h3><div style="position:relative;width:100%;flex:1;min-height:300px"><canvas id="chartGrupal"></canvas></div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-top:8px;font-size:10px;color:var(--text2)"><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#27ae60;display:inline-block"></span> Buen aprendizaje uniforme</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#e67e22;display:inline-block"></span> Rezago en algunos alumnos</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#c0392b;display:inline-block"></span> Grupo no aprende</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#8e44ad;display:inline-block"></span> Solo algunos aprenden</span></div></div>
 <div class="analysis-divider"></div>
-<div class="analysis-panel"><h3>Materias ordenadas por núm. de reprobados<button class="img-export-btn" onclick="exportBarsImg('barsGrupal')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Imagen</button></h3><div id="barsGrupal" class="top-materias-scroll"></div></div>
+<div class="analysis-panel"><h3>Materias ordenadas por núm. de reprobados<button class="img-export-btn" onclick="CALIF.exportBarsImg('barsGrupal')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Imagen</button></h3><div id="barsGrupal" class="top-materias-scroll"></div></div>
 </div></div>
 <div class="toolbar">
 <div class="period-selector" id="colSwitchGrupal">
 <div class="period-group"><span class="period-group-label ord">Ordinario</span><div class="radio-group">
-<button class="active" data-col="Cal_P1" onclick="switchCol(this,'grupal')">Parcial 1</button>
-<button data-col="Cal_EF" onclick="switchCol(this,'grupal')">Parcial Final</button>
-<button data-col="Cal_CF" onclick="switchCol(this,'grupal')">Calif. Final</button>
+<button class="active" data-col="Cal_P1" onclick="CALIF.switchCol(this,'grupal')">Parcial 1</button>
+<button data-col="Cal_EF" onclick="CALIF.switchCol(this,'grupal')">Parcial Final</button>
+<button data-col="Cal_CF" onclick="CALIF.switchCol(this,'grupal')">Calif. Final</button>
 </div></div>
 <div class="period-group"><span class="period-group-label ext">Extraordinario</span><div class="radio-group ext-group">
-<button data-col="Cal_EX1" onclick="switchCol(this,'grupal')">Extra P1</button>
-<button data-col="Cal_EX2" onclick="switchCol(this,'grupal')">Extra PF</button>
+<button data-col="Cal_EX1" onclick="CALIF.switchCol(this,'grupal')">Extra P1</button>
+<button data-col="Cal_EX2" onclick="CALIF.switchCol(this,'grupal')">Extra PF</button>
 </div></div>
 <div class="period-group"><span class="period-group-label esp">Especial</span><div class="radio-group esp-group">
-<button data-col="Cal_ES1" onclick="switchCol(this,'grupal')">Especial P1</button>
-<button data-col="Cal_ES2" onclick="switchCol(this,'grupal')">Especial PF</button>
+<button data-col="Cal_ES1" onclick="CALIF.switchCol(this,'grupal')">Especial P1</button>
+<button data-col="Cal_ES2" onclick="CALIF.switchCol(this,'grupal')">Especial PF</button>
 </div></div>
 </div>
-<button class="export-btn" onclick="exportTab('grupal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Exportar</button>
+<button class="export-btn" onclick="CALIF.exportTab('grupal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Exportar</button>
 </div>
 <div id="groupSummaryGrupal" style="margin-bottom:16px"></div>
 <div id="tableAreaGrupal"></div>
@@ -379,28 +526,28 @@ td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--
 <div class="analysis-section hidden" id="analysisGeneracional">
 <div class="analysis-header"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>Análisis de cátedra (docentes y materias)</div>
 <div class="analysis-body">
-<div class="analysis-panel"><h3>Diagnóstico de aprendizaje por materia<button class="img-export-btn" onclick="exportChartImg('generacional')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Imagen</button></h3><div style="position:relative;width:100%;flex:1;min-height:300px"><canvas id="chartGeneracional"></canvas></div>
+<div class="analysis-panel"><h3>Diagnóstico de aprendizaje por materia<button class="img-export-btn" onclick="CALIF.exportChartImg('generacional')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Imagen</button></h3><div style="position:relative;width:100%;flex:1;min-height:300px"><canvas id="chartGeneracional"></canvas></div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-top:8px;font-size:10px;color:var(--text2)"><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#27ae60;display:inline-block"></span> Buen aprendizaje uniforme</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#e67e22;display:inline-block"></span> Rezago en algunos alumnos</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#c0392b;display:inline-block"></span> Grupo no aprende</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#8e44ad;display:inline-block"></span> Solo algunos aprenden</span></div></div>
 <div class="analysis-divider"></div>
-<div class="analysis-panel"><h3>Materias ordenadas por núm. de reprobados<button class="img-export-btn" onclick="exportBarsImg('barsGeneracional')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Imagen</button></h3><div id="barsGeneracional" class="top-materias-scroll"></div></div>
+<div class="analysis-panel"><h3>Materias ordenadas por núm. de reprobados<button class="img-export-btn" onclick="CALIF.exportBarsImg('barsGeneracional')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Imagen</button></h3><div id="barsGeneracional" class="top-materias-scroll"></div></div>
 </div></div>
 <div class="toolbar">
 <div class="period-selector" id="colSwitchGeneracional">
 <div class="period-group"><span class="period-group-label ord">Ordinario</span><div class="radio-group">
-<button class="active" data-col="Cal_P1" onclick="switchCol(this,'generacional')">Parcial 1</button>
-<button data-col="Cal_EF" onclick="switchCol(this,'generacional')">Parcial Final</button>
-<button data-col="Cal_CF" onclick="switchCol(this,'generacional')">Calif. Final</button>
+<button class="active" data-col="Cal_P1" onclick="CALIF.switchCol(this,'generacional')">Parcial 1</button>
+<button data-col="Cal_EF" onclick="CALIF.switchCol(this,'generacional')">Parcial Final</button>
+<button data-col="Cal_CF" onclick="CALIF.switchCol(this,'generacional')">Calif. Final</button>
 </div></div>
 <div class="period-group"><span class="period-group-label ext">Extraordinario</span><div class="radio-group ext-group">
-<button data-col="Cal_EX1" onclick="switchCol(this,'generacional')">Extra P1</button>
-<button data-col="Cal_EX2" onclick="switchCol(this,'generacional')">Extra PF</button>
+<button data-col="Cal_EX1" onclick="CALIF.switchCol(this,'generacional')">Extra P1</button>
+<button data-col="Cal_EX2" onclick="CALIF.switchCol(this,'generacional')">Extra PF</button>
 </div></div>
 <div class="period-group"><span class="period-group-label esp">Especial</span><div class="radio-group esp-group">
-<button data-col="Cal_ES1" onclick="switchCol(this,'generacional')">Especial P1</button>
-<button data-col="Cal_ES2" onclick="switchCol(this,'generacional')">Especial PF</button>
+<button data-col="Cal_ES1" onclick="CALIF.switchCol(this,'generacional')">Especial P1</button>
+<button data-col="Cal_ES2" onclick="CALIF.switchCol(this,'generacional')">Especial PF</button>
 </div></div>
 </div>
-<button class="export-btn" onclick="exportTab('generacional')"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Exportar</button>
+<button class="export-btn" onclick="CALIF.exportTab('generacional')"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Exportar</button>
 </div>
 <div id="groupSummaryGeneracional" style="margin-bottom:16px"></div>
 <div id="tableAreaGeneracional"></div>
@@ -412,13 +559,13 @@ td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--
 <div class="stats-row" id="statsDocentes"></div>
 <div class="toolbar">
 <div class="radio-group" id="colSwitchDocentes">
-<button class="active" data-col="Cal_P1" onclick="switchCol(this,'docentes')">Parcial 1</button>
-<button data-col="Cal_EF" onclick="switchCol(this,'docentes')">Parcial Final</button>
-<button data-col="Cal_CF" onclick="switchCol(this,'docentes')">Calif. Final</button>
+<button class="active" data-col="Cal_P1" onclick="CALIF.switchCol(this,'docentes')">Parcial 1</button>
+<button data-col="Cal_EF" onclick="CALIF.switchCol(this,'docentes')">Parcial Final</button>
+<button data-col="Cal_CF" onclick="CALIF.switchCol(this,'docentes')">Calif. Final</button>
 </div>
-<input type="text" id="docenteSearch" placeholder="🔍 Buscar docente..." oninput="filterDocenteRows(this.value)" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;min-width:240px;outline:none">
-<button class="export-btn" onclick="showHeatmap()" style="background:var(--purple);margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M3 3h8v8H3V3m10 0h8v8h-8V3M3 13h8v8H3v-8m10 5h3v3h-3v-3m5 0h3v3h-3v-3m-5-5h3v3h-3v-3m5 0h3v3h-3v-3"/></svg>Ver mapa de calor</button>
-<button class="export-btn" onclick="exportDocentesTable()" style="margin-left:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Exportar</button>
+<input type="text" id="docenteSearch" placeholder="🔍 Buscar docente..." oninput="CALIF.filterDocenteRows(this.value)" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;min-width:240px;outline:none">
+<button class="export-btn" onclick="CALIF.showHeatmap()" style="background:var(--purple);margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M3 3h8v8H3V3m10 0h8v8h-8V3M3 13h8v8H3v-8m10 5h3v3h-3v-3m5 0h3v3h-3v-3m-5-5h3v3h-3v-3m5 0h3v3h-3v-3"/></svg>Ver mapa de calor</button>
+<button class="export-btn" onclick="CALIF.exportDocentesTable()" style="margin-left:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Exportar</button>
 </div>
 <div id="tableAreaDocentes"></div>
 </div>
@@ -427,7 +574,231 @@ td.total-cell{text-align:center;font-weight:700;font-size:12px;background:var(--
 </div>
 <div class="bar-tooltip" id="barTooltip" style="display:none"></div>
 
+
+
+
+</div>
+
+<!-- App: Validador de Guías -->
+<div class="app-validador">
+
+
+<!-- HEADER -->
+<header class="header">
+  <svg class="logo" viewBox="0 0 512 512">
+    <path d="M256 120L100 200l60 33v110L256 400l96-57V233l24-13v130h28V200L256 120zm103 80L256 253 153 200l103-53 103 53zM336 318l-80 47-80-47V253l80 47 80-47v65z"/>
+  </svg>
+  <div class="h-text">
+    <h1>Validador de Guías T.I.</h1>
+    <p>Coordinación de Tecnologías de la Información · UTCV</p>
+  </div>
+  <div class="header-actions">
+    <button class="header-btn" onclick="VAL.sincronizar()" title="Sincronizar con Drive">
+      <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4a8 8 0 108 8h-2a6 6 0 11-6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      <span>Sincronizar</span>
+    </button>
+    <button class="header-btn" onclick="VAL.exportarExcel()" title="Exportar reporte">
+      <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      <span>Exportar</span>
+    </button>
+    <button class="header-btn icon-only" onclick="VAL.loadConfigToModal(); VAL.openModal('modalConfig')" title="Configuración">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94 0 .31.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- CONTAINER -->
+<div class="container">
+  <div id="content"></div>
+</div>
+
+<!-- MODAL CONFIG -->
+<div class="modal-overlay" id="modalConfig">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Configuración</h3>
+      <p>Parámetros del cuatrimestre actual</p>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">URL de Carpeta Drive</label>
+        <input type="text" class="field-input" id="inputDriveUrl" placeholder="https://drive.google.com/drive/folders/..." />
+        <div class="field-hint">Esta URL cambia cada cuatrimestre</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Endpoint de Apps Script</label>
+        <input type="text" class="field-input" id="inputScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+        <div class="field-hint">URL del script implementado como Web App</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Tu correo</label>
+        <input type="email" class="field-input" id="inputEmail" placeholder="tu@utcv.edu.mx" />
+      </div>
+      <div class="field">
+        <label class="field-label">Cuatrimestre</label>
+        <input type="text" class="field-input" id="inputPeriodo" placeholder="Enero-Abril 2026" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn" onclick="VAL.closeModal('modalConfig')">Cancelar</button>
+      <button class="modal-btn primary" id="btnSaveConfig">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOTES -->
+<div class="modal-overlay" id="modalNotes">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Observaciones</h3>
+      <p id="notesSubtitle">—</p>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Notas sobre esta materia</label>
+        <textarea class="field-textarea" id="inputNotes" placeholder="Escribe observaciones sobre el contenido..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn" onclick="VAL.closeModal('modalNotes')">Cancelar</button>
+      <button class="modal-btn primary" id="btnSaveNotes">Guardar notas</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EMAIL -->
+<div class="modal-overlay" id="modalEmail">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Enviar notificación</h3>
+      <p id="emailSubtitle">—</p>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Destinatario</label>
+        <input type="email" class="field-input" id="inputEmailTo" placeholder="docente@utcv.edu.mx" />
+      </div>
+      <div class="field">
+        <label class="field-label">Asunto</label>
+        <input type="text" class="field-input" id="inputEmailSubject" />
+      </div>
+      <div class="field">
+        <label class="field-label">Mensaje</label>
+        <textarea class="field-textarea" id="inputEmailBody" style="min-height:180px"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn" onclick="VAL.closeModal('modalEmail')">Cancelar</button>
+      <button class="modal-btn primary" id="btnSendEmail">Enviar correo</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="progress-overlay" id="loadingOverlay">
+  <div class="progress-box">
+    <div class="progress-spinner"></div>
+    <h3 id="loadingText" style="margin-top:16px">Sincronizando con Drive…</h3>
+    <p>Esto puede tomar unos segundos</p>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- INSTALL -->
+<div class="install-banner" id="installBanner">
+  <span>Instala la app para acceso rápido</span>
+  <button class="btn-install" id="btnInstall">Instalar</button>
+  <button class="btn-dismiss" id="btnDismissInstall">×</button>
+</div>
+
+
+
+</div>
+
+<!-- Lógica del switcher -->
+
 <script>
+(function(){
+  // Función global para cambiar de app (también la exponemos para el botón "Volver" si quisiéramos)
+  function showApp(name) {
+    var launcher = document.getElementById('appLauncher');
+    var calif = document.querySelector('.app-calif');
+    var valid = document.querySelector('.app-validador');
+    var switcher = document.getElementById('appSwitcher');
+    var tabs = document.querySelectorAll('.app-switcher-tab');
+    var mobileMenu = document.getElementById('appSwitcherTabs');
+    
+    if (name === 'launcher') {
+      launcher.classList.remove('hidden');
+      calif.classList.remove('active');
+      valid.classList.remove('active');
+      switcher.style.display = 'none';
+    } else if (name === 'calif') {
+      launcher.classList.add('hidden');
+      calif.classList.add('active');
+      valid.classList.remove('active');
+      switcher.style.display = 'flex';
+    } else if (name === 'valid') {
+      launcher.classList.add('hidden');
+      valid.classList.add('active');
+      calif.classList.remove('active');
+      switcher.style.display = 'flex';
+    }
+    
+    // Actualizar tab activa
+    tabs.forEach(function(t){
+      t.classList.toggle('active', t.dataset.app === name);
+    });
+    
+    // Cerrar menú móvil al navegar
+    if (mobileMenu) mobileMenu.classList.remove('open');
+    
+    // Recordar última app
+    try { localStorage.setItem('lastApp', name); } catch(e){}
+    
+    // Scroll al inicio
+    window.scrollTo(0, 0);
+  }
+  
+  function toggleMobileMenu() {
+    var menu = document.getElementById('appSwitcherTabs');
+    if (menu) menu.classList.toggle('open');
+  }
+  
+  // Exponer globalmente
+  window.showApp = showApp;
+  window.toggleAppSwitcherMenu = toggleMobileMenu;
+  
+  // Restaurar última app al cargar (si existe)
+  document.addEventListener('DOMContentLoaded', function(){
+    var last = null;
+    try { last = localStorage.getItem('lastApp'); } catch(e){}
+    if (last === 'calif' || last === 'valid') {
+      showApp(last);
+    } else {
+      showApp('launcher');
+    }
+  });
+  
+  // Cerrar menú móvil al hacer click afuera
+  document.addEventListener('click', function(e){
+    var menu = document.getElementById('appSwitcherTabs');
+    var btn = document.getElementById('appSwitcherMenuBtn');
+    if (!menu || !btn) return;
+    if (menu.classList.contains('open') && !menu.contains(e.target) && !btn.contains(e.target)) {
+      menu.classList.remove('open');
+    }
+  });
+})();
+</script>
+
+
+<!-- JS de Calificaciones (encapsulado en IIFE) -->
+<script>
+(function(){
+
 let rawData=[];
 const tabState={
   grupal:{col:'Cal_P1',chart:null,scatterData:null,origBg:null,origBorder:null,origR:null,filters:{},ms:{}},
@@ -705,7 +1076,7 @@ function renderBars(containerId,ms,tab){
     const barColor=colorMap[m.materia]||'var(--purple)';
     const ft=`${m.materia} — ${m.profesor} | Reprobados: ${m.fails} de ${m.total} (${m.pct}%)`;
     const safeMateria=m.materia.replace(/'/g,'&#39;').replace(/"/g,'&quot;');
-    return `<div class="top-materia-item"><div class="top-materia-rank">${i+1}</div><div class="top-materia-bar-bg" data-tip="${ft.replace(/"/g,'&quot;')}" data-idx="${sdData.findIndex(d=>d.materia===m.materia)}" data-tab="${tab}" onmouseenter="highlightPoint(this);showBarTip(event)" onmousemove="moveBarTip(event)" onmouseleave="unhighlightPoint(this);hideBarTip()"><div class="top-materia-bar" style="width:${bw}%;background:${barColor}"><span>${sm}: ${sp}</span></div></div><div class="top-materia-pct">${m.fails} <span style="font-size:10px;color:var(--text2)">(${m.pct}%)</span></div></div>`;
+    return `<div class="top-materia-item"><div class="top-materia-rank">${i+1}</div><div class="top-materia-bar-bg" data-tip="${ft.replace(/"/g,'&quot;')}" data-idx="${sdData.findIndex(d=>d.materia===m.materia)}" data-tab="${tab}" onmouseenter="CALIF.highlightPoint(this);CALIF.showBarTip(event)" onmousemove="CALIF.moveBarTip(event)" onmouseleave="CALIF.unhighlightPoint(this);CALIF.hideBarTip()"><div class="top-materia-bar" style="width:${bw}%;background:${barColor}"><span>${sm}: ${sp}</span></div></div><div class="top-materia-pct">${m.fails} <span style="font-size:10px;color:var(--text2)">(${m.pct}%)</span></div></div>`;
   }).join('');
 }
 
@@ -753,7 +1124,7 @@ function buildTableHTML(materias,profMap,students,numberStart,meta,col){
   students.forEach((s,i)=>{
     let sum=0,cnt=0;
     const sx=s.Sexo==='Masculino'?'H':s.Sexo==='Femenino'?'M':s.Sexo?s.Sexo.charAt(0):'';
-    let row=`<tr><td style="text-align:center;color:var(--text2);font-size:11px">${ns+i+1}</td><td class="student-id"><a href="#" onclick="showStudentDetail('${s.Matricula}');return false" style="color:var(--accent2);text-decoration:none;font-weight:600;cursor:pointer">${s.Matricula}</a></td><td class="name-cell">${decodeHtml(s.Paterno)}</td><td>${decodeHtml(s.Materno)}</td><td>${decodeHtml(s.Nombre)}</td><td style="text-align:center;font-weight:600;font-size:11px">${sx}</td>`;
+    let row=`<tr><td style="text-align:center;color:var(--text2);font-size:11px">${ns+i+1}</td><td class="student-id"><a href="#" onclick="CALIF.showStudentDetail('${s.Matricula}');return false" style="color:var(--accent2);text-decoration:none;font-weight:600;cursor:pointer">${s.Matricula}</a></td><td class="name-cell">${decodeHtml(s.Paterno)}</td><td>${decodeHtml(s.Materno)}</td><td>${decodeHtml(s.Nombre)}</td><td style="text-align:center;font-weight:600;font-size:11px">${sx}</td>`;
     filteredMaterias.forEach(mt=>{
       if(isEstadia(mt)){
         const asesor=s.asesores[mt]||'';
@@ -809,7 +1180,7 @@ function buildTableHTML(materias,profMap,students,numberStart,meta,col){
     if(arr.length)materiaGrades[mt]=arr;
   });
   distRegistry[distId]={title:label||'Distribución de calificaciones',materias:materiaGrades,profMap:profMap||{}};
-  const toggleBtn=`<div style="margin-bottom:6px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap"><button class="faltas-toggle-btn" onclick="showDistribution('${distId}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M22 21H2V3h2v16h2v-9h4v9h2V6h4v13h2v-7h4v9z"/></svg>Mostrar distribución</button><button class="faltas-toggle-btn" onclick="toggleReprobados(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>Solo reprobados</button><button class="faltas-toggle-btn" onclick="toggleFaltas(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>Mostrar faltas</button></div>`;
+  const toggleBtn=`<div style="margin-bottom:6px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap"><button class="faltas-toggle-btn" onclick="CALIF.showDistribution('${distId}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M22 21H2V3h2v16h2v-9h4v9h2V6h4v13h2v-7h4v9z"/></svg>Mostrar distribución</button><button class="faltas-toggle-btn" onclick="CALIF.toggleReprobados(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>Solo reprobados</button><button class="faltas-toggle-btn" onclick="CALIF.toggleFaltas(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>Mostrar faltas</button></div>`;
   return`${headerBar}${toggleBtn}<div class="table-wrapper" style="${label?'border-radius:0 0 8px 8px':''}"><table>${hdr}<tbody>${body}</tbody></table></div>`;
 }
 
@@ -869,9 +1240,9 @@ function renderTab(tab){
       const label=[g.grado,'Grupo '+g.grupo,g.carrera,g.modalidad,g.campus].filter(Boolean).join(' - ');
       const pctCls=Number(gs.pctR)>=20?'fail':'pass';
       const aprovCls=gs.aprov!=='N/A'&&parseFloat(gs.aprov)<7?'fail':'pass';
-      stbl+=`<tr style="cursor:pointer" onclick="showGroupDetail('${tab}',${i})" title="Clic para ver detalle">
+      stbl+=`<tr style="cursor:pointer" onclick="CALIF.showGroupDetail('${tab}',${i})" title="Clic para ver detalle">
         <td style="text-align:center;color:var(--text2);font-size:11px">${i+1}</td>
-        <td><a href="#" onclick="showGroupDetail('${tab}',${i});return false" style="color:var(--accent2);text-decoration:none;font-weight:600;font-size:12px">${decodeHtml(label)}</a></td>
+        <td><a href="#" onclick="CALIF.showGroupDetail('${tab}',${i});return false" style="color:var(--accent2);text-decoration:none;font-weight:600;font-size:12px">${decodeHtml(label)}</a></td>
         <td style="text-align:center;font-weight:600">${gs.students.length}</td>
         <td style="text-align:center;color:var(--green-text);font-weight:600">${gs.students.length-gs.swf}</td>
         <td style="text-align:center;color:var(--red-text);font-weight:600">${gs.swf}</td>
@@ -979,7 +1350,7 @@ function renderDocentes(data,col){
     const pctCls=Number(d.pctReprob)>=20?'fail':'pass';
     html+=`<tr>
       <td style="text-align:center;color:var(--text2);font-size:11px">${i+1}</td>
-      <td class="name-cell"><a href="#" onclick="showDocenteDetail('d${i}');return false" style="color:var(--accent2);text-decoration:none;font-weight:600;cursor:pointer">${decodeHtml(d.profesor)}</a></td>
+      <td class="name-cell"><a href="#" onclick="CALIF.showDocenteDetail('d${i}');return false" style="color:var(--accent2);text-decoration:none;font-weight:600;cursor:pointer">${decodeHtml(d.profesor)}</a></td>
       <td style="text-align:center">${d.materias}</td>
       <td style="text-align:center;font-weight:600">${d.alumnos}</td>
       <td class="grade-cell ${aprovCls}" style="text-align:center;font-weight:700">${d.aprov}</td>
@@ -1021,8 +1392,8 @@ function showDocenteDetail(key){
 
   let html=`<div style="background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:12px 18px;font-size:14px;font-weight:700;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;gap:8px">
     <span style="flex:1">Detalle por grupo: ${decodeHtml(d.profesor)}</span>
-    <button onclick="showDocenteEvolution('${key}')" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px" title="Ver evolución por parcial"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M3.5 18.5l6-6 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>Evolución</button>
-    <button onclick="closeDocenteDetail()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:16px;font-weight:700">×</button>
+    <button onclick="CALIF.showDocenteEvolution('${key}')" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px" title="Ver evolución por parcial"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M3.5 18.5l6-6 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>Evolución</button>
+    <button onclick="CALIF.closeDocenteDetail()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:16px;font-weight:700">×</button>
   </div>`;
   html+='<div class="table-wrapper" style="border-radius:0 0 8px 8px;margin-bottom:0"><table><thead><tr>'+
     '<th>Materia</th>'+
@@ -1041,7 +1412,7 @@ function showDocenteDetail(key){
     navGrupalRegistry.push({Alias:g.carrera,Campus:g.campus,Modalidad:g.modalidad,Grado:g.grado,Grupo:g.grupo});
     html+=`<tr>
       <td class="name-cell">${decodeHtml(g.materia)}</td>
-      <td><a href="#" onclick="navigateToGrupal(${navIdx});return false" style="font-size:11px;color:var(--accent2);text-decoration:none;cursor:pointer" title="Ver en pestaña Grupal">${decodeHtml(grupoLabel)}</a></td>
+      <td><a href="#" onclick="CALIF.navigateToGrupal(${navIdx});return false" style="font-size:11px;color:var(--accent2);text-decoration:none;cursor:pointer" title="Ver en pestaña Grupal">${decodeHtml(grupoLabel)}</a></td>
       <td style="text-align:center;font-weight:600">${g.alumnos}</td>
       <td style="text-align:center;color:var(--green-text);font-weight:600">${g.aprob}</td>
       <td style="text-align:center;color:var(--red-text);font-weight:600">${g.reprob}</td>
@@ -1680,10 +2051,10 @@ function updateDistChart(){
   document.getElementById('distSummary').innerHTML=
     `<div style="display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:center">`+
     `<span><strong>n = ${n}</strong></span>`+
-    `<span data-line="aprob" style="color:${cAprob};font-weight:700;${hoverStyle}" onmouseenter="highlightDistLine('aprob')" onmouseleave="highlightDistLine(null)">Aprobatorio: 7</span>`+
-    `<span data-line="mean" style="color:${cMean};font-weight:700;${hoverStyle}" onmouseenter="highlightDistLine('mean')" onmouseleave="highlightDistLine(null)">Media: ${mean.toFixed(2)}</span>`+
-    `<span data-line="median" style="color:${cMed};font-weight:700;${hoverStyle}" onmouseenter="highlightDistLine('median')" onmouseleave="highlightDistLine(null)">Mediana: ${median.toFixed(2)}</span>`+
-    `<span data-line="mode" style="color:${cMode};font-weight:700;${hoverStyle}" onmouseenter="highlightDistLine('mode')" onmouseleave="highlightDistLine(null)">Moda: ${modeVal!==null?modeVal.toFixed(1):'—'}</span>`+
+    `<span data-line="aprob" style="color:${cAprob};font-weight:700;${hoverStyle}" onmouseenter="CALIF.highlightDistLine('aprob')" onmouseleave="CALIF.highlightDistLine(null)">Aprobatorio: 7</span>`+
+    `<span data-line="mean" style="color:${cMean};font-weight:700;${hoverStyle}" onmouseenter="CALIF.highlightDistLine('mean')" onmouseleave="CALIF.highlightDistLine(null)">Media: ${mean.toFixed(2)}</span>`+
+    `<span data-line="median" style="color:${cMed};font-weight:700;${hoverStyle}" onmouseenter="CALIF.highlightDistLine('median')" onmouseleave="CALIF.highlightDistLine(null)">Mediana: ${median.toFixed(2)}</span>`+
+    `<span data-line="mode" style="color:${cMode};font-weight:700;${hoverStyle}" onmouseenter="CALIF.highlightDistLine('mode')" onmouseleave="CALIF.highlightDistLine(null)">Moda: ${modeVal!==null?modeVal.toFixed(1):'—'}</span>`+
     `<span><strong>σ = ${sd.toFixed(2)}</strong></span>`+
     `</div>`;
 
@@ -1944,8 +2315,8 @@ function exportBarsImg(containerId){
     a.click();
   });
 }
-</script>
-<script>
+
+
 (function(){
   const iconSvg=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%231a1a2e'/><path d='M256 120L100 200l60 33v110L256 400l96-57V233l24-13v130h28V200L256 120zm103 80L256 253 153 200l103-53 103 53zM336 318l-80 47-80-47V253l80 47 80-47v65z' fill='%23fff'/></svg>`;
   const iconUrl='data:image/svg+xml,'+encodeURIComponent(iconSvg.replace(/%23/g,'#'));
@@ -2020,6 +2391,1214 @@ function exportBarsImg(containerId){
   }
   initPWA();
 })();
+
+window.CALIF = {
+  buildFilters: typeof buildFilters !== "undefined" ? buildFilters : function(){},
+  buildTableHTML: typeof buildTableHTML !== "undefined" ? buildTableHTML : function(){},
+  cap: typeof cap !== "undefined" ? cap : function(){},
+  closeDist: typeof closeDist !== "undefined" ? closeDist : function(){},
+  closeDocenteDetail: typeof closeDocenteDetail !== "undefined" ? closeDocenteDetail : function(){},
+  closeError: typeof closeError !== "undefined" ? closeError : function(){},
+  closeEvo: typeof closeEvo !== "undefined" ? closeEvo : function(){},
+  closeHeat: typeof closeHeat !== "undefined" ? closeHeat : function(){},
+  closeStudentModal: typeof closeStudentModal !== "undefined" ? closeStudentModal : function(){},
+  computeStats: typeof computeStats !== "undefined" ? computeStats : function(){},
+  decodeHtml: typeof decodeHtml !== "undefined" ? decodeHtml : function(){},
+  downloadHeatmap: typeof downloadHeatmap !== "undefined" ? downloadHeatmap : function(){},
+  exportBarsImg: typeof exportBarsImg !== "undefined" ? exportBarsImg : function(){},
+  exportChartImg: typeof exportChartImg !== "undefined" ? exportChartImg : function(){},
+  exportDocentesTable: typeof exportDocentesTable !== "undefined" ? exportDocentesTable : function(){},
+  exportTab: typeof exportTab !== "undefined" ? exportTab : function(){},
+  filterDocenteRows: typeof filterDocenteRows !== "undefined" ? filterDocenteRows : function(){},
+  getFilteredData: typeof getFilteredData !== "undefined" ? getFilteredData : function(){},
+  handleFile: typeof handleFile !== "undefined" ? handleFile : function(){},
+  hideBarTip: typeof hideBarTip !== "undefined" ? hideBarTip : function(){},
+  hideProgress: typeof hideProgress !== "undefined" ? hideProgress : function(){},
+  highlightDistLine: typeof highlightDistLine !== "undefined" ? highlightDistLine : function(){},
+  highlightPoint: typeof highlightPoint !== "undefined" ? highlightPoint : function(){},
+  isEstadia: typeof isEstadia !== "undefined" ? isEstadia : function(){},
+  moveBarTip: typeof moveBarTip !== "undefined" ? moveBarTip : function(){},
+  navigateToGrupal: typeof navigateToGrupal !== "undefined" ? navigateToGrupal : function(){},
+  populateTabFilters: typeof populateTabFilters !== "undefined" ? populateTabFilters : function(){},
+  renderBars: typeof renderBars !== "undefined" ? renderBars : function(){},
+  renderBubbleChart: typeof renderBubbleChart !== "undefined" ? renderBubbleChart : function(){},
+  renderDocentes: typeof renderDocentes !== "undefined" ? renderDocentes : function(){},
+  renderStatsHTML: typeof renderStatsHTML !== "undefined" ? renderStatsHTML : function(){},
+  renderStudentRadar: typeof renderStudentRadar !== "undefined" ? renderStudentRadar : function(){},
+  renderTab: typeof renderTab !== "undefined" ? renderTab : function(){},
+  showBarTip: typeof showBarTip !== "undefined" ? showBarTip : function(){},
+  showDistribution: typeof showDistribution !== "undefined" ? showDistribution : function(){},
+  showDocenteDetail: typeof showDocenteDetail !== "undefined" ? showDocenteDetail : function(){},
+  showDocenteEvolution: typeof showDocenteEvolution !== "undefined" ? showDocenteEvolution : function(){},
+  showError: typeof showError !== "undefined" ? showError : function(){},
+  showGroupDetail: typeof showGroupDetail !== "undefined" ? showGroupDetail : function(){},
+  showHeatmap: typeof showHeatmap !== "undefined" ? showHeatmap : function(){},
+  showProgress: typeof showProgress !== "undefined" ? showProgress : function(){},
+  showStudentDetail: typeof showStudentDetail !== "undefined" ? showStudentDetail : function(){},
+  switchCol: typeof switchCol !== "undefined" ? switchCol : function(){},
+  switchMainTab: typeof switchMainTab !== "undefined" ? switchMainTab : function(){},
+  switchRadarPeriod: typeof switchRadarPeriod !== "undefined" ? switchRadarPeriod : function(){},
+  switchStudentTab: typeof switchStudentTab !== "undefined" ? switchStudentTab : function(){},
+  toggleFaltas: typeof toggleFaltas !== "undefined" ? toggleFaltas : function(){},
+  toggleReprobados: typeof toggleReprobados !== "undefined" ? toggleReprobados : function(){},
+  unhighlightPoint: typeof unhighlightPoint !== "undefined" ? unhighlightPoint : function(){},
+  updateDistChart: typeof updateDistChart !== "undefined" ? updateDistChart : function(){},
+};
+})();
+
 </script>
+
+<!-- JS del Validador (encapsulado en IIFE) -->
+<script>
+(function(){
+
+/* ============================================================
+   VALIDADOR DE GUÍAS T.I. — Lógica (estilo Dashboard unificado)
+   ============================================================ */
+
+const STATE = {
+  config: { driveUrl: '', scriptUrl: '', email: '', periodo: '' },
+  docentes: [],
+  view: 'welcome',
+  tab: 'materias', // materias | estadias
+  currentMateria: null,
+  currentEstadia: null,
+  filter: 'todos',
+  search: '',
+  deferredInstallPrompt: null
+};
+
+const DOCUMENTOS_MATERIA = [
+  { id: 'actas',       num: '1',   titulo: 'Actas' },
+  { id: 'encuadre',    num: '2',   titulo: 'Encuadre' },
+  { id: 'evidencia',   num: '3',   titulo: 'Evidencia Examen' },
+  { id: 'guia',        num: '4.1', titulo: 'Guía Seguimiento' },
+  { id: 'portada',     num: '4.2', titulo: 'Portada Guía' },
+  { id: 'instrumento', num: '5',   titulo: 'Instrumento de Evaluación' },
+  { id: 'control',     num: '6',   titulo: 'Hoja Control' },
+  { id: 'listas',      num: '7',   titulo: 'Listas' }
+];
+
+const DOCUMENTOS_ESTADIA = [
+  { id: 'registro',    num: '1', titulo: 'Registro' },
+  { id: 'evaluacion',  num: '2', titulo: 'Evaluación' },
+  { id: 'seguimiento', num: '3', titulo: 'Seguimiento' },
+  { id: 'tesina',      num: '4', titulo: 'Tesina' },
+  { id: 'liberacion',  num: '5', titulo: 'Liberación' }
+];
+
+const AVATAR_COLORS = ['', 'c2', 'c3', 'c4', 'c5'];
+
+// === STORAGE ===
+const DB = {
+  KEY_CONFIG: 'validador_config',
+  KEY_DATA: 'validador_data',
+  KEY_VALIDATIONS: 'validador_validations',
+  KEY_NOTES: 'validador_notes',
+  saveConfig(c) { localStorage.setItem(this.KEY_CONFIG, JSON.stringify(c)); },
+  loadConfig() { try { return JSON.parse(localStorage.getItem(this.KEY_CONFIG)) || null; } catch { return null; } },
+  saveData(d) { localStorage.setItem(this.KEY_DATA, JSON.stringify(d)); },
+  loadData() { try { return JSON.parse(localStorage.getItem(this.KEY_DATA)) || null; } catch { return null; } },
+  saveValidations(v) { localStorage.setItem(this.KEY_VALIDATIONS, JSON.stringify(v)); },
+  loadValidations() { try { return JSON.parse(localStorage.getItem(this.KEY_VALIDATIONS)) || {}; } catch { return {}; } },
+  saveNotes(n) { localStorage.setItem(this.KEY_NOTES, JSON.stringify(n)); },
+  loadNotes() { try { return JSON.parse(localStorage.getItem(this.KEY_NOTES)) || {}; } catch { return {}; } }
+};
+
+// === UTILS ===
+function qs(s) { return document.querySelector(s); }
+function qsa(s) { return Array.from(document.querySelectorAll(s)); }
+
+function toast(msg, type = 'default') {
+  const c = qs('#toastContainer');
+  const d = document.createElement('div');
+  d.className = `toast ${type}`;
+  const icons = {
+    success: '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>',
+    warn:    '<svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>',
+    danger:  '<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>',
+    default: '<svg viewBox="0 0 24 24"><path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/></svg>'
+  };
+  d.innerHTML = `${icons[type] || icons.default}<span>${msg}</span>`;
+  c.appendChild(d);
+  setTimeout(() => {
+    d.style.opacity = '0';
+    d.style.transition = 'opacity 200ms';
+    setTimeout(() => d.remove(), 200);
+  }, 2800);
+}
+
+function showLoading(text = 'Sincronizando…') {
+  qs('#loadingText').textContent = text;
+  qs('#loadingOverlay').classList.add('visible');
+}
+function hideLoading() { qs('#loadingOverlay').classList.remove('visible'); }
+
+function openModal(id) { qs(`#${id}`).classList.add('visible'); }
+function closeModal(id) { qs(`#${id}`).classList.remove('visible'); }
+
+function getValidationKey(d, g, m, id) { return `${d}::${g}::${m}::${id}`; }
+function getNoteKey(d, g, m) { return `${d}::${g}::${m}`; }
+function getValidationKeyEstadia(d, mat, nom, id) { return `EST::${d}::${mat}::${nom}::${id}`; }
+function getNoteKeyEstadia(d, mat, nom) { return `EST::${d}::${mat}::${nom}`; }
+
+function normalizeText(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function extractFolderIdFromUrl(url) {
+  const m = url.match(/folders\/([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+
+function getInitials(name) {
+  const clean = name.replace(/^(M\.A\.F\.O\.|I\.T\.I\.?|M\.S\.C\.|M\.R\. y S\.I\.|ING\.|ITI\.|M\.I\.E\.V\.E\.A\.|I\.S\.C\.|M\.R\.T\.|L\.I\.|I\.E\.V\.N\.D\.|M\.A\.N\.)\s*/i, '');
+  const parts = clean.split(' ').filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length > 2 ? 2 : 1][0]).toUpperCase();
+  return clean.substring(0, 2).toUpperCase();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// === RENDER ===
+function render() {
+  if (STATE.view === 'welcome' || STATE.docentes.length === 0) {
+    renderWelcome();
+  } else if (STATE.view === 'detail' && STATE.currentMateria) {
+    renderDetailMateria();
+  } else if (STATE.view === 'detailEstadia' && STATE.currentEstadia) {
+    renderDetailEstadia();
+  } else {
+    renderDashboard();
+  }
+}
+
+function renderWelcome() {
+  const hasConfig = STATE.config.driveUrl && STATE.config.scriptUrl;
+  qs('#content').innerHTML = `
+    <div class="welcome-zone fade-in">
+      <svg viewBox="0 0 24 24">
+        <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+      </svg>
+      <h3>Bienvenido al Validador de Guías T.I.</h3>
+      <p>Revisa y valida las evidencias académicas de los 18 docentes del programa en un solo lugar. Comienza ${hasConfig ? 'sincronizando la carpeta de Drive' : 'configurando los parámetros del sistema'}.</p>
+      <div class="welcome-actions">
+        ${hasConfig
+          ? `<button class="export-btn" onclick="VAL.sincronizar()">
+              <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4a8 8 0 108 8h-2a6 6 0 11-6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+              Sincronizar con Drive
+            </button>
+            <button class="export-btn secondary" onclick="VAL.loadConfigToModal(); VAL.openModal('modalConfig')">
+              <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94 0 .31.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+              Configurar
+            </button>`
+          : `<button class="export-btn" onclick="VAL.loadConfigToModal(); VAL.openModal('modalConfig')">
+              <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94 0 .31.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+              Iniciar configuración
+            </button>`
+        }
+      </div>
+    </div>
+  `;
+}
+
+function renderDashboard() {
+  const stats = calculateStats();
+  const v = DB.loadValidations();
+  const filtered = filterDocentes();
+  const tab = STATE.tab;
+
+  qs('#content').innerHTML = `
+    <div class="fade-in">
+      <!-- TABS: Materias / Estadías -->
+      <div class="main-tabs">
+        <button class="main-tab ${tab === 'materias' ? 'active' : ''}" onclick="VAL.setTab('materias')">
+          <svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          Materias
+        </button>
+        <button class="main-tab ${tab === 'estadias' ? 'active' : ''}" onclick="VAL.setTab('estadias')">
+          <svg viewBox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm0 0l.001 7"/></svg>
+          Estadías
+        </button>
+      </div>
+
+      <!-- FILTROS -->
+      <div class="filters">
+        <div class="filter-group">
+          <label>Buscar</label>
+          <input type="text" id="searchInput" placeholder="${tab === 'materias' ? 'Nombre de docente o materia...' : 'Nombre de docente o alumno...'}" value="${escapeHtml(STATE.search)}" />
+        </div>
+        <div class="filter-group">
+          <label>Estado</label>
+          <div class="radio-group" style="width:100%">
+            <button class="${STATE.filter === 'todos' ? 'active' : ''}" onclick="VAL.setFilter('todos')">Todos</button>
+            <button class="${STATE.filter === 'incompletos' ? 'active' : ''}" onclick="VAL.setFilter('incompletos')">Incompletos</button>
+            <button class="${STATE.filter === 'completos' ? 'active' : ''}" onclick="VAL.setFilter('completos')">Completos</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="label">Docentes</div>
+          <div class="value">${stats.totalDocentes}</div>
+          <div class="sub">del programa de T.I.</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">${tab === 'materias' ? 'Materias' : 'Alumnos en estadía'}</div>
+          <div class="value">${tab === 'materias' ? stats.totalMaterias : stats.totalEstadias}</div>
+          <div class="sub">${tab === 'materias' ? 'asignadas en total' : 'registrados en total'}</div>
+        </div>
+        <div class="stat-card ${(tab === 'materias' ? stats.pctValidadasMat : stats.pctValidadasEst) >= 80 ? 'success' : (tab === 'materias' ? stats.pctValidadasMat : stats.pctValidadasEst) >= 40 ? 'warn' : 'danger'}">
+          <div class="label">${tab === 'materias' ? 'Materias' : 'Alumnos'} validadas</div>
+          <div class="value">${tab === 'materias' ? stats.validadasMat : stats.validadasEst} / ${tab === 'materias' ? stats.totalMaterias : stats.totalEstadias}</div>
+          <div class="sub">${tab === 'materias' ? stats.pctValidadasMat : stats.pctValidadasEst}% completas</div>
+        </div>
+        <div class="stat-card ${(tab === 'materias' ? stats.pctProgresoMat : stats.pctProgresoEst) >= 80 ? 'success' : (tab === 'materias' ? stats.pctProgresoMat : stats.pctProgresoEst) >= 40 ? 'warn' : 'danger'}">
+          <div class="label">Progreso</div>
+          <div class="value">${tab === 'materias' ? stats.pctProgresoMat : stats.pctProgresoEst}%</div>
+          <div class="sub">de documentos revisados</div>
+        </div>
+      </div>
+
+      <!-- LISTA DOCENTES -->
+      <div class="docentes-section">
+        <div class="section-title">
+          <div class="left">
+            <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+            Docentes
+          </div>
+          <span class="count">${filtered.length} de ${STATE.docentes.length}</span>
+        </div>
+
+        ${filtered.length === 0
+          ? `<div class="empty-state">
+              <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+              <h3>Sin resultados</h3>
+              <p>Intenta con otro término o cambia los filtros.</p>
+            </div>`
+          : filtered.map((d, i) => renderDocenteRow(d, i, v)).join('')
+        }
+      </div>
+    </div>
+  `;
+
+  const si = qs('#searchInput');
+  if (si) {
+    si.addEventListener('input', (e) => {
+      STATE.search = e.target.value;
+      const was = document.activeElement?.id === 'searchInput';
+      renderDashboard();
+      if (was) {
+        const ni = qs('#searchInput');
+        if (ni) { ni.focus(); ni.setSelectionRange(STATE.search.length, STATE.search.length); }
+      }
+    });
+  }
+}
+
+function renderDocenteRow(docente, idx, validations) {
+  const tab = STATE.tab;
+  const p = tab === 'materias' 
+    ? calculateDocenteProgress(docente, validations)
+    : calculateDocenteProgressEstadias(docente, validations);
+  const pc = p.pct === 100 ? 'full' : p.pct >= 50 ? 'partial' : p.pct > 0 ? 'low' : '';
+  const ac = AVATAR_COLORS[idx % AVATAR_COLORS.length];
+  const ini = getInitials(docente.nombre);
+  const dn = encodeURIComponent(docente.nombre);
+
+  const items = tab === 'materias' ? (docente.materias || []) : (docente.estadias || []);
+  const itemLabel = tab === 'materias' 
+    ? (items.length === 1 ? 'materia' : 'materias')
+    : (items.length === 1 ? 'alumno' : 'alumnos');
+
+  return `
+    <div class="docente" data-docente="${dn}">
+      <div class="docente-header" onclick="VAL.toggleDocente('${dn}')">
+        <div class="docente-avatar ${ac}">${ini}</div>
+        <div class="docente-name">${escapeHtml(docente.nombre)}</div>
+        <div class="docente-count">${items.length} ${itemLabel}</div>
+        <div class="progress-wrap">
+          <div class="progress-bar">
+            <div class="progress-fill ${pc}" style="width:${p.pct}%"></div>
+          </div>
+          <span class="progress-text">${p.validadas}/${p.total}</span>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+      </div>
+      <div class="docente-body">
+        <div class="materias-list">
+          ${items.length === 0 
+            ? `<div style="padding:12px;text-align:center;color:var(--text2);font-size:12px;font-style:italic">Sin ${tab === 'materias' ? 'materias' : 'alumnos en estadía'} registradas</div>`
+            : tab === 'materias'
+              ? items.map(m => renderMateriaRow(docente.nombre, m, validations)).join('')
+              : items.map(a => renderAlumnoRow(docente.nombre, a, validations)).join('')
+          }
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderAlumnoRow(docenteNombre, alumno, v) {
+  const s = calculateAlumnoStats(docenteNombre, alumno, v);
+  const dots = DOCUMENTOS_ESTADIA.map(doc => {
+    const f = alumno.archivos.find(x => x.id === doc.id);
+    if (!f || !f.exists) return '<div class="dot missing" title="No existe"></div>';
+    const k = getValidationKeyEstadia(docenteNombre, alumno.matricula, alumno.nombre, doc.id);
+    const vv = v[k];
+    if (vv === 'valid') return '<div class="dot valid" title="Válido"></div>';
+    if (vv === 'invalid') return '<div class="dot invalid" title="Inválido"></div>';
+    if (vv === 'pending') return '<div class="dot pending" title="Revisar luego"></div>';
+    return '<div class="dot" title="Sin revisar"></div>';
+  }).join('');
+
+  const dn = docenteNombre.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const mat = (alumno.matricula || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const nom = (alumno.nombre || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+  return `
+    <div class="materia" onclick="VAL.openDetailEstadia('${dn}','${mat}','${nom}')">
+      <div class="materia-code">${escapeHtml(alumno.matricula || '—')}</div>
+      <div class="materia-name">${escapeHtml(alumno.nombre || alumno.folderName)}</div>
+      <div class="dots">${dots}</div>
+      <div class="materia-score">${s.validadas}/${s.total}</div>
+    </div>
+  `;
+}
+
+function renderMateriaRow(docenteNombre, materia, v) {
+  const s = calculateMateriaStats(docenteNombre, materia.grupo, materia.nombre, v);
+  const dots = DOCUMENTOS_MATERIA.map(doc => {
+    const f = materia.archivos.find(x => x.id === doc.id);
+    if (!f || !f.exists) return '<div class="dot missing" title="No existe"></div>';
+    const k = getValidationKey(docenteNombre, materia.grupo, materia.nombre, doc.id);
+    const vv = v[k];
+    if (vv === 'valid') return '<div class="dot valid" title="Válido"></div>';
+    if (vv === 'invalid') return '<div class="dot invalid" title="Inválido"></div>';
+    if (vv === 'pending') return '<div class="dot pending" title="Revisar luego"></div>';
+    return '<div class="dot" title="Sin revisar"></div>';
+  }).join('');
+
+  const dn = docenteNombre.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const g = materia.grupo.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const m = materia.nombre.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+  return `
+    <div class="materia" onclick="VAL.openDetail('${dn}','${g}','${m}')">
+      <div class="materia-code">${escapeHtml(materia.grupo)}</div>
+      <div class="materia-name">${escapeHtml(materia.nombre)}</div>
+      <div class="dots">${dots}</div>
+      <div class="materia-score">${s.validadas}/${s.total}</div>
+    </div>
+  `;
+}
+
+function renderDetailMateria() {
+  const { docente, grupo, materia } = STATE.currentMateria;
+  const docObj = STATE.docentes.find(d => d.nombre === docente);
+  if (!docObj) { STATE.view = 'dashboard'; render(); return; }
+  const matObj = docObj.materias.find(m => m.grupo === grupo && m.nombre === materia);
+  if (!matObj) { STATE.view = 'dashboard'; render(); return; }
+
+  const v = DB.loadValidations();
+  const notes = DB.loadNotes();
+  const nk = getNoteKey(docente, grupo, materia);
+  const dn = docente.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const g = grupo.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const m = materia.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+  qs('#content').innerHTML = `
+    <div class="fade-in">
+      <button class="back-btn" onclick="VAL.backToDashboard()">
+        <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        Volver a docentes
+      </button>
+
+      <div class="detail-header">
+        <div class="detail-eyebrow">${escapeHtml(grupo)} · ${escapeHtml(matObj.carrera || 'TSU')}</div>
+        <h2 class="detail-title">${escapeHtml(materia)}</h2>
+        <div class="detail-subtitle">${escapeHtml(docente)}</div>
+        <div class="detail-actions">
+          ${matObj.folderUrl ? `
+          <a class="header-btn" href="${escapeHtml(matObj.folderUrl)}" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+            Abrir en Drive
+          </a>` : ''}
+          <button class="header-btn" onclick="VAL.openNotesModal('${dn}','${g}','${m}')">
+            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            ${notes[nk] ? 'Editar notas' : 'Agregar notas'}
+          </button>
+          <button class="header-btn" onclick="VAL.openEmailModal('${dn}','${g}','${m}')">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            Notificar docente
+          </button>
+        </div>
+      </div>
+
+      <div class="documents-card">
+        <div class="section-title">
+          <div class="left">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+            Evidencias requeridas
+          </div>
+          <span class="count">${DOCUMENTOS_MATERIA.length} documentos</span>
+        </div>
+        ${DOCUMENTOS_MATERIA.map(doc => renderDocumentRow(doc, matObj, v, 'materia')).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderDetailEstadia() {
+  const { docente, matricula, nombre } = STATE.currentEstadia;
+  const docObj = STATE.docentes.find(d => d.nombre === docente);
+  if (!docObj || !docObj.estadias) { STATE.view = 'dashboard'; render(); return; }
+  const alumnoObj = docObj.estadias.find(a => a.matricula === matricula && a.nombre === nombre);
+  if (!alumnoObj) { STATE.view = 'dashboard'; render(); return; }
+
+  const v = DB.loadValidations();
+  const notes = DB.loadNotes();
+  const nk = getNoteKeyEstadia(docente, matricula, nombre);
+  const dn = docente.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const mat = (matricula || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const nom = (nombre || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+  qs('#content').innerHTML = `
+    <div class="fade-in">
+      <button class="back-btn" onclick="VAL.backToDashboard()">
+        <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        Volver a docentes
+      </button>
+
+      <div class="detail-header">
+        <div class="detail-eyebrow">Estadía · Matrícula ${escapeHtml(matricula || '—')}</div>
+        <h2 class="detail-title">${escapeHtml(nombre || alumnoObj.folderName)}</h2>
+        <div class="detail-subtitle">Asesor: ${escapeHtml(docente)}</div>
+        <div class="detail-actions">
+          ${alumnoObj.folderUrl ? `
+          <a class="header-btn" href="${escapeHtml(alumnoObj.folderUrl)}" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+            Abrir en Drive
+          </a>` : ''}
+          <button class="header-btn" onclick="VAL.openNotesModalEstadia('${dn}','${mat}','${nom}')">
+            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            ${notes[nk] ? 'Editar notas' : 'Agregar notas'}
+          </button>
+          <button class="header-btn" onclick="VAL.openEmailModalEstadia('${dn}','${mat}','${nom}')">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            Notificar asesor
+          </button>
+        </div>
+      </div>
+
+      <div class="documents-card">
+        <div class="section-title">
+          <div class="left">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+            Documentos de estadía
+          </div>
+          <span class="count">${DOCUMENTOS_ESTADIA.length} documentos</span>
+        </div>
+        ${DOCUMENTOS_ESTADIA.map(doc => renderDocumentRow(doc, alumnoObj, v, 'estadia')).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderDocumentRow(doc, matObj, v, type) {
+  type = type || 'materia';
+  const f = matObj.archivos.find(x => x.id === doc.id);
+  const exists = f && f.exists;
+  
+  const k = type === 'materia'
+    ? getValidationKey(STATE.currentMateria.docente, STATE.currentMateria.grupo, STATE.currentMateria.materia, doc.id)
+    : getValidationKeyEstadia(STATE.currentEstadia.docente, STATE.currentEstadia.matricula, STATE.currentEstadia.nombre, doc.id);
+  const vv = v[k];
+
+  let statusClass = 'missing';
+  let badge = '<span class="badge badge-missing">Falta</span>';
+  if (exists) {
+    if (vv === 'valid') { statusClass = 'valid'; badge = '<span class="badge badge-valid">Válido</span>'; }
+    else if (vv === 'invalid') { statusClass = 'invalid'; badge = '<span class="badge badge-invalid">Inválido</span>'; }
+    else if (vv === 'pending') { statusClass = 'pending'; badge = '<span class="badge badge-pending">Pendiente</span>'; }
+    else { statusClass = 'none'; badge = '<span class="badge badge-none">Sin revisar</span>'; }
+  }
+
+  const fileLink = exists && f.viewUrl
+    ? `<a class="doc-btn" href="${escapeHtml(f.viewUrl)}" target="_blank" rel="noopener">
+         <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+         Abrir
+       </a>`
+    : '';
+
+  const valBar = exists ? `
+    <div class="val-bar">
+      <button class="val-btn ${vv === 'valid' ? 'active-valid' : ''}" onclick="VAL.setValidation('${doc.id}', 'valid', '${type}')">
+        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        Válido
+      </button>
+      <button class="val-btn ${vv === 'invalid' ? 'active-invalid' : ''}" onclick="VAL.setValidation('${doc.id}', 'invalid', '${type}')">
+        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        Inválido
+      </button>
+      <button class="val-btn ${vv === 'pending' ? 'active-pending' : ''}" onclick="VAL.setValidation('${doc.id}', 'pending', '${type}')">
+        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+        Revisar luego
+      </button>
+    </div>` : '';
+
+  const meta = exists && vv ? `
+    <div class="doc-meta">
+      Revisado · ${new Date(v[k + '__ts'] || Date.now()).toLocaleString('es-MX', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}
+    </div>` : '';
+
+  return `
+    <div class="document">
+      <div class="doc-num ${statusClass}">${doc.num}</div>
+      <div class="doc-info">
+        <div class="doc-title">${escapeHtml(doc.titulo)}</div>
+        <div class="doc-filename">${exists ? escapeHtml(f.name || '—') : 'Archivo no encontrado en Drive'}</div>
+        ${!exists ? `<div class="doc-missing-note">Sube este archivo a la carpeta correspondiente</div>` : ''}
+      </div>
+      <div class="doc-actions">
+        ${fileLink}
+        ${badge}
+      </div>
+      ${valBar}
+      ${meta}
+    </div>
+  `;
+}
+
+// === STATS ===
+function calculateStats() {
+  const v = DB.loadValidations();
+  let totalMaterias = 0, validadasMat = 0, totalDocsMat = 0, validDocsMat = 0;
+  let totalEstadias = 0, validadasEst = 0, totalDocsEst = 0, validDocsEst = 0;
+  
+  STATE.docentes.forEach(d => {
+    (d.materias || []).forEach(m => {
+      totalMaterias++;
+      const s = calculateMateriaStats(d.nombre, m.grupo, m.nombre, v);
+      if (s.validadas === s.total && s.total > 0) validadasMat++;
+      totalDocsMat += DOCUMENTOS_MATERIA.length;
+      validDocsMat += s.validadas;
+    });
+    (d.estadias || []).forEach(a => {
+      totalEstadias++;
+      const s = calculateAlumnoStats(d.nombre, a, v);
+      if (s.validadas === s.total && s.total > 0) validadasEst++;
+      totalDocsEst += DOCUMENTOS_ESTADIA.length;
+      validDocsEst += s.validadas;
+    });
+  });
+  
+  return {
+    totalDocentes: STATE.docentes.length,
+    totalMaterias,
+    validadasMat,
+    pctValidadasMat: totalMaterias ? Math.round((validadasMat / totalMaterias) * 100) : 0,
+    pctProgresoMat: totalDocsMat ? Math.round((validDocsMat / totalDocsMat) * 100) : 0,
+    totalEstadias,
+    validadasEst,
+    pctValidadasEst: totalEstadias ? Math.round((validadasEst / totalEstadias) * 100) : 0,
+    pctProgresoEst: totalDocsEst ? Math.round((validDocsEst / totalDocsEst) * 100) : 0
+  };
+}
+
+function calculateMateriaStats(d, g, m, v) {
+  let validadas = 0;
+  DOCUMENTOS_MATERIA.forEach(doc => {
+    if (v[getValidationKey(d, g, m, doc.id)] === 'valid') validadas++;
+  });
+  return { validadas, total: DOCUMENTOS_MATERIA.length };
+}
+
+function calculateAlumnoStats(docenteNombre, alumno, v) {
+  let validadas = 0;
+  DOCUMENTOS_ESTADIA.forEach(doc => {
+    if (v[getValidationKeyEstadia(docenteNombre, alumno.matricula, alumno.nombre, doc.id)] === 'valid') validadas++;
+  });
+  return { validadas, total: DOCUMENTOS_ESTADIA.length };
+}
+
+function calculateDocenteProgress(docente, v) {
+  let total = 0, validadas = 0;
+  (docente.materias || []).forEach(m => {
+    const s = calculateMateriaStats(docente.nombre, m.grupo, m.nombre, v);
+    total += s.total;
+    validadas += s.validadas;
+  });
+  return { total, validadas, pct: total ? Math.round((validadas / total) * 100) : 0 };
+}
+
+function calculateDocenteProgressEstadias(docente, v) {
+  let total = 0, validadas = 0;
+  (docente.estadias || []).forEach(a => {
+    const s = calculateAlumnoStats(docente.nombre, a, v);
+    total += s.total;
+    validadas += s.validadas;
+  });
+  return { total, validadas, pct: total ? Math.round((validadas / total) * 100) : 0 };
+}
+
+// === FILTROS ===
+function filterDocentes() {
+  const v = DB.loadValidations();
+  const q = normalizeText(STATE.search);
+  const tab = STATE.tab;
+  
+  return STATE.docentes.filter(d => {
+    if (q) {
+      const m1 = normalizeText(d.nombre).includes(q);
+      let m2 = false;
+      if (tab === 'materias') {
+        m2 = (d.materias || []).some(mt => normalizeText(mt.nombre).includes(q) || normalizeText(mt.grupo).includes(q));
+      } else {
+        m2 = (d.estadias || []).some(a => 
+          normalizeText(a.nombre || '').includes(q) || 
+          normalizeText(a.matricula || '').includes(q)
+        );
+      }
+      if (!m1 && !m2) return false;
+    }
+    if (STATE.filter === 'todos') return true;
+    const p = tab === 'materias' 
+      ? calculateDocenteProgress(d, v) 
+      : calculateDocenteProgressEstadias(d, v);
+    if (STATE.filter === 'completos') return p.pct === 100 && p.total > 0;
+    if (STATE.filter === 'incompletos') return p.pct < 100;
+    return true;
+  });
+}
+
+function setFilter(f) { STATE.filter = f; renderDashboard(); }
+
+function setTab(t) { 
+  STATE.tab = t; 
+  STATE.search = '';
+  STATE.filter = 'todos';
+  renderDashboard(); 
+}
+
+// === NAV ===
+function toggleDocente(encoded) {
+  const el = qsa('.docente').find(d => d.dataset.docente === encoded);
+  if (el) el.classList.toggle('open');
+}
+
+function openDetail(docente, grupo, materia) {
+  event?.stopPropagation();
+  STATE.currentMateria = { docente, grupo, materia };
+  STATE.currentEstadia = null;
+  STATE.view = 'detail';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  render();
+}
+
+function openDetailEstadia(docente, matricula, nombre) {
+  event?.stopPropagation();
+  STATE.currentEstadia = { docente, matricula, nombre };
+  STATE.currentMateria = null;
+  STATE.view = 'detailEstadia';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  render();
+}
+
+function backToDashboard() {
+  STATE.view = 'dashboard';
+  STATE.currentMateria = null;
+  STATE.currentEstadia = null;
+  render();
+}
+
+// === VALIDATION ===
+function setValidation(docId, status, type) {
+  type = type || 'materia';
+  let key;
+  if (type === 'materia') {
+    const { docente, grupo, materia } = STATE.currentMateria;
+    key = getValidationKey(docente, grupo, materia, docId);
+  } else {
+    const { docente, matricula, nombre } = STATE.currentEstadia;
+    key = getValidationKeyEstadia(docente, matricula, nombre, docId);
+  }
+  
+  const v = DB.loadValidations();
+  if (v[key] === status) {
+    delete v[key]; delete v[key + '__ts'];
+    toast('Validación removida');
+  } else {
+    v[key] = status;
+    v[key + '__ts'] = Date.now();
+    const labels = { valid: 'válido', invalid: 'inválido', pending: 'pendiente' };
+    toast(`Marcado como ${labels[status]}`, status === 'valid' ? 'success' : status === 'invalid' ? 'danger' : 'warn');
+  }
+  DB.saveValidations(v);
+  syncValidationToBackend(key, v[key]);
+  
+  if (type === 'materia') renderDetailMateria();
+  else renderDetailEstadia();
+}
+
+// === NOTES ===
+function openNotesModal(docente, grupo, materia) {
+  event?.stopPropagation();
+  const notes = DB.loadNotes();
+  const k = getNoteKey(docente, grupo, materia);
+  qs('#notesSubtitle').textContent = `${docente} · ${grupo}`;
+  qs('#inputNotes').value = notes[k] || '';
+  qs('#btnSaveNotes').onclick = () => {
+    const n = DB.loadNotes();
+    const val = qs('#inputNotes').value.trim();
+    if (val) n[k] = val; else delete n[k];
+    DB.saveNotes(n);
+    closeModal('modalNotes');
+    toast('Notas guardadas', 'success');
+    if (STATE.view === 'detail') renderDetailMateria();
+  };
+  openModal('modalNotes');
+}
+
+function openNotesModalEstadia(docente, matricula, nombre) {
+  event?.stopPropagation();
+  const notes = DB.loadNotes();
+  const k = getNoteKeyEstadia(docente, matricula, nombre);
+  qs('#notesSubtitle').textContent = `Estadía · ${nombre} (${matricula})`;
+  qs('#inputNotes').value = notes[k] || '';
+  qs('#btnSaveNotes').onclick = () => {
+    const n = DB.loadNotes();
+    const val = qs('#inputNotes').value.trim();
+    if (val) n[k] = val; else delete n[k];
+    DB.saveNotes(n);
+    closeModal('modalNotes');
+    toast('Notas guardadas', 'success');
+    if (STATE.view === 'detailEstadia') renderDetailEstadia();
+  };
+  openModal('modalNotes');
+}
+
+// === EMAIL ===
+function openEmailModal(docente, grupo, materia) {
+  event?.stopPropagation();
+  const docObj = STATE.docentes.find(d => d.nombre === docente);
+  const matObj = docObj?.materias.find(m => m.grupo === grupo && m.nombre === materia);
+  if (!matObj) return;
+
+  const v = DB.loadValidations();
+  const faltantes = [], invalidos = [];
+  DOCUMENTOS_MATERIA.forEach(doc => {
+    const f = matObj.archivos.find(x => x.id === doc.id);
+    if (!f || !f.exists) faltantes.push(doc.titulo);
+    else {
+      const k = getValidationKey(docente, grupo, materia, doc.id);
+      if (v[k] === 'invalid') invalidos.push(doc.titulo);
+    }
+  });
+
+  qs('#emailSubtitle').textContent = `${materia} · ${grupo}`;
+  qs('#inputEmailTo').value = matObj.docenteEmail || '';
+  qs('#inputEmailSubject').value = `Evidencias pendientes · ${grupo} ${materia}`;
+
+  let lines = [`Estimado/a docente,`, ``, `Le comparto el estado de las evidencias de la materia ${materia} (${grupo}):`, ``];
+  if (faltantes.length) {
+    lines.push(`Documentos faltantes:`);
+    faltantes.forEach(f => lines.push(`  • ${f}`));
+    lines.push(``);
+  }
+  if (invalidos.length) {
+    lines.push(`Documentos que requieren corrección:`);
+    invalidos.forEach(f => lines.push(`  • ${f}`));
+    lines.push(``);
+  }
+  if (!faltantes.length && !invalidos.length) {
+    lines.push(`Actualmente toda la documentación está en orden.`, ``);
+  } else {
+    lines.push(`Por favor, suba o corrija los documentos indicados:`);
+    if (matObj.folderUrl) lines.push(matObj.folderUrl);
+    lines.push(``);
+  }
+  lines.push(`Saludos cordiales,`, STATE.config.email || '');
+
+  qs('#inputEmailBody').value = lines.join('\n');
+  qs('#btnSendEmail').onclick = enviarCorreo;
+  openModal('modalEmail');
+}
+
+async function enviarCorreo() {
+  const to = qs('#inputEmailTo').value.trim();
+  const subject = qs('#inputEmailSubject').value.trim();
+  const body = qs('#inputEmailBody').value.trim();
+  if (!to || !subject || !body) { toast('Completa todos los campos', 'warn'); return; }
+
+  if (!STATE.config.scriptUrl) {
+    window.open(`mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+    closeModal('modalEmail');
+    toast('Abriendo cliente de correo…');
+    return;
+  }
+
+  try {
+    showLoading('Enviando correo…');
+    const res = await fetch(STATE.config.scriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'sendEmail', to, subject, body })
+    });
+    const data = await res.json();
+    hideLoading();
+    if (data.success) { toast('Correo enviado', 'success'); closeModal('modalEmail'); }
+    else throw new Error(data.error || 'Error desconocido');
+  } catch (err) {
+    hideLoading();
+    toast(`Error: ${err.message}`, 'danger');
+    window.open(`mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+  }
+}
+
+function openEmailModalEstadia(docente, matricula, nombre) {
+  event?.stopPropagation();
+  const docObj = STATE.docentes.find(d => d.nombre === docente);
+  const alumnoObj = docObj?.estadias?.find(a => a.matricula === matricula && a.nombre === nombre);
+  if (!alumnoObj) return;
+
+  const v = DB.loadValidations();
+  const faltantes = [], invalidos = [];
+  DOCUMENTOS_ESTADIA.forEach(doc => {
+    const f = alumnoObj.archivos.find(x => x.id === doc.id);
+    if (!f || !f.exists) faltantes.push(doc.titulo);
+    else {
+      const k = getValidationKeyEstadia(docente, matricula, nombre, doc.id);
+      if (v[k] === 'invalid') invalidos.push(doc.titulo);
+    }
+  });
+
+  qs('#emailSubtitle').textContent = `Estadía · ${nombre} (${matricula})`;
+  qs('#inputEmailTo').value = '';
+  qs('#inputEmailSubject').value = `Documentos pendientes · Estadía ${matricula} ${nombre}`;
+
+  let lines = [`Estimado/a docente asesor,`, ``, `Le comparto el estado de los documentos de estadía del alumno ${nombre} (${matricula}):`, ``];
+  if (faltantes.length) {
+    lines.push(`Documentos faltantes:`);
+    faltantes.forEach(f => lines.push(`  • ${f}`));
+    lines.push(``);
+  }
+  if (invalidos.length) {
+    lines.push(`Documentos que requieren corrección:`);
+    invalidos.forEach(f => lines.push(`  • ${f}`));
+    lines.push(``);
+  }
+  if (!faltantes.length && !invalidos.length) {
+    lines.push(`Actualmente toda la documentación del alumno está en orden.`, ``);
+  } else {
+    lines.push(`Por favor, coordine con el alumno para subir o corregir los documentos indicados:`);
+    if (alumnoObj.folderUrl) lines.push(alumnoObj.folderUrl);
+    lines.push(``);
+  }
+  lines.push(`Saludos cordiales,`, STATE.config.email || '');
+
+  qs('#inputEmailBody').value = lines.join('\n');
+  qs('#btnSendEmail').onclick = enviarCorreo;
+  openModal('modalEmail');
+}
+
+// === SYNC ===
+async function sincronizar() {
+  if (!STATE.config.scriptUrl) { toast('Configura el endpoint de Apps Script', 'warn'); loadConfigToModal(); openModal('modalConfig'); return; }
+  if (!STATE.config.driveUrl) { toast('Configura la URL de Drive', 'warn'); loadConfigToModal(); openModal('modalConfig'); return; }
+  const folderId = extractFolderIdFromUrl(STATE.config.driveUrl);
+  if (!folderId) { toast('URL de Drive inválida', 'danger'); return; }
+
+  try {
+    showLoading('Leyendo carpeta de Drive…');
+    const res = await fetch(`${STATE.config.scriptUrl}?action=scan&folderId=${folderId}`);
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Error al sincronizar');
+    STATE.docentes = data.docentes || [];
+    DB.saveData({ docentes: STATE.docentes, syncedAt: Date.now() });
+    hideLoading();
+    toast(`${STATE.docentes.length} docentes sincronizados`, 'success');
+    STATE.view = 'dashboard';
+    render();
+  } catch (err) {
+    hideLoading();
+    toast(`Error: ${err.message}`, 'danger');
+    console.error(err);
+  }
+}
+
+async function syncValidationToBackend(key, status) {
+  if (!STATE.config.scriptUrl) return;
+  try {
+    await fetch(STATE.config.scriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'saveValidation', key, status, periodo: STATE.config.periodo || 'default' })
+    });
+  } catch (err) { console.warn('Backend sync failed:', err); }
+}
+
+// === EXPORT ===
+function exportarExcel() {
+  if (STATE.docentes.length === 0) { toast('No hay datos para exportar', 'warn'); return; }
+  
+  const v = DB.loadValidations();
+  const notes = DB.loadNotes();
+  const periodo = STATE.config.periodo || new Date().toISOString().slice(0, 7);
+  
+  // Exportar según el tab activo
+  if (STATE.tab === 'estadias') {
+    exportarEstadias(v, notes, periodo);
+  } else {
+    exportarMaterias(v, notes, periodo);
+  }
+}
+
+function exportarMaterias(v, notes, periodo) {
+  const BOM = '\uFEFF';
+  const headers = ['Docente', 'Grupo', 'Carrera', 'Materia', ...DOCUMENTOS_MATERIA.map(d => d.titulo), 'Completitud', 'Validación', 'Observaciones'];
+  const rows = [headers];
+
+  STATE.docentes.forEach(d => {
+    (d.materias || []).forEach(m => {
+      const row = [d.nombre, m.grupo, m.carrera || '', m.nombre];
+      let existen = 0, validados = 0;
+      DOCUMENTOS_MATERIA.forEach(doc => {
+        const f = m.archivos.find(x => x.id === doc.id);
+        const ex = f && f.exists;
+        const k = getValidationKey(d.nombre, m.grupo, m.nombre, doc.id);
+        const vv = v[k];
+        if (ex) existen++;
+        if (vv === 'valid') validados++;
+        let mark = '';
+        if (!ex) mark = 'FALTA';
+        else if (vv === 'valid') mark = 'VALIDO';
+        else if (vv === 'invalid') mark = 'INVALIDO';
+        else if (vv === 'pending') mark = 'PENDIENTE';
+        else mark = 'SIN REVISAR';
+        row.push(mark);
+      });
+      row.push(`${existen}/${DOCUMENTOS_MATERIA.length}`);
+      let estado = 'PENDIENTE';
+      if (validados === DOCUMENTOS_MATERIA.length) estado = 'COMPLETO';
+      else if (existen === DOCUMENTOS_MATERIA.length) estado = 'EN REVISION';
+      else estado = 'INCOMPLETO';
+      row.push(estado);
+      const nk = getNoteKey(d.nombre, m.grupo, m.nombre);
+      row.push(notes[nk] || '');
+      rows.push(row);
+    });
+  });
+
+  if (rows.length === 1) { toast('No hay materias para exportar', 'warn'); return; }
+  
+  downloadCsv(BOM + rowsToCsv(rows), `Reporte_Materias_${periodo.replace(/\s+/g, '_')}.csv`);
+}
+
+function exportarEstadias(v, notes, periodo) {
+  const BOM = '\uFEFF';
+  const headers = ['Asesor', 'Matrícula', 'Alumno', ...DOCUMENTOS_ESTADIA.map(d => d.titulo), 'Completitud', 'Validación', 'Observaciones'];
+  const rows = [headers];
+
+  STATE.docentes.forEach(d => {
+    (d.estadias || []).forEach(a => {
+      const row = [d.nombre, a.matricula || '', a.nombre || a.folderName];
+      let existen = 0, validados = 0;
+      DOCUMENTOS_ESTADIA.forEach(doc => {
+        const f = a.archivos.find(x => x.id === doc.id);
+        const ex = f && f.exists;
+        const k = getValidationKeyEstadia(d.nombre, a.matricula, a.nombre, doc.id);
+        const vv = v[k];
+        if (ex) existen++;
+        if (vv === 'valid') validados++;
+        let mark = '';
+        if (!ex) mark = 'FALTA';
+        else if (vv === 'valid') mark = 'VALIDO';
+        else if (vv === 'invalid') mark = 'INVALIDO';
+        else if (vv === 'pending') mark = 'PENDIENTE';
+        else mark = 'SIN REVISAR';
+        row.push(mark);
+      });
+      row.push(`${existen}/${DOCUMENTOS_ESTADIA.length}`);
+      let estado = 'PENDIENTE';
+      if (validados === DOCUMENTOS_ESTADIA.length) estado = 'COMPLETO';
+      else if (existen === DOCUMENTOS_ESTADIA.length) estado = 'EN REVISION';
+      else estado = 'INCOMPLETO';
+      row.push(estado);
+      const nk = getNoteKeyEstadia(d.nombre, a.matricula, a.nombre);
+      row.push(notes[nk] || '');
+      rows.push(row);
+    });
+  });
+
+  if (rows.length === 1) { toast('No hay estadías para exportar', 'warn'); return; }
+  
+  downloadCsv(BOM + rowsToCsv(rows), `Reporte_Estadias_${periodo.replace(/\s+/g, '_')}.csv`);
+}
+
+function rowsToCsv(rows) {
+  return rows.map(r => r.map(c => `"${String(c || '').replace(/"/g, '""')}"`).join(',')).join('\r\n');
+}
+
+function downloadCsv(csv, filename) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast(`Reporte exportado: ${filename}`, 'success');
+}
+
+// === CONFIG ===
+function saveConfig() {
+  const cfg = {
+    driveUrl: qs('#inputDriveUrl').value.trim(),
+    scriptUrl: qs('#inputScriptUrl').value.trim(),
+    email: qs('#inputEmail').value.trim(),
+    periodo: qs('#inputPeriodo').value.trim()
+  };
+  STATE.config = cfg;
+  DB.saveConfig(cfg);
+  closeModal('modalConfig');
+  toast('Configuración guardada', 'success');
+  if (STATE.docentes.length === 0) renderWelcome();
+  else render();
+}
+
+function loadConfigToModal() {
+  qs('#inputDriveUrl').value = STATE.config.driveUrl || '';
+  qs('#inputScriptUrl').value = STATE.config.scriptUrl || '';
+  qs('#inputEmail').value = STATE.config.email || '';
+  qs('#inputPeriodo').value = STATE.config.periodo || '';
+}
+
+// === PWA ===
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  STATE.deferredInstallPrompt = e;
+  if (!localStorage.getItem('installDismissed')) qs('#installBanner').classList.add('show');
+});
+
+// === INIT ===
+function init() {
+  const cfg = DB.loadConfig();
+  if (cfg) STATE.config = { ...STATE.config, ...cfg };
+  const data = DB.loadData();
+  if (data && data.docentes) { STATE.docentes = data.docentes; STATE.view = 'dashboard'; }
+
+  qs('#btnSaveConfig').addEventListener('click', saveConfig);
+
+  qs('#btnInstall')?.addEventListener('click', async () => {
+    if (!STATE.deferredInstallPrompt) return;
+    STATE.deferredInstallPrompt.prompt();
+    const { outcome } = await STATE.deferredInstallPrompt.userChoice;
+    if (outcome === 'accepted') toast('App instalada', 'success');
+    STATE.deferredInstallPrompt = null;
+    qs('#installBanner').classList.remove('show');
+  });
+
+  qs('#btnDismissInstall')?.addEventListener('click', () => {
+    qs('#installBanner').classList.remove('show');
+    localStorage.setItem('installDismissed', '1');
+  });
+
+  qsa('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('visible'); });
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') qsa('.modal-overlay.visible').forEach(m => m.classList.remove('visible'));
+  });
+
+  // Service Worker desactivado en versión standalone
+
+  render();
+}
+
+// Expose
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', init);
+
+
+window.VAL = {
+  backToDashboard: typeof backToDashboard !== "undefined" ? backToDashboard : function(){},
+  calculateAlumnoStats: typeof calculateAlumnoStats !== "undefined" ? calculateAlumnoStats : function(){},
+  calculateDocenteProgress: typeof calculateDocenteProgress !== "undefined" ? calculateDocenteProgress : function(){},
+  calculateDocenteProgressEstadias: typeof calculateDocenteProgressEstadias !== "undefined" ? calculateDocenteProgressEstadias : function(){},
+  calculateMateriaStats: typeof calculateMateriaStats !== "undefined" ? calculateMateriaStats : function(){},
+  calculateStats: typeof calculateStats !== "undefined" ? calculateStats : function(){},
+  closeModal: typeof closeModal !== "undefined" ? closeModal : function(){},
+  downloadCsv: typeof downloadCsv !== "undefined" ? downloadCsv : function(){},
+  enviarCorreo: typeof enviarCorreo !== "undefined" ? enviarCorreo : function(){},
+  escapeHtml: typeof escapeHtml !== "undefined" ? escapeHtml : function(){},
+  exportarEstadias: typeof exportarEstadias !== "undefined" ? exportarEstadias : function(){},
+  exportarExcel: typeof exportarExcel !== "undefined" ? exportarExcel : function(){},
+  exportarMaterias: typeof exportarMaterias !== "undefined" ? exportarMaterias : function(){},
+  extractFolderIdFromUrl: typeof extractFolderIdFromUrl !== "undefined" ? extractFolderIdFromUrl : function(){},
+  filterDocentes: typeof filterDocentes !== "undefined" ? filterDocentes : function(){},
+  getInitials: typeof getInitials !== "undefined" ? getInitials : function(){},
+  getNoteKey: typeof getNoteKey !== "undefined" ? getNoteKey : function(){},
+  getNoteKeyEstadia: typeof getNoteKeyEstadia !== "undefined" ? getNoteKeyEstadia : function(){},
+  getValidationKey: typeof getValidationKey !== "undefined" ? getValidationKey : function(){},
+  getValidationKeyEstadia: typeof getValidationKeyEstadia !== "undefined" ? getValidationKeyEstadia : function(){},
+  hideLoading: typeof hideLoading !== "undefined" ? hideLoading : function(){},
+  init: typeof init !== "undefined" ? init : function(){},
+  loadConfigToModal: typeof loadConfigToModal !== "undefined" ? loadConfigToModal : function(){},
+  normalizeText: typeof normalizeText !== "undefined" ? normalizeText : function(){},
+  openDetail: typeof openDetail !== "undefined" ? openDetail : function(){},
+  openDetailEstadia: typeof openDetailEstadia !== "undefined" ? openDetailEstadia : function(){},
+  openEmailModal: typeof openEmailModal !== "undefined" ? openEmailModal : function(){},
+  openEmailModalEstadia: typeof openEmailModalEstadia !== "undefined" ? openEmailModalEstadia : function(){},
+  openModal: typeof openModal !== "undefined" ? openModal : function(){},
+  openNotesModal: typeof openNotesModal !== "undefined" ? openNotesModal : function(){},
+  openNotesModalEstadia: typeof openNotesModalEstadia !== "undefined" ? openNotesModalEstadia : function(){},
+  qs: typeof qs !== "undefined" ? qs : function(){},
+  qsa: typeof qsa !== "undefined" ? qsa : function(){},
+  render: typeof render !== "undefined" ? render : function(){},
+  renderAlumnoRow: typeof renderAlumnoRow !== "undefined" ? renderAlumnoRow : function(){},
+  renderDashboard: typeof renderDashboard !== "undefined" ? renderDashboard : function(){},
+  renderDetailEstadia: typeof renderDetailEstadia !== "undefined" ? renderDetailEstadia : function(){},
+  renderDetailMateria: typeof renderDetailMateria !== "undefined" ? renderDetailMateria : function(){},
+  renderDocenteRow: typeof renderDocenteRow !== "undefined" ? renderDocenteRow : function(){},
+  renderDocumentRow: typeof renderDocumentRow !== "undefined" ? renderDocumentRow : function(){},
+  renderMateriaRow: typeof renderMateriaRow !== "undefined" ? renderMateriaRow : function(){},
+  renderWelcome: typeof renderWelcome !== "undefined" ? renderWelcome : function(){},
+  rowsToCsv: typeof rowsToCsv !== "undefined" ? rowsToCsv : function(){},
+  saveConfig: typeof saveConfig !== "undefined" ? saveConfig : function(){},
+  setFilter: typeof setFilter !== "undefined" ? setFilter : function(){},
+  setTab: typeof setTab !== "undefined" ? setTab : function(){},
+  setValidation: typeof setValidation !== "undefined" ? setValidation : function(){},
+  showLoading: typeof showLoading !== "undefined" ? showLoading : function(){},
+  sincronizar: typeof sincronizar !== "undefined" ? sincronizar : function(){},
+  syncValidationToBackend: typeof syncValidationToBackend !== "undefined" ? syncValidationToBackend : function(){},
+  toast: typeof toast !== "undefined" ? toast : function(){},
+  toggleDocente: typeof toggleDocente !== "undefined" ? toggleDocente : function(){},
+};
+})();
+
+</script>
+
 </body>
 </html>
