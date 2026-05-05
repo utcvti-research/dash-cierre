@@ -2880,6 +2880,7 @@ function explorerToggleCol(col,checked){
   } else {
     explorerState.visibleCols=explorerState.visibleCols.filter(c=>c!==col);
   }
+  if(explorerState.filterPanelOpen)renderExplorerFilterBar();
   renderExplorer();
 }
 
