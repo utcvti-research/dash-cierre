@@ -258,33 +258,65 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 
 
 /* ===== ESTILOS EXPLORADOR ===== */
-.app-calif .explorer-toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-.app-calif .explorer-search-wrap{flex:1;min-width:220px;position:relative;display:flex;align-items:center}
+.app-calif .explorer-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.app-calif .explorer-search-wrap{flex:1;min-width:200px;position:relative;display:flex;align-items:center}
 .app-calif .explorer-search-wrap svg{position:absolute;left:10px;width:18px;height:18px;fill:var(--text2);pointer-events:none}
-.app-calif .explorer-search-wrap input{width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);outline:none;transition:border-color .2s}
-.app-calif .explorer-search-wrap input:focus{border-color:var(--accent2)}
+.app-calif .explorer-search-wrap input{width:100%;padding:8px 12px 8px 36px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);outline:none;transition:border-color .2s}
+.app-calif .explorer-search-wrap input:focus{border-color:var(--accent2);background:#fff}
 .app-calif .explorer-cols-wrap{position:relative}
-.app-calif .explorer-cols-btn{padding:9px 14px;border:1px solid var(--border);border-radius:8px;background:var(--card);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s}
-.app-calif .explorer-cols-btn:hover{border-color:var(--accent2);color:var(--accent)}
+.app-calif .explorer-toolbar-btn{padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;white-space:nowrap}
+.app-calif .explorer-toolbar-btn:hover{border-color:var(--accent2);color:var(--accent);background:var(--hover)}
+.app-calif .explorer-toolbar-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.app-calif .explorer-toolbar-btn .filter-count{background:#fff;color:var(--accent);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:2px}
 .app-calif .explorer-cols-dropdown{display:none;position:absolute;top:calc(100% + 4px);right:0;background:var(--card);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:100;padding:8px 0;max-height:320px;overflow-y:auto;min-width:220px}
 .app-calif .explorer-cols-dropdown.open{display:block}
 .app-calif .explorer-cols-dropdown label{display:flex;align-items:center;gap:8px;padding:5px 14px;font-size:12px;cursor:pointer;transition:background .1s}
 .app-calif .explorer-cols-dropdown label:hover{background:var(--hover)}
 .app-calif .explorer-cols-dropdown input[type="checkbox"]{accent-color:var(--accent)}
-.app-calif .explorer-results-info{font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:500}
-.app-calif .explorer-pagination{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:12px;flex-wrap:wrap}
-.app-calif .explorer-pagination button{padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card);font-size:12px;cursor:pointer;transition:all .15s}
+.app-calif .explorer-perpage{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);white-space:nowrap}
+.app-calif .explorer-perpage select{padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg);cursor:pointer;outline:none}
+.app-calif .explorer-filter-panel{display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);animation:explorerSlideDown .2s ease}
+@keyframes explorerSlideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.app-calif .explorer-filter-panel.open{display:block}
+.app-calif .explorer-filter-panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.app-calif .explorer-filter-panel-header h4{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px}
+.app-calif .explorer-filter-panel-header h4 svg{width:16px;height:16px;fill:var(--accent)}
+.app-calif .explorer-filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.app-calif .explorer-filter-group{display:flex;flex-direction:column;gap:3px}
+.app-calif .explorer-filter-group label{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+.app-calif .explorer-filter-group select{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:#fff;color:var(--text);cursor:pointer;outline:none;transition:border-color .15s;width:100%}
+.app-calif .explorer-filter-group select:focus{border-color:var(--accent2)}
+.app-calif .explorer-filter-group select.has-value{border-color:var(--accent);background:var(--badge);font-weight:600;color:var(--accent)}
+.app-calif .explorer-filter-num{display:flex;gap:4px}
+.app-calif .explorer-filter-num input{padding:7px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:#fff;color:var(--text);outline:none;width:50%;transition:border-color .15s;box-sizing:border-box}
+.app-calif .explorer-filter-num input:focus{border-color:var(--accent2)}
+.app-calif .explorer-clear-btn{padding:6px 16px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s}
+.app-calif .explorer-clear-btn:hover{border-color:var(--red-text);color:var(--red-text);background:var(--red-bg)}
+.app-calif .explorer-active-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;align-items:center}
+.app-calif .explorer-active-filters:empty{display:none;margin:0}
+.app-calif .explorer-filter-tag{display:inline-flex;align-items:center;gap:4px;background:var(--badge);color:var(--accent);font-size:11px;font-weight:600;padding:4px 8px 4px 10px;border-radius:16px;border:1px solid rgba(30,58,95,.15);animation:explorerTagIn .15s ease}
+@keyframes explorerTagIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.app-calif .explorer-filter-tag button{background:none;border:none;color:var(--accent2);cursor:pointer;font-size:15px;line-height:1;padding:0 2px;font-weight:700;transition:color .15s;display:flex;align-items:center}
+.app-calif .explorer-filter-tag button:hover{color:var(--red-text)}
+.app-calif .explorer-clear-all-link{font-size:11px;color:var(--red-text);cursor:pointer;font-weight:600;padding:4px 8px;transition:opacity .15s}
+.app-calif .explorer-clear-all-link:hover{opacity:.7}
+.app-calif .explorer-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:12px;padding:10px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.app-calif .explorer-results-info{font-size:12px;color:var(--text2);font-weight:500}
+.app-calif .explorer-pagination{display:flex;align-items:center;gap:3px;flex-wrap:wrap}
+.app-calif .explorer-pagination button{padding:6px 11px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:12px;cursor:pointer;transition:all .15s}
 .app-calif .explorer-pagination button:hover:not(:disabled){background:var(--hover);border-color:var(--accent2)}
 .app-calif .explorer-pagination button:disabled{opacity:.4;cursor:default}
 .app-calif .explorer-pagination button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.app-calif .explorer-pagination span{font-size:12px;color:var(--text2);padding:0 8px}
-.app-calif #explorerTable thead th{cursor:pointer;user-select:none;position:relative;vertical-align:top}
+.app-calif .explorer-pagination span{font-size:12px;color:var(--text2);padding:0 6px}
+.app-calif #explorerTable{border-collapse:separate;border-spacing:0}
+.app-calif #explorerTable thead th{cursor:pointer;user-select:none;padding:10px 12px;transition:background .15s}
 .app-calif #explorerTable thead th:hover{background:#2d2d4e}
 .app-calif #explorerTable thead th .sort-ind{margin-left:4px;font-size:9px;opacity:.7}
-.app-calif #explorerTable .col-filter{width:100%;padding:3px 5px;border:none;border-top:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;font-size:10px;margin-top:4px;border-radius:3px;outline:none;box-sizing:border-box}
-.app-calif #explorerTable .col-filter::placeholder{color:rgba(255,255,255,.4)}
-.app-calif #explorerTable .col-filter:focus{background:rgba(255,255,255,.15)}
-@media(max-width:768px){.app-calif .explorer-toolbar{flex-direction:column;align-items:stretch}.app-calif .explorer-search-wrap{min-width:0}.app-calif .explorer-cols-dropdown{right:auto;left:0}}
+.app-calif #explorerTable tbody tr:nth-child(even){background:#f8f9fb}
+.app-calif #explorerTable tbody tr:hover{background:#edf2f7}
+.app-calif #explorerTable tbody td{padding:8px 12px;border-bottom:1px solid #f0f1f3}
+@media(max-width:768px){.app-calif .explorer-toolbar{flex-direction:column;align-items:stretch;padding:10px 12px}.app-calif .explorer-search-wrap{min-width:0}.app-calif .explorer-cols-dropdown{right:auto;left:0}.app-calif .explorer-filter-grid{grid-template-columns:1fr 1fr}.app-calif .explorer-footer{flex-direction:column;align-items:center;text-align:center;padding:8px 12px}}
+@media(max-width:480px){.app-calif .explorer-filter-grid{grid-template-columns:1fr}.app-calif .explorer-toolbar-btn{padding:7px 10px;font-size:11px}}
 
 /* ===== ESTILOS DE VALIDADOR (prefijados con .app-validador) ===== */
 .app-validador *{margin:0;padding:0;box-sizing:border-box}:root{
@@ -722,21 +754,30 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 <!-- TAB EXPLORADOR -->
 <div class="tab-content" id="tabExplorador">
 <div class="explorer-toolbar">
+<div class="explorer-perpage">Mostrar <select id="explorerPerPageSel" onchange="CALIF.explorerPerPage(this.value)"><option value="10">10</option><option value="25">25</option><option value="50" selected>50</option><option value="100">100</option><option value="250">250</option></select></div>
 <div class="explorer-search-wrap">
 <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
 <input type="text" id="explorerGlobalSearch" placeholder="Buscar en todas las columnas..." oninput="CALIF.explorerSearch()">
 </div>
+<button class="explorer-toolbar-btn" id="explorerFilterToggle" onclick="CALIF.toggleFilterPanel()"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z" fill="currentColor"/></svg>Filtros</button>
 <div class="explorer-cols-wrap">
-<button class="explorer-cols-btn" onclick="CALIF.toggleColSelector()"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z" fill="currentColor"/></svg>Columnas</button>
+<button class="explorer-toolbar-btn" onclick="CALIF.toggleColSelector()"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z" fill="currentColor"/></svg>Columnas</button>
 <div class="explorer-cols-dropdown" id="explorerColsDropdown"></div>
 </div>
-<button class="export-btn" onclick="CALIF.exportExplorer()"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Exportar filtrado</button>
+<button class="export-btn" onclick="CALIF.exportExplorer()"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Exportar</button>
 </div>
-<div class="explorer-results-info" id="explorerResultsInfo"></div>
+<div class="explorer-filter-panel" id="explorerFilterPanel">
+<div class="explorer-filter-panel-header"><h4><svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>Filtros avanzados</h4><button class="explorer-clear-btn" onclick="CALIF.explorerClearFilters()">Limpiar todo</button></div>
+<div class="explorer-filter-grid" id="explorerFilterGrid"></div>
+</div>
+<div class="explorer-active-filters" id="explorerActiveFilters"></div>
 <div class="table-wrapper" id="explorerTableWrap">
 <table id="explorerTable"><thead></thead><tbody></tbody></table>
 </div>
+<div class="explorer-footer">
+<div class="explorer-results-info" id="explorerResultsInfo"></div>
 <div class="explorer-pagination" id="explorerPagination"></div>
+</div>
 </div>
 
 </div>
@@ -2523,7 +2564,8 @@ function exportBarsImg(containerId){
 // === EXPLORADOR ===
 const EXPLORER_ALL_COLS=['Matricula','Paterno','Materno','Nombre','Sexo','CURP','Carrera','Alias','Generacion','Campus','Modalidad','Grado','Grupo','Materia','Profesor','Cal_P1','Fal_P1','Cal_EF','Fal_EF','Cal_CF','Cal_EX1','Cal_EX2','Cal_ES1','Cal_ES2','Observacion'];
 const EXPLORER_DEFAULT_VISIBLE=['Matricula','Paterno','Materno','Nombre','Alias','Campus','Grado','Grupo','Materia','Profesor','Cal_P1','Cal_EF','Cal_CF'];
-const explorerState={visibleCols:[...EXPLORER_DEFAULT_VISIBLE],sortCol:null,sortAsc:true,page:1,perPage:50,colFilters:{},globalSearch:'',colsOpen:false};
+const EXPLORER_FILTER_COLS=['Carrera','Alias','Generacion','Campus','Modalidad','Grado','Grupo','Materia','Profesor','Sexo'];
+const explorerState={visibleCols:[...EXPLORER_DEFAULT_VISIBLE],sortCol:null,sortAsc:true,page:1,perPage:50,filters:{},globalSearch:'',colsOpen:false,filterPanelOpen:false};
 
 function getExplorerCols(){
   if(!rawData.length)return EXPLORER_ALL_COLS;
@@ -2531,25 +2573,11 @@ function getExplorerCols(){
   return EXPLORER_ALL_COLS.filter(c=>available.includes(c)).concat(available.filter(c=>!EXPLORER_ALL_COLS.includes(c)));
 }
 
-function matchNumericFilter(val,filter){
-  const f=filter.trim();
-  if(!f)return true;
-  const num=parseFloat(val);
-  if(isNaN(num))return false;
-  let m;
-  if((m=f.match(/^>=\s*(.+)/)))return num>=parseFloat(m[1]);
-  if((m=f.match(/^<=\s*(.+)/)))return num<=parseFloat(m[1]);
-  if((m=f.match(/^>\s*(.+)/)))return num>parseFloat(m[1]);
-  if((m=f.match(/^<\s*(.+)/)))return num<parseFloat(m[1]);
-  if((m=f.match(/^=\s*(.+)/)))return num===parseFloat(m[1]);
-  return num===parseFloat(f);
-}
-
 function isNumericCol(col){return /^(Cal_|Fal_)/.test(col)}
 
 function getFilteredExplorerData(){
   const gs=explorerState.globalSearch.toLowerCase();
-  const colF=explorerState.colFilters;
+  const filters=explorerState.filters;
   return rawData.filter(row=>{
     if(gs){
       let found=false;
@@ -2558,14 +2586,17 @@ function getFilteredExplorerData(){
       }
       if(!found)return false;
     }
-    for(const col of Object.keys(colF)){
-      const fv=colF[col];
-      if(!fv)continue;
+    for(const col of Object.keys(filters)){
+      const fv=filters[col];
+      if(fv==null)continue;
       const cellVal=row[col]!=null?String(row[col]):'';
-      if(isNumericCol(col)){
-        if(!matchNumericFilter(cellVal,fv))return false;
-      } else {
-        if(!cellVal.toLowerCase().includes(fv.toLowerCase()))return false;
+      if(typeof fv==='object'&&fv.min!=null||typeof fv==='object'&&fv.max!=null){
+        const num=parseFloat(cellVal);
+        if(isNaN(num))return false;
+        if(fv.min!=null&&num<fv.min)return false;
+        if(fv.max!=null&&num>fv.max)return false;
+      } else if(typeof fv==='string'&&fv){
+        if(cellVal!==fv)return false;
       }
     }
     return true;
@@ -2589,6 +2620,145 @@ function sortExplorerData(data){
   });
 }
 
+function activeFilterCount(){
+  return Object.keys(explorerState.filters).filter(k=>{
+    const v=explorerState.filters[k];
+    if(v==null)return false;
+    if(typeof v==='object')return v.min!=null||v.max!=null;
+    return !!v;
+  }).length;
+}
+
+function updateFilterToggleBtn(){
+  const btn=document.getElementById('explorerFilterToggle');
+  if(!btn)return;
+  const count=activeFilterCount();
+  const existing=btn.querySelector('.filter-count');
+  if(count>0){
+    if(existing)existing.textContent=count;
+    else{const s=document.createElement('span');s.className='filter-count';s.textContent=count;btn.appendChild(s)}
+    btn.classList.add('active');
+  } else {
+    if(existing)existing.remove();
+    btn.classList.remove('active');
+  }
+}
+
+function renderExplorerFilterBar(){
+  const grid=document.getElementById('explorerFilterGrid');
+  if(!grid||!rawData.length){if(grid)grid.innerHTML='';return}
+  const available=Object.keys(rawData[0]);
+  const filterCols=EXPLORER_FILTER_COLS.filter(c=>available.includes(c));
+  const numCols=explorerState.visibleCols.filter(c=>isNumericCol(c)&&available.includes(c));
+  let html='';
+  filterCols.forEach(col=>{
+    const uniq=[...new Set(rawData.map(r=>r[col]!=null?String(r[col]):'').filter(v=>v!==''))].sort();
+    if(uniq.length>200)return;
+    const current=explorerState.filters[col]||'';
+    html+=`<div class="explorer-filter-group"><label>${col}</label><select class="${current?'has-value':''}" onchange="CALIF.explorerApplyFilter('${col}',this.value)"><option value="">— Todos (${uniq.length}) —</option>`;
+    uniq.forEach(v=>{
+      const esc=v.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+      html+=`<option value="${esc}"${current===v?' selected':''}>${v}</option>`;
+    });
+    html+=`</select></div>`;
+  });
+  numCols.forEach(col=>{
+    const f=explorerState.filters[col];
+    const minV=f&&f.min!=null?f.min:'';
+    const maxV=f&&f.max!=null?f.max:'';
+    html+=`<div class="explorer-filter-group"><label>${col}</label><div class="explorer-filter-num"><input type="number" step="any" placeholder="Mín" value="${minV}" onchange="CALIF.explorerNumFilter('${col}','min',this.value)"><input type="number" step="any" placeholder="Máx" value="${maxV}" onchange="CALIF.explorerNumFilter('${col}','max',this.value)"></div></div>`;
+  });
+  grid.innerHTML=html;
+}
+
+function renderExplorerActiveTags(){
+  const el=document.getElementById('explorerActiveFilters');
+  if(!el)return;
+  const filters=explorerState.filters;
+  const keys=Object.keys(filters).filter(k=>{
+    const v=filters[k];
+    if(v==null)return false;
+    if(typeof v==='object')return v.min!=null||v.max!=null;
+    return !!v;
+  });
+  if(!keys.length){el.innerHTML='';return}
+  let html='';
+  keys.forEach(col=>{
+    const v=filters[col];
+    let label;
+    if(typeof v==='object'){
+      const parts=[];
+      if(v.min!=null)parts.push('≥ '+v.min);
+      if(v.max!=null)parts.push('≤ '+v.max);
+      label=col+': '+parts.join(', ');
+    } else {
+      label=col+': '+v;
+    }
+    html+=`<span class="explorer-filter-tag">${label}<button onclick="CALIF.explorerRemoveFilter('${col}')" title="Quitar filtro">&times;</button></span>`;
+  });
+  html+=`<span class="explorer-clear-all-link" onclick="CALIF.explorerClearFilters()">Limpiar todo</span>`;
+  el.innerHTML=html;
+}
+
+function explorerApplyFilter(col,value){
+  if(value)explorerState.filters[col]=value;
+  else delete explorerState.filters[col];
+  explorerState.page=1;
+  renderExplorerActiveTags();
+  updateFilterToggleBtn();
+  renderExplorer();
+}
+
+function explorerNumFilter(col,type,value){
+  const num=value!==''?parseFloat(value):null;
+  if(!explorerState.filters[col]||typeof explorerState.filters[col]!=='object'){
+    explorerState.filters[col]={min:null,max:null};
+  }
+  explorerState.filters[col][type]=num;
+  if(explorerState.filters[col].min==null&&explorerState.filters[col].max==null){
+    delete explorerState.filters[col];
+  }
+  explorerState.page=1;
+  renderExplorerActiveTags();
+  updateFilterToggleBtn();
+  renderExplorer();
+}
+
+function explorerRemoveFilter(col){
+  delete explorerState.filters[col];
+  explorerState.page=1;
+  renderExplorerFilterBar();
+  renderExplorerActiveTags();
+  updateFilterToggleBtn();
+  renderExplorer();
+}
+
+function explorerClearFilters(){
+  explorerState.filters={};
+  explorerState.page=1;
+  renderExplorerFilterBar();
+  renderExplorerActiveTags();
+  updateFilterToggleBtn();
+  renderExplorer();
+}
+
+function toggleFilterPanel(){
+  explorerState.filterPanelOpen=!explorerState.filterPanelOpen;
+  const panel=document.getElementById('explorerFilterPanel');
+  if(explorerState.filterPanelOpen){
+    panel.classList.add('open');
+    renderExplorerFilterBar();
+  } else {
+    panel.classList.remove('open');
+  }
+}
+
+function explorerPerPage(val){
+  explorerState.perPage=parseInt(val)||50;
+  explorerState.page=1;
+  renderExplorer();
+}
+
 function renderExplorer(){
   if(!rawData.length){
     document.getElementById('explorerTableWrap').innerHTML='<div class="no-data"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><h3>Sin datos</h3><p>Primero carga un archivo Excel</p></div>';
@@ -2607,14 +2777,12 @@ function renderExplorer(){
 
   const infoEl=document.getElementById('explorerResultsInfo');
   if(total===0)infoEl.textContent='Sin resultados';
-  else infoEl.textContent=`Mostrando ${start+1}–${Math.min(start+explorerState.perPage,total)} de ${total.toLocaleString()} resultados`;
+  else infoEl.textContent=`Mostrando ${start+1}–${Math.min(start+explorerState.perPage,total)} de ${total.toLocaleString()} registros`;
 
   let thead='<tr>';
   vis.forEach(col=>{
     const ind=explorerState.sortCol===col?(explorerState.sortAsc?' ▲':' ▼'):'';
-    const ph=isNumericCol(col)?'ej: >7':'Filtrar...';
-    const fv=explorerState.colFilters[col]||'';
-    thead+=`<th onclick="CALIF.explorerSort('${col}')">${col}<span class="sort-ind">${ind}</span><input class="col-filter" placeholder="${ph}" value="${fv.replace(/"/g,'&quot;')}" onclick="event.stopPropagation()" oninput="CALIF.explorerColFilter('${col}',this.value)"></th>`;
+    thead+=`<th onclick="CALIF.explorerSort('${col}')">${col}<span class="sort-ind">${ind}</span></th>`;
   });
   thead+='</tr>';
 
@@ -2677,16 +2845,6 @@ function explorerSearch(){
   clearTimeout(_explorerTimer);
   _explorerTimer=setTimeout(()=>{
     explorerState.globalSearch=document.getElementById('explorerGlobalSearch').value;
-    explorerState.page=1;
-    renderExplorer();
-  },150);
-}
-
-let _explorerColTimer=null;
-function explorerColFilter(col,val){
-  explorerState.colFilters[col]=val;
-  clearTimeout(_explorerColTimer);
-  _explorerColTimer=setTimeout(()=>{
     explorerState.page=1;
     renderExplorer();
   },150);
@@ -2833,11 +2991,16 @@ window.CALIF = {
   computeStats: typeof computeStats !== "undefined" ? computeStats : function(){},
   decodeHtml: typeof decodeHtml !== "undefined" ? decodeHtml : function(){},
   downloadHeatmap: typeof downloadHeatmap !== "undefined" ? downloadHeatmap : function(){},
-  explorerColFilter: typeof explorerColFilter !== "undefined" ? explorerColFilter : function(){},
+  explorerApplyFilter: typeof explorerApplyFilter !== "undefined" ? explorerApplyFilter : function(){},
+  explorerClearFilters: typeof explorerClearFilters !== "undefined" ? explorerClearFilters : function(){},
+  explorerNumFilter: typeof explorerNumFilter !== "undefined" ? explorerNumFilter : function(){},
   explorerPage: typeof explorerPage !== "undefined" ? explorerPage : function(){},
+  explorerPerPage: typeof explorerPerPage !== "undefined" ? explorerPerPage : function(){},
+  explorerRemoveFilter: typeof explorerRemoveFilter !== "undefined" ? explorerRemoveFilter : function(){},
   explorerSearch: typeof explorerSearch !== "undefined" ? explorerSearch : function(){},
   explorerSort: typeof explorerSort !== "undefined" ? explorerSort : function(){},
   explorerToggleCol: typeof explorerToggleCol !== "undefined" ? explorerToggleCol : function(){},
+  toggleFilterPanel: typeof toggleFilterPanel !== "undefined" ? toggleFilterPanel : function(){},
   exportBarsImg: typeof exportBarsImg !== "undefined" ? exportBarsImg : function(){},
   exportChartImg: typeof exportChartImg !== "undefined" ? exportChartImg : function(){},
   exportDocentesTable: typeof exportDocentesTable !== "undefined" ? exportDocentesTable : function(){},
