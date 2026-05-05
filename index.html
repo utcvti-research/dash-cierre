@@ -284,9 +284,32 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .app-calif .explorer-filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
 .app-calif .explorer-filter-group{display:flex;flex-direction:column;gap:3px}
 .app-calif .explorer-filter-group label{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
-.app-calif .explorer-filter-group select{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:#fff;color:var(--text);cursor:pointer;outline:none;transition:border-color .15s;width:100%}
-.app-calif .explorer-filter-group select:focus{border-color:var(--accent2)}
-.app-calif .explorer-filter-group select.has-value{border-color:var(--accent);background:var(--badge);font-weight:600;color:var(--accent)}
+.app-calif .explorer-ms-wrap{position:relative}
+.app-calif .explorer-ms-trigger{display:flex;align-items:center;justify-content:space-between;width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:#fff;color:var(--text);cursor:pointer;outline:none;transition:all .15s;gap:4px;box-sizing:border-box}
+.app-calif .explorer-ms-trigger:hover{border-color:var(--accent2)}
+.app-calif .explorer-ms-trigger.has-value{border-color:var(--accent);background:var(--badge);color:var(--accent);font-weight:600}
+.app-calif .explorer-ms-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+.app-calif .explorer-ms-arrow{font-size:10px;color:var(--text2);flex-shrink:0;transition:transform .15s}
+.app-calif .explorer-ms-trigger.open .explorer-ms-arrow{transform:rotate(180deg)}
+.app-calif .explorer-ms-dd{display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:200;max-height:220px;overflow:hidden;flex-direction:column}
+.app-calif .explorer-ms-dd.open{display:flex}
+.app-calif .explorer-ms-search{padding:7px 10px;border:none;border-bottom:1px solid var(--border);font-size:12px;outline:none;width:100%;box-sizing:border-box}
+.app-calif .explorer-ms-options{overflow-y:auto;flex:1;padding:2px 0}
+.app-calif .explorer-ms-options label{display:flex;align-items:center;gap:8px;padding:4px 10px;font-size:12px;cursor:pointer;transition:background .1s;user-select:none}
+.app-calif .explorer-ms-options label:hover{background:var(--hover)}
+.app-calif .explorer-ms-options label.hidden{display:none}
+.app-calif .explorer-ms-options input[type="checkbox"]{accent-color:var(--accent);margin:0;flex-shrink:0}
+.app-calif .explorer-num-section{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.app-calif .explorer-num-section:empty{display:none;margin:0;padding:0;border:none}
+.app-calif .explorer-num-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.app-calif .explorer-num-label svg{width:14px;height:14px;fill:var(--accent)}
+.app-calif .explorer-num-chain{display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px}
+.app-calif .explorer-num-chain .explorer-filter-group{min-width:140px;flex:0 0 auto}
+.app-calif .explorer-num-chain .explorer-filter-group label{font-size:10px}
+.app-calif .explorer-num-op{display:flex;align-items:center;padding-bottom:2px}
+.app-calif .explorer-num-op select{padding:4px 8px;border:1px solid var(--accent);border-radius:12px;font-size:10px;font-weight:700;color:var(--accent);background:var(--badge);cursor:pointer;outline:none;text-align:center;transition:all .15s;appearance:auto}
+.app-calif .explorer-num-op select:hover{background:var(--accent);color:#fff}
+.app-calif .explorer-logic-sep{font-size:10px;font-weight:700;color:var(--accent);padding:2px 4px;text-transform:uppercase;letter-spacing:.3px}
 .app-calif .explorer-filter-num{display:flex;gap:4px}
 .app-calif .explorer-filter-num input{padding:7px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:#fff;color:var(--text);outline:none;width:50%;transition:border-color .15s;box-sizing:border-box}
 .app-calif .explorer-filter-num input:focus{border-color:var(--accent2)}
@@ -769,6 +792,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 <div class="explorer-filter-panel" id="explorerFilterPanel">
 <div class="explorer-filter-panel-header"><h4><svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>Filtros avanzados</h4><button class="explorer-clear-btn" onclick="CALIF.explorerClearFilters()">Limpiar todo</button></div>
 <div class="explorer-filter-grid" id="explorerFilterGrid"></div>
+<div class="explorer-num-section" id="explorerNumSection"></div>
 </div>
 <div class="explorer-active-filters" id="explorerActiveFilters"></div>
 <div class="table-wrapper" id="explorerTableWrap">
@@ -2565,7 +2589,7 @@ function exportBarsImg(containerId){
 const EXPLORER_ALL_COLS=['Matricula','Paterno','Materno','Nombre','Sexo','CURP','Carrera','Alias','Generacion','Campus','Modalidad','Grado','Grupo','Materia','Profesor','Cal_P1','Fal_P1','Cal_EF','Fal_EF','Cal_CF','Cal_EX1','Cal_EX2','Cal_ES1','Cal_ES2','Observacion'];
 const EXPLORER_DEFAULT_VISIBLE=['Matricula','Paterno','Materno','Nombre','Alias','Campus','Grado','Grupo','Materia','Profesor','Cal_P1','Cal_EF','Cal_CF'];
 const EXPLORER_FILTER_COLS=['Carrera','Alias','Generacion','Campus','Modalidad','Grado','Grupo','Materia','Profesor','Sexo'];
-const explorerState={visibleCols:[...EXPLORER_DEFAULT_VISIBLE],sortCol:null,sortAsc:true,page:1,perPage:50,filters:{},globalSearch:'',colsOpen:false,filterPanelOpen:false};
+const explorerState={visibleCols:[...EXPLORER_DEFAULT_VISIBLE],sortCol:null,sortAsc:true,page:1,perPage:50,filters:{},numLogic:{},globalSearch:'',colsOpen:false,filterPanelOpen:false};
 
 function getExplorerCols(){
   if(!rawData.length)return EXPLORER_ALL_COLS;
@@ -2575,9 +2599,38 @@ function getExplorerCols(){
 
 function isNumericCol(col){return /^(Cal_|Fal_)/.test(col)}
 
+function matchExplorerFilter(row,col,fv){
+  const cellVal=row[col]!=null?String(row[col]):'';
+  if(Array.isArray(fv)){
+    return fv.includes(cellVal);
+  }
+  if(typeof fv==='object'&&(fv.min!=null||fv.max!=null)){
+    const num=parseFloat(cellVal);
+    if(isNaN(num))return false;
+    if(fv.min!=null&&num<fv.min)return false;
+    if(fv.max!=null&&num>fv.max)return false;
+    return true;
+  }
+  if(typeof fv==='string'&&fv)return cellVal===fv;
+  return true;
+}
+
+function getActiveFilterKeys(){
+  return Object.keys(explorerState.filters).filter(k=>{
+    const v=explorerState.filters[k];
+    if(v==null)return false;
+    if(Array.isArray(v))return v.length>0;
+    if(typeof v==='object')return v.min!=null||v.max!=null;
+    return !!v;
+  });
+}
+
 function getFilteredExplorerData(){
   const gs=explorerState.globalSearch.toLowerCase();
   const filters=explorerState.filters;
+  const filterKeys=getActiveFilterKeys();
+  const catKeys=filterKeys.filter(k=>!isNumericCol(k));
+  const numKeys=filterKeys.filter(k=>isNumericCol(k));
   return rawData.filter(row=>{
     if(gs){
       let found=false;
@@ -2586,18 +2639,17 @@ function getFilteredExplorerData(){
       }
       if(!found)return false;
     }
-    for(const col of Object.keys(filters)){
-      const fv=filters[col];
-      if(fv==null)continue;
-      const cellVal=row[col]!=null?String(row[col]):'';
-      if(typeof fv==='object'&&fv.min!=null||typeof fv==='object'&&fv.max!=null){
-        const num=parseFloat(cellVal);
-        if(isNaN(num))return false;
-        if(fv.min!=null&&num<fv.min)return false;
-        if(fv.max!=null&&num>fv.max)return false;
-      } else if(typeof fv==='string'&&fv){
-        if(cellVal!==fv)return false;
+    for(const col of catKeys){
+      if(!matchExplorerFilter(row,col,filters[col]))return false;
+    }
+    if(numKeys.length){
+      let result=matchExplorerFilter(row,numKeys[0],filters[numKeys[0]]);
+      for(let i=1;i<numKeys.length;i++){
+        const op=explorerState.numLogic[numKeys[i-1]]||'AND';
+        const m=matchExplorerFilter(row,numKeys[i],filters[numKeys[i]]);
+        result=op==='OR'?(result||m):(result&&m);
       }
+      if(!result)return false;
     }
     return true;
   });
@@ -2620,14 +2672,7 @@ function sortExplorerData(data){
   });
 }
 
-function activeFilterCount(){
-  return Object.keys(explorerState.filters).filter(k=>{
-    const v=explorerState.filters[k];
-    if(v==null)return false;
-    if(typeof v==='object')return v.min!=null||v.max!=null;
-    return !!v;
-  }).length;
-}
+function activeFilterCount(){return getActiveFilterKeys().length}
 
 function updateFilterToggleBtn(){
   const btn=document.getElementById('explorerFilterToggle');
@@ -2646,66 +2691,155 @@ function updateFilterToggleBtn(){
 
 function renderExplorerFilterBar(){
   const grid=document.getElementById('explorerFilterGrid');
-  if(!grid||!rawData.length){if(grid)grid.innerHTML='';return}
+  const numSec=document.getElementById('explorerNumSection');
+  if(!grid||!rawData.length){if(grid)grid.innerHTML='';if(numSec)numSec.innerHTML='';return}
   const available=Object.keys(rawData[0]);
   const filterCols=EXPLORER_FILTER_COLS.filter(c=>available.includes(c));
   const numCols=explorerState.visibleCols.filter(c=>isNumericCol(c)&&available.includes(c));
-  let html='';
+  let catHtml='';
   filterCols.forEach(col=>{
     const uniq=[...new Set(rawData.map(r=>r[col]!=null?String(r[col]):'').filter(v=>v!==''))].sort();
     if(uniq.length>200)return;
-    const current=explorerState.filters[col]||'';
-    html+=`<div class="explorer-filter-group"><label>${col}</label><select class="${current?'has-value':''}" onchange="CALIF.explorerApplyFilter('${col}',this.value)"><option value="">— Todos (${uniq.length}) —</option>`;
+    const selected=Array.isArray(explorerState.filters[col])?explorerState.filters[col]:[];
+    const count=selected.length;
+    const text=count===0?`— Todos (${uniq.length}) —`:count===1?selected[0]:count+' seleccionados';
+    const hasVal=count>0?' has-value':'';
+    const colSafe=col.replace(/[^a-zA-Z0-9]/g,'_');
+    catHtml+=`<div class="explorer-filter-group"><label>${col}</label><div class="explorer-ms-wrap">`;
+    catHtml+=`<button class="explorer-ms-trigger${hasVal}" onclick="CALIF.toggleExplorerMs('${col}')"><span class="explorer-ms-text">${text}</span><span class="explorer-ms-arrow">▾</span></button>`;
+    catHtml+=`<div class="explorer-ms-dd" id="explorerMs_${colSafe}">`;
+    catHtml+=`<input class="explorer-ms-search" placeholder="Buscar..." oninput="CALIF.explorerMsSearch('${col}',this.value)" onclick="event.stopPropagation()">`;
+    catHtml+=`<div class="explorer-ms-options" id="explorerMsOpts_${colSafe}">`;
     uniq.forEach(v=>{
       const esc=v.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-      html+=`<option value="${esc}"${current===v?' selected':''}>${v}</option>`;
+      const chk=selected.includes(v)?' checked':'';
+      catHtml+=`<label><input type="checkbox" data-col="${col}" data-val="${esc}"${chk} onchange="CALIF.explorerMsToggle(this)" onclick="event.stopPropagation()"> ${v}</label>`;
     });
-    html+=`</select></div>`;
+    catHtml+=`</div></div></div></div>`;
   });
-  numCols.forEach(col=>{
-    const f=explorerState.filters[col];
-    const minV=f&&f.min!=null?f.min:'';
-    const maxV=f&&f.max!=null?f.max:'';
-    html+=`<div class="explorer-filter-group"><label>${col}</label><div class="explorer-filter-num"><input type="number" step="any" placeholder="Mín" value="${minV}" onchange="CALIF.explorerNumFilter('${col}','min',this.value)"><input type="number" step="any" placeholder="Máx" value="${maxV}" onchange="CALIF.explorerNumFilter('${col}','max',this.value)"></div></div>`;
-  });
-  grid.innerHTML=html;
+  grid.innerHTML=catHtml;
+  let numHtml='';
+  if(numCols.length){
+    numHtml+=`<div class="explorer-num-label"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 14h-2v-4H9V9h2V5h2v4h2v4h-2v4z"/></svg>Calificaciones</div>`;
+    numHtml+=`<div class="explorer-num-chain">`;
+    numCols.forEach((col,i)=>{
+      if(i>0){
+        const prevCol=numCols[i-1];
+        const op=explorerState.numLogic[prevCol]||'AND';
+        numHtml+=`<div class="explorer-num-op"><select onchange="CALIF.setNumLogic('${prevCol}',this.value)"><option value="AND"${op==='AND'?' selected':''}>AND</option><option value="OR"${op==='OR'?' selected':''}>OR</option></select></div>`;
+      }
+      const f=explorerState.filters[col];
+      const minV=f&&f.min!=null?f.min:'';
+      const maxV=f&&f.max!=null?f.max:'';
+      numHtml+=`<div class="explorer-filter-group"><label>${col}</label><div class="explorer-filter-num"><input type="number" step="any" placeholder="Mín" value="${minV}" onchange="CALIF.explorerNumFilter('${col}','min',this.value)"><input type="number" step="any" placeholder="Máx" value="${maxV}" onchange="CALIF.explorerNumFilter('${col}','max',this.value)"></div></div>`;
+    });
+    numHtml+=`</div>`;
+  }
+  if(numSec)numSec.innerHTML=numHtml;
 }
 
 function renderExplorerActiveTags(){
   const el=document.getElementById('explorerActiveFilters');
   if(!el)return;
-  const filters=explorerState.filters;
-  const keys=Object.keys(filters).filter(k=>{
-    const v=filters[k];
-    if(v==null)return false;
-    if(typeof v==='object')return v.min!=null||v.max!=null;
-    return !!v;
-  });
+  const keys=getActiveFilterKeys();
   if(!keys.length){el.innerHTML='';return}
+  const catKeys=keys.filter(k=>!isNumericCol(k));
+  const numKeys=keys.filter(k=>isNumericCol(k));
   let html='';
-  keys.forEach(col=>{
-    const v=filters[col];
-    let label;
-    if(typeof v==='object'){
+  catKeys.forEach((col,i)=>{
+    if(i>0)html+=`<span class="explorer-logic-sep">Y</span>`;
+    const v=explorerState.filters[col];
+    const label=col+': '+(Array.isArray(v)?v.join(', '):v);
+    html+=`<span class="explorer-filter-tag">${label}<button onclick="CALIF.explorerRemoveFilter('${col}')" title="Quitar filtro">&times;</button></span>`;
+  });
+  if(numKeys.length){
+    if(catKeys.length)html+=`<span class="explorer-logic-sep">Y</span>`;
+    numKeys.forEach((col,i)=>{
+      if(i>0){
+        const prevCol=numKeys[i-1];
+        const op=explorerState.numLogic[prevCol]||'AND';
+        html+=`<span class="explorer-logic-sep">${op}</span>`;
+      }
+      const v=explorerState.filters[col];
       const parts=[];
       if(v.min!=null)parts.push('≥ '+v.min);
       if(v.max!=null)parts.push('≤ '+v.max);
-      label=col+': '+parts.join(', ');
-    } else {
-      label=col+': '+v;
-    }
-    html+=`<span class="explorer-filter-tag">${label}<button onclick="CALIF.explorerRemoveFilter('${col}')" title="Quitar filtro">&times;</button></span>`;
-  });
+      html+=`<span class="explorer-filter-tag">${col}: ${parts.join(', ')}<button onclick="CALIF.explorerRemoveFilter('${col}')" title="Quitar filtro">&times;</button></span>`;
+    });
+  }
   html+=`<span class="explorer-clear-all-link" onclick="CALIF.explorerClearFilters()">Limpiar todo</span>`;
   el.innerHTML=html;
 }
 
-function explorerApplyFilter(col,value){
-  if(value)explorerState.filters[col]=value;
-  else delete explorerState.filters[col];
+function toggleExplorerMs(col){
+  const colSafe=col.replace(/[^a-zA-Z0-9]/g,'_');
+  const dd=document.getElementById('explorerMs_'+colSafe);
+  if(!dd)return;
+  document.querySelectorAll('.explorer-ms-dd.open').forEach(el=>{if(el!==dd)el.classList.remove('open')});
+  const trigger=dd.previousElementSibling;
+  dd.classList.toggle('open');
+  if(trigger)trigger.classList.toggle('open',dd.classList.contains('open'));
+  if(dd.classList.contains('open')){
+    const s=dd.querySelector('.explorer-ms-search');
+    if(s){s.value='';s.focus()}
+    dd.querySelectorAll('.explorer-ms-options label').forEach(l=>l.classList.remove('hidden'));
+  }
+}
+
+function explorerMsToggle(el){
+  const col=el.dataset.col;
+  const val=el.dataset.val;
+  if(!Array.isArray(explorerState.filters[col]))explorerState.filters[col]=[];
+  if(el.checked){
+    if(!explorerState.filters[col].includes(val))explorerState.filters[col].push(val);
+  } else {
+    explorerState.filters[col]=explorerState.filters[col].filter(v=>v!==val);
+  }
+  if(!explorerState.filters[col].length)delete explorerState.filters[col];
+  updateMsTriggerText(col);
   explorerState.page=1;
   renderExplorerActiveTags();
   updateFilterToggleBtn();
+  renderExplorer();
+}
+
+function updateMsTriggerText(col){
+  const colSafe=col.replace(/[^a-zA-Z0-9]/g,'_');
+  const dd=document.getElementById('explorerMs_'+colSafe);
+  if(!dd)return;
+  const trigger=dd.previousElementSibling;
+  if(!trigger)return;
+  const selected=Array.isArray(explorerState.filters[col])?explorerState.filters[col]:[];
+  const c=selected.length;
+  const textEl=trigger.querySelector('.explorer-ms-text');
+  if(!textEl)return;
+  if(c===0){
+    const opts=dd.querySelectorAll('.explorer-ms-options input[type="checkbox"]');
+    textEl.textContent='— Todos ('+opts.length+') —';
+    trigger.classList.remove('has-value');
+  } else if(c===1){
+    textEl.textContent=selected[0];
+    trigger.classList.add('has-value');
+  } else {
+    textEl.textContent=c+' seleccionados';
+    trigger.classList.add('has-value');
+  }
+}
+
+function explorerMsSearch(col,text){
+  const colSafe=col.replace(/[^a-zA-Z0-9]/g,'_');
+  const opts=document.getElementById('explorerMsOpts_'+colSafe);
+  if(!opts)return;
+  const t=text.toLowerCase();
+  opts.querySelectorAll('label').forEach(lbl=>{
+    lbl.classList.toggle('hidden',!lbl.textContent.toLowerCase().includes(t));
+  });
+}
+
+function setNumLogic(col,mode){
+  explorerState.numLogic[col]=mode;
+  explorerState.page=1;
+  renderExplorerActiveTags();
   renderExplorer();
 }
 
@@ -2735,6 +2869,7 @@ function explorerRemoveFilter(col){
 
 function explorerClearFilters(){
   explorerState.filters={};
+  explorerState.numLogic={};
   explorerState.page=1;
   renderExplorerFilterBar();
   renderExplorerActiveTags();
@@ -2899,9 +3034,14 @@ function exportExplorer(){
 
 document.addEventListener('click',function(e){
   const dd=document.getElementById('explorerColsDropdown');
-  if(!dd)return;
-  const wrap=dd.parentElement;
-  if(dd.classList.contains('open')&&!wrap.contains(e.target))dd.classList.remove('open');
+  if(dd){const w=dd.parentElement;if(dd.classList.contains('open')&&!w.contains(e.target))dd.classList.remove('open')}
+  document.querySelectorAll('.explorer-ms-dd.open').forEach(el=>{
+    if(!el.parentElement.contains(e.target)){
+      el.classList.remove('open');
+      const tr=el.previousElementSibling;
+      if(tr)tr.classList.remove('open');
+    }
+  });
 });
 
 (function(){
@@ -2992,14 +3132,17 @@ window.CALIF = {
   computeStats: typeof computeStats !== "undefined" ? computeStats : function(){},
   decodeHtml: typeof decodeHtml !== "undefined" ? decodeHtml : function(){},
   downloadHeatmap: typeof downloadHeatmap !== "undefined" ? downloadHeatmap : function(){},
-  explorerApplyFilter: typeof explorerApplyFilter !== "undefined" ? explorerApplyFilter : function(){},
   explorerClearFilters: typeof explorerClearFilters !== "undefined" ? explorerClearFilters : function(){},
+  explorerMsSearch: typeof explorerMsSearch !== "undefined" ? explorerMsSearch : function(){},
+  explorerMsToggle: typeof explorerMsToggle !== "undefined" ? explorerMsToggle : function(){},
   explorerNumFilter: typeof explorerNumFilter !== "undefined" ? explorerNumFilter : function(){},
   explorerPage: typeof explorerPage !== "undefined" ? explorerPage : function(){},
   explorerPerPage: typeof explorerPerPage !== "undefined" ? explorerPerPage : function(){},
   explorerRemoveFilter: typeof explorerRemoveFilter !== "undefined" ? explorerRemoveFilter : function(){},
   explorerSearch: typeof explorerSearch !== "undefined" ? explorerSearch : function(){},
   explorerSort: typeof explorerSort !== "undefined" ? explorerSort : function(){},
+  setNumLogic: typeof setNumLogic !== "undefined" ? setNumLogic : function(){},
+  toggleExplorerMs: typeof toggleExplorerMs !== "undefined" ? toggleExplorerMs : function(){},
   explorerToggleCol: typeof explorerToggleCol !== "undefined" ? explorerToggleCol : function(){},
   toggleFilterPanel: typeof toggleFilterPanel !== "undefined" ? toggleFilterPanel : function(){},
   exportBarsImg: typeof exportBarsImg !== "undefined" ? exportBarsImg : function(){},
