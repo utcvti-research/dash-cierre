@@ -1219,11 +1219,21 @@ function computeStats(data,col){
   }
   const countH=students.filter(s=>s.Sexo==='Masculino').length;
   const countM=students.filter(s=>s.Sexo==='Femenino').length;
+  const isExSp=col==='Cal_EX1'||col==='Cal_EX2'||col==='Cal_ES1'||col==='Cal_ES2';
+  function subjectPassed(s,m){
+    if(!isExSp||isEstadia(m))return false;
+    const p1=s.p1Grades[m],ef=s.efGrades[m],e1=s.ex1Grades[m],e2=s.ex2Grades[m];
+    if(col==='Cal_EX1')return p1!=null&&p1>=7;
+    if(col==='Cal_EX2')return ef!=null&&ef>=7;
+    if(col==='Cal_ES1')return(p1!=null&&p1>=7)||(e1!=null&&e1>=7);
+    if(col==='Cal_ES2')return(ef!=null&&ef>=7)||(e2!=null&&e2>=7);
+    return false;
+  }
   let tg=0,fg=0;
-  students.forEach(s=>{materias.forEach(m=>{const v=s.grades[m];if(v!==null&&v!==undefined){tg++;if(v<7)fg++}})});
-  const swf=students.filter(s=>materias.some(m=>s.grades[m]!=null&&s.grades[m]<7)).length;
+  students.forEach(s=>{materias.forEach(m=>{if(subjectPassed(s,m))return;const v=s.grades[m];if(v!==null&&v!==undefined){tg++;if(v<7)fg++}})});
+  const swf=students.filter(s=>materias.some(m=>{if(subjectPassed(s,m))return false;return s.grades[m]!=null&&s.grades[m]<7})).length;
   let sa=0,ca=0;
-  students.forEach(s=>{let ss=0,sc=0;materias.forEach(m=>{const v=s.grades[m];if(v!==null&&v!==undefined){ss+=v;sc++}});if(sc>0){sa+=ss/sc;ca++}});
+  students.forEach(s=>{let ss=0,sc=0;materias.forEach(m=>{if(subjectPassed(s,m))return;const v=s.grades[m];if(v!==null&&v!==undefined){ss+=v;sc++}});if(sc>0){sa+=ss/sc;ca++}});
   const aprov=ca>0?(sa/ca).toFixed(1):'N/A';
   const first=data[0]||{};
   const meta={grado:first.Grado||'',grupo:first.Grupo||'',carrera:first.Alias||'',modalidad:first.Modalidad||'',campus:first.Campus||''};
