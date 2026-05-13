@@ -1645,7 +1645,7 @@ function renderDocentes(data,col){
   docentes.forEach((d,i)=>{
     const aprovCls=d.aprov!=='N/A'&&parseFloat(d.aprov)<7?'fail':'pass';
     const pctCls=Number(d.pctReprob)>=20?'fail':'pass';
-    html+=`<tr>
+    html+=`<tr data-docente-key="d${i}" style="cursor:pointer" onclick="CALIF.showDocenteDetail('d${i}')" title="Clic para ver detalle">
       <td style="text-align:center;color:var(--text2);font-size:11px">${i+1}</td>
       <td class="name-cell"><a href="#" onclick="CALIF.showDocenteDetail('d${i}');return false" style="color:var(--accent2);text-decoration:none;font-weight:600;cursor:pointer">${decodeHtml(d.profesor)}</a></td>
       <td style="text-align:center">${d.materias}</td>
@@ -1665,6 +1665,12 @@ function showDocenteDetail(key){
   navGrupalRegistry=[];
   const d=docentesData[key];
   if(!d)return;
+  const tableArea=document.getElementById('tableAreaDocentes');
+  if(tableArea){
+    tableArea.querySelectorAll('tr.selected-group-row').forEach(r=>r.classList.remove('selected-group-row'));
+    const row=tableArea.querySelector('tr[data-docente-key="'+key+'"]');
+    if(row)row.classList.add('selected-group-row');
+  }
   const col=tabState.docentes.col;
   const groupMap=new Map();
   d.records.forEach(r=>{
