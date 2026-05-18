@@ -1103,7 +1103,7 @@ let rawData=[];
 const tabState={
   grupal:{col:'Cal_P1',chart:null,scatterData:null,origBg:null,origBorder:null,origR:null,filters:{},ms:{},showReprobados:false,showFaltas:false},
   generacional:{col:'Cal_P1',chart:null,scatterData:null,origBg:null,origBorder:null,origR:null,filters:{},ms:{},showReprobados:false,showFaltas:false},
-  docentes:{col:'Cal_P1',filters:{},ms:{}}
+  docentes:{col:'Cal_P1',filters:{},ms:{},selectedDocente:null}
 };
 let activeTab='grupal';
 
@@ -1685,12 +1685,19 @@ function renderDocentes(data,col){
   html+='</tbody></table></div>';
   html+='<div id="docenteDetail" style="margin-top:20px"></div>';
   tableArea.innerHTML=html;
+
+  if(tabState.docentes.selectedDocente){
+    const selectedName=tabState.docentes.selectedDocente;
+    const matchKey=Object.keys(docentesData).find(k=>docentesData[k].profesor===selectedName);
+    if(matchKey)showDocenteDetail(matchKey,true);
+  }
 }
 
-function showDocenteDetail(key){
+function showDocenteDetail(key,skipScroll){
   navGrupalRegistry=[];
   const d=docentesData[key];
   if(!d)return;
+  tabState.docentes.selectedDocente=d.profesor;
   const tableArea=document.getElementById('tableAreaDocentes');
   if(tableArea){
     tableArea.querySelectorAll('tr.selected-group-row').forEach(r=>r.classList.remove('selected-group-row'));
@@ -1773,12 +1780,15 @@ function showDocenteDetail(key){
   </tr></tfoot>`;
   html+='</table></div>';
   document.getElementById('docenteDetail').innerHTML=html;
-  document.getElementById('docenteDetail').scrollIntoView({behavior:'smooth',block:'start'});
+  if(!skipScroll)document.getElementById('docenteDetail').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 function closeDocenteDetail(){
+  tabState.docentes.selectedDocente=null;
   const el=document.getElementById('docenteDetail');
   if(el)el.innerHTML='';
+  const tableArea=document.getElementById('tableAreaDocentes');
+  if(tableArea)tableArea.querySelectorAll('tr.selected-group-row').forEach(r=>r.classList.remove('selected-group-row'));
 }
 
 let evoChartInstance=null;
