@@ -4207,7 +4207,7 @@ function openEmailModal(docente, grupo, materia) {
   if (!faltantes.length && !invalidos.length && !parciales.length) {
     lines.push(`Actualmente toda la documentación está en orden.`, ``);
   } else {
-    lines.push(`Por favor, suba o corrija los documentos indicados:`);
+    lines.push(`Por favor, suba o corrija los documentos indicados (con un plazo de 5 días a partir de la fecha de este correo):`);
     if (matObj.folderUrl) lines.push(matObj.folderUrl);
     lines.push(``);
   }
