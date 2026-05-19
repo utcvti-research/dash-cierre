@@ -661,6 +661,18 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 <div id="distSummary" style="font-size:12px;color:var(--text2);margin-bottom:10px"></div>
 <div id="distGaussWrap" style="position:relative;width:100%;height:360px;min-height:250px" class="dist-chart-wrap"><canvas id="distChart"></canvas></div>
 <div id="distPercentileWrap" style="position:relative;width:100%;height:360px;min-height:250px;display:none" class="dist-chart-wrap"><canvas id="percChart"></canvas></div>
+<div id="percBoxplotWrap" style="display:none;margin-top:18px">
+<div style="background:var(--hover);border-radius:10px;padding:18px 18px 14px;border:1px solid var(--border)">
+<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">Diagrama de caja (boxplot) — valores clave</div>
+<canvas id="percBoxplotCanvas" height="70" style="width:100%;max-height:70px"></canvas>
+</div>
+</div>
+<div id="percFreqWrap" style="display:none;margin-top:14px">
+<div style="background:var(--hover);border-radius:10px;padding:18px;border:1px solid var(--border)">
+<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">Tabla de frecuencias completa</div>
+<div id="percFreqTable" style="overflow-x:auto"></div>
+</div>
+</div>
 </div>
 </div>
 <div class="error-modal" id="errorModal">
@@ -2346,6 +2358,8 @@ function switchDistTab(tab){
   });
   document.getElementById('distGaussWrap').style.display=tab==='gauss'?'':'none';
   document.getElementById('distPercentileWrap').style.display=tab==='percentile'?'':'none';
+  document.getElementById('percBoxplotWrap').style.display='none';
+  document.getElementById('percFreqWrap').style.display='none';
   updateDistChart();
 }
 
@@ -2528,12 +2542,16 @@ function updatePercChart(){
   if(!grades||!grades.length){
     document.getElementById('distSummary').textContent='Sin datos';
     if(percChartInstance){percChartInstance.destroy();percChartInstance=null}
+    document.getElementById('percBoxplotWrap').style.display='none';
+    document.getElementById('percFreqWrap').style.display='none';
     return;
   }
   const n=grades.length;
   if(n<5){
     document.getElementById('distSummary').innerHTML='<div style="text-align:center;padding:20px;color:var(--text2)"><strong>Se requieren al menos 5 calificaciones para el análisis de percentiles</strong></div>';
     if(percChartInstance){percChartInstance.destroy();percChartInstance=null}
+    document.getElementById('percBoxplotWrap').style.display='none';
+    document.getElementById('percFreqWrap').style.display='none';
     return;
   }
   const sorted=[...grades].sort((a,b)=>a-b);
@@ -2736,6 +2754,97 @@ function updatePercChart(){
     },
     plugins:[percRefPlugin]
   });
+
+  drawPercBoxplot(sorted,p25,p50,p75);
+  renderPercFreqTable(sorted,n);
+}
+
+function drawPercBoxplot(sorted,q1,q2,q3){
+  const wrap=document.getElementById('percBoxplotWrap');
+  wrap.style.display='';
+  const canvas=document.getElementById('percBoxplotCanvas');
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.getBoundingClientRect();
+  const W=rect.width*dpr, H=70*dpr;
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  const w=rect.width, h=70;
+  ctx.clearRect(0,0,w,h);
+
+  const minVal=sorted[0], maxVal=sorted[sorted.length-1];
+  const pad=50, trackW=w-pad*2;
+  const x=v=>pad+(v/10)*trackW;
+
+  const boxY=12, boxH=30;
+
+  ctx.strokeStyle='#5a9bd5'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(x(minVal),boxY+boxH/2); ctx.lineTo(x(q1),boxY+boxH/2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x(q3),boxY+boxH/2); ctx.lineTo(x(maxVal),boxY+boxH/2); ctx.stroke();
+
+  ctx.beginPath(); ctx.moveTo(x(minVal),boxY+4); ctx.lineTo(x(minVal),boxY+boxH-4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x(maxVal),boxY+4); ctx.lineTo(x(maxVal),boxY+boxH-4); ctx.stroke();
+
+  ctx.fillStyle='rgba(90,155,213,0.25)'; ctx.strokeStyle='#5a9bd5'; ctx.lineWidth=2;
+  ctx.fillRect(x(q1),boxY,x(q3)-x(q1),boxH);
+  ctx.strokeRect(x(q1),boxY,x(q3)-x(q1),boxH);
+
+  ctx.strokeStyle='#e67e22'; ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.moveTo(x(q2),boxY); ctx.lineTo(x(q2),boxY+boxH); ctx.stroke();
+
+  ctx.fillStyle='var(--text2)'; ctx.font='10px Segoe UI,system-ui,sans-serif'; ctx.textAlign='center';
+  const labels=[
+    {v:minVal,label:'Mín',sub:minVal.toFixed(1)},
+    {v:q1,label:'Q1',sub:q1.toFixed(1)},
+    {v:q2,label:'Q2',sub:q2.toFixed(1)},
+    {v:q3,label:'Q3',sub:q3.toFixed(1)},
+    {v:maxVal,label:'Máx',sub:maxVal.toFixed(1)}
+  ];
+  const cs=getComputedStyle(document.documentElement);
+  const cText=cs.getPropertyValue('--text').trim()||'#1a1a2e';
+  const cText2=cs.getPropertyValue('--text2').trim()||'#555';
+  labels.forEach(l=>{
+    const lx=x(l.v);
+    ctx.fillStyle=cText; ctx.font='bold 10px Segoe UI,system-ui,sans-serif';
+    ctx.fillText(l.label,lx,boxY+boxH+14);
+    ctx.fillStyle=cText2; ctx.font='10px Segoe UI,system-ui,sans-serif';
+    ctx.fillText(l.sub,lx,boxY+boxH+26);
+  });
+}
+
+function renderPercFreqTable(sorted,n){
+  const wrap=document.getElementById('percFreqWrap');
+  wrap.style.display='';
+  const freq={};
+  sorted.forEach(v=>{const k=v.toString();freq[k]=(freq[k]||0)+1});
+  const keys=Object.keys(freq).sort((a,b)=>parseFloat(a)-parseFloat(b));
+  let cum=0;
+  let html='<table style="width:100%;border-collapse:collapse;font-size:12px">';
+  html+='<thead><tr style="background:#1a1a2e;border-bottom:2px solid var(--border)">';
+  ['Valor','f absoluta','f relativa','f acumulada','% acumulado'].forEach(h=>{
+    html+='<th style="padding:8px 10px;text-align:center;color:#fff;font-weight:700">'+h+'</th>';
+  });
+  html+='</tr></thead><tbody>';
+  keys.forEach(k=>{
+    const fa=freq[k]; cum+=fa;
+    const fr=(fa/n*100).toFixed(2)+'%';
+    const pa=(cum/n*100).toFixed(2)+'%';
+    html+='<tr style="border-bottom:1px solid var(--border)">';
+    html+='<td style="padding:6px 10px;text-align:center;font-weight:600">'+k+'</td>';
+    html+='<td style="padding:6px 10px;text-align:center">'+fa+'</td>';
+    html+='<td style="padding:6px 10px;text-align:right">'+fr+'</td>';
+    html+='<td style="padding:6px 10px;text-align:center">'+cum+'</td>';
+    html+='<td style="padding:6px 10px;text-align:right">'+pa+'</td>';
+    html+='</tr>';
+  });
+  html+='<tr style="border-top:2px solid var(--border);font-weight:700">';
+  html+='<td style="padding:6px 10px;text-align:center;color:var(--accent)">Total</td>';
+  html+='<td style="padding:6px 10px;text-align:center">'+n+'</td>';
+  html+='<td style="padding:6px 10px;text-align:right">100%</td>';
+  html+='<td style="padding:6px 10px;text-align:center"></td>';
+  html+='<td style="padding:6px 10px;text-align:right"></td>';
+  html+='</tr></tbody></table>';
+  document.getElementById('percFreqTable').innerHTML=html;
 }
 
 function closeDist(){
