@@ -1989,6 +1989,10 @@ function closeEvo(){
 let studentRadarInstance=null;
 let studentMateriaData=null;
 let studentRadarPeriod='p1';
+let studentModalCol='Cal_P1';
+let studentModalGrupoRows=[];
+let studentModalMateriaMap=null;
+let studentModalRecurMap=null;
 
 function switchRadarPeriod(btn,period){
   document.querySelectorAll('.radar-period-btn').forEach(b=>b.classList.remove('active'));
@@ -2091,15 +2095,7 @@ function showStudentDetail(matricula){
     }
   });
 
-  const grupoGradesByMateria={};
-  grupoRows.forEach(r=>{
-    if(!r.Materia||isEstadia(r.Materia))return;
-    const v=r[col];
-    if(v==null||v===''||isNaN(v))return;
-    if(!grupoGradesByMateria[r.Materia])grupoGradesByMateria[r.Materia]=[];
-    grupoGradesByMateria[r.Materia].push(Number(v));
-  });
-  Object.keys(grupoGradesByMateria).forEach(k=>{grupoGradesByMateria[k].sort((a,b)=>a-b)});
+  studentModalGrupoRows=grupoRows;
 
   document.getElementById('studentModalTitle').textContent=decodeHtml((first.Paterno||'')+' '+(first.Materno||'')+' '+(first.Nombre||''));
 
@@ -2150,9 +2146,34 @@ function showStudentDetail(matricula){
   recurMap.forEach(m=>{m.cr=computeCR(m)});
 
   studentMateriaData=[...materiaMap.values(),...recurMap.values()].filter(m=>!isEstadia(m.materia));
+  studentModalMateriaMap=materiaMap;
+  studentModalRecurMap=recurMap;
+  studentModalCol=col;
+
+  renderStudentGeneralTable(col);
+  if(studentRadarInstance){studentRadarInstance.destroy();studentRadarInstance=null}
+  studentRadarPeriod='p1';
+  document.querySelectorAll('.radar-period-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
+  switchStudentTab('general');
+  document.getElementById('studentModal').classList.add('visible');
+}
+
+function renderStudentGeneralTable(col){
+  if(!studentModalMateriaMap)return;
+  const grupoGradesByMateria={};
+  studentModalGrupoRows.forEach(r=>{
+    if(!r.Materia||isEstadia(r.Materia))return;
+    const v=r[col];
+    if(v==null||v===''||isNaN(v))return;
+    if(!grupoGradesByMateria[r.Materia])grupoGradesByMateria[r.Materia]=[];
+    grupoGradesByMateria[r.Materia].push(Number(v));
+  });
+  Object.keys(grupoGradesByMateria).forEach(k=>{grupoGradesByMateria[k].sort((a,b)=>a-b)});
 
   const colToProp={Cal_P1:'p1',Cal_EF:'p2',Cal_CF:'cf',Cal_EX1:'ex1',Cal_EX2:'ex2',Cal_ES1:'es1',Cal_ES2:'es2',Cal_Rep:'cr'};
   const activeGradeProp=colToProp[col]||'p1';
+  const colLabels={Cal_P1:'P1',Cal_EF:'PF',Cal_CF:'CF',Cal_EX1:'EX1',Cal_EX2:'EX2',Cal_ES1:'ES1',Cal_ES2:'ES2',Cal_Rep:'CR'};
+  const pcntlLabel=colLabels[col]||'P1';
 
   function studentPercentile(materia,gradeVal){
     if(gradeVal===null)return null;
@@ -2185,8 +2206,6 @@ function showStudentDetail(matricula){
     const rows=[...map.values()].sort((a,b)=>a.materia.localeCompare(b.materia));
     let html='';
     if(title)html+=`<div style="margin:14px 0 6px;font-weight:700;font-size:13px;color:var(--accent)">${title}</div>`;
-    const colLabels={Cal_P1:'P1',Cal_EF:'PF',Cal_CF:'CF',Cal_EX1:'EX1',Cal_EX2:'EX2',Cal_ES1:'ES1',Cal_ES2:'ES2',Cal_Rep:'CR'};
-    const pcntlLabel=colLabels[col]||'P1';
     html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr>'+
       '<th style="text-align:left;padding:10px;background:var(--accent2);color:#fff;border-radius:6px 0 0 0">Materias</th>'+
       '<th style="text-align:center;padding:10px;background:var(--accent2);color:#fff;min-width:42px">P1</th>'+
@@ -2217,15 +2236,26 @@ function showStudentDetail(matricula){
     return html;
   }
 
-  let content=buildMateriaTable(materiaMap,'');
-  content+=buildMateriaTable(recurMap,'MATERIAS EN RECURSAMIENTO');
+  const allCols=[
+    {val:'Cal_P1',lbl:'P1'},{val:'Cal_EF',lbl:'PF'},{val:'Cal_CF',lbl:'CF'}
+  ];
+  let selectorHtml='<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap">'+
+    '<span style="font-size:11px;font-weight:700;color:var(--text2)">Percentil en:</span>';
+  allCols.forEach(c=>{
+    const active=c.val===col;
+    selectorHtml+=`<button onclick="CALIF.switchStudentPercCol(this,'${c.val}')" style="padding:3px 10px;font-size:11px;font-weight:${active?'700':'500'};border:1px solid ${active?'var(--purple)':'var(--border)'};border-radius:14px;cursor:pointer;background:${active?'var(--purple)':'#fff'};color:${active?'#fff':'var(--text2)'};transition:all .2s">${c.lbl}</button>`;
+  });
+  selectorHtml+='</div>';
 
+  let content=selectorHtml;
+  content+=buildMateriaTable(studentModalMateriaMap,'');
+  content+=buildMateriaTable(studentModalRecurMap,'MATERIAS EN RECURSAMIENTO');
   document.getElementById('studentTabGeneral').innerHTML=content;
-  if(studentRadarInstance){studentRadarInstance.destroy();studentRadarInstance=null}
-  studentRadarPeriod='p1';
-  document.querySelectorAll('.radar-period-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
-  switchStudentTab('general');
-  document.getElementById('studentModal').classList.add('visible');
+}
+
+function switchStudentPercCol(btn,col){
+  studentModalCol=col;
+  renderStudentGeneralTable(col);
 }
 
 function closeStudentModal(){
@@ -3679,6 +3709,7 @@ window.CALIF = {
   switchCol: typeof switchCol !== "undefined" ? switchCol : function(){},
   switchMainTab: typeof switchMainTab !== "undefined" ? switchMainTab : function(){},
   switchRadarPeriod: typeof switchRadarPeriod !== "undefined" ? switchRadarPeriod : function(){},
+  switchStudentPercCol: typeof switchStudentPercCol !== "undefined" ? switchStudentPercCol : function(){},
   switchStudentTab: typeof switchStudentTab !== "undefined" ? switchStudentTab : function(){},
   toggleColSelector: typeof toggleColSelector !== "undefined" ? toggleColSelector : function(){},
   toggleFaltas: typeof toggleFaltas !== "undefined" ? toggleFaltas : function(){},
