@@ -2082,10 +2082,24 @@ function showStudentDetail(matricula){
 
   const grupoKey=[first.Grado||'',first.Grupo||'',first.Alias||'',first.Modalidad||'',first.Campus||''].join('|||');
   const grupoMaterias=new Set();
+  const grupoRows=[];
   rawData.forEach(r=>{
     const k=[r.Grado||'',r.Grupo||'',r.Alias||'',r.Modalidad||'',r.Campus||''].join('|||');
-    if(k===grupoKey&&r.Materia)grupoMaterias.add(r.Materia);
+    if(k===grupoKey){
+      if(r.Materia)grupoMaterias.add(r.Materia);
+      grupoRows.push(r);
+    }
   });
+
+  const grupoGradesByMateria={};
+  grupoRows.forEach(r=>{
+    if(!r.Materia||isEstadia(r.Materia))return;
+    const v=r[col];
+    if(v==null||v===''||isNaN(v))return;
+    if(!grupoGradesByMateria[r.Materia])grupoGradesByMateria[r.Materia]=[];
+    grupoGradesByMateria[r.Materia].push(Number(v));
+  });
+  Object.keys(grupoGradesByMateria).forEach(k=>{grupoGradesByMateria[k].sort((a,b)=>a-b)});
 
   document.getElementById('studentModalTitle').textContent=decodeHtml((first.Paterno||'')+' '+(first.Materno||'')+' '+(first.Nombre||''));
 
@@ -2137,6 +2151,29 @@ function showStudentDetail(matricula){
 
   studentMateriaData=[...materiaMap.values(),...recurMap.values()].filter(m=>!isEstadia(m.materia));
 
+  const colToProp={Cal_P1:'p1',Cal_EF:'p2',Cal_CF:'cf',Cal_EX1:'ex1',Cal_EX2:'ex2',Cal_ES1:'es1',Cal_ES2:'es2',Cal_Rep:'cr'};
+  const activeGradeProp=colToProp[col]||'p1';
+
+  function studentPercentile(materia,gradeVal){
+    if(gradeVal===null)return null;
+    const sorted=grupoGradesByMateria[materia];
+    if(!sorted||sorted.length<3)return null;
+    const below=sorted.filter(g=>g<gradeVal).length;
+    const equal=sorted.filter(g=>g===gradeVal).length;
+    return Math.round(((below+equal*0.5)/sorted.length)*100);
+  }
+
+  function percentileCell(materia,gradeVal){
+    const pctl=studentPercentile(materia,gradeVal);
+    if(pctl===null)return '<td style="text-align:center;color:#bbb;font-size:11px">--</td>';
+    let bg,fg;
+    if(pctl>=75){bg='var(--green-bg)';fg='var(--green-text)'}
+    else if(pctl>=50){bg='#e8f0fe';fg='#2980b9'}
+    else if(pctl>=25){bg='var(--amber-bg)';fg='var(--amber-text)'}
+    else{bg='var(--red-bg)';fg='var(--red-text)'}
+    return `<td style="text-align:center"><span style="display:inline-block;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700;background:${bg};color:${fg}">P${pctl}</span></td>`;
+  }
+
   function gradeCell(v){
     if(v===null)return '<td style="text-align:center;color:#bbb;font-size:12px">--</td>';
     const c=v<7?'color:var(--red-text);font-weight:700':'color:var(--green-text);font-weight:600';
@@ -2148,6 +2185,8 @@ function showStudentDetail(matricula){
     const rows=[...map.values()].sort((a,b)=>a.materia.localeCompare(b.materia));
     let html='';
     if(title)html+=`<div style="margin:14px 0 6px;font-weight:700;font-size:13px;color:var(--accent)">${title}</div>`;
+    const colLabels={Cal_P1:'P1',Cal_EF:'PF',Cal_CF:'CF',Cal_EX1:'EX1',Cal_EX2:'EX2',Cal_ES1:'ES1',Cal_ES2:'ES2',Cal_Rep:'CR'};
+    const pcntlLabel=colLabels[col]||'P1';
     html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr>'+
       '<th style="text-align:left;padding:10px;background:var(--accent2);color:#fff;border-radius:6px 0 0 0">Materias</th>'+
       '<th style="text-align:center;padding:10px;background:var(--accent2);color:#fff;min-width:42px">P1</th>'+
@@ -2159,7 +2198,8 @@ function showStudentDetail(matricula){
       '<th style="text-align:center;padding:10px;background:#8e44ad;color:#fff;min-width:42px">ES2</th>'+
       '<th style="text-align:center;padding:10px;background:var(--accent);color:#fff;min-width:42px">CR</th>'+
       '<th style="text-align:center;padding:10px;background:var(--accent);color:#fff;min-width:42px">F1</th>'+
-      '<th style="text-align:center;padding:10px;background:var(--accent);color:#fff;border-radius:0 6px 0 0;min-width:42px">F2</th>'+
+      '<th style="text-align:center;padding:10px;background:var(--accent);color:#fff;min-width:42px">F2</th>'+
+      `<th style="text-align:center;padding:10px;background:var(--purple);color:#fff;min-width:50px;border-radius:0 6px 0 0" title="Percentil en ${pcntlLabel} respecto al grupo">Pcntl<br><span style="font-size:9px;font-weight:400;opacity:.85">${pcntlLabel}</span></th>`+
       '</tr></thead><tbody>';
     rows.forEach(m=>{
       html+=`<tr style="border-bottom:1px solid var(--border)">
@@ -2170,6 +2210,7 @@ function showStudentDetail(matricula){
         ${gradeCell(m.cr)}
         <td style="text-align:center;font-size:12px;${m.f1&&m.f1>0?'color:var(--red-text);font-weight:700':'color:var(--text2)'}">${m.f1!==null?m.f1:'0'}</td>
         <td style="text-align:center;font-size:12px;${m.f2&&m.f2>0?'color:var(--red-text);font-weight:700':'color:var(--text2)'}">${m.f2!==null?m.f2:'0'}</td>
+        ${percentileCell(m.materia,m[activeGradeProp])}
       </tr>`;
     });
     html+='</tbody></table></div>';
