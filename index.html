@@ -2354,7 +2354,8 @@ function renderIndicadores(data){
     groups.get(key).push(r);
   });
 
-  let html='<div class="indicadores-wrap"><table class="indicadores-table"><thead><tr>';
+  let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-weight:700;font-size:14px;color:var(--accent)">Indicadores generacionales</span><button class="export-btn" onclick="CALIF.exportIndicadores()"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Exportar</button></div>';
+  html+='<div class="indicadores-wrap"><table class="indicadores-table"><thead><tr>';
   html+='<th rowspan="2">Cuatrimestre</th>';
   html+='<th rowspan="2">Generación</th>';
   html+='<th rowspan="2">Inicio Cohorte<br>generacional</th>';
@@ -2418,20 +2419,20 @@ function renderIndicadores(data){
       html+='<tr class="indicadores-row">';
       html+='<td>'+gradoToCuatrimestre(grado)+'</td>';
       html+='<td>'+gen+'</td>';
-      html+='<td contenteditable="true" class="editable-cell"></td>';
-      html+='<td>'+total+'</td>';
+      html+='<td contenteditable="true" class="editable-cell" data-field="cohorte"></td>';
+      html+='<td data-field="matricula-inicio">'+total+'</td>';
       html+='<td>'+totalH+'</td>';
       html+='<td>'+totalM+'</td>';
-      html+='<td contenteditable="true" class="editable-cell"></td>';
+      html+='<td data-field="matricula-cierre"></td>';
       html+='<td>'+avgP1+'</td>';
       html+='<td>'+avgEF+'</td>';
       html+='<td>'+promedio+'</td>';
-      html+='<td contenteditable="true" class="editable-cell"></td>';
-      html+='<td contenteditable="true" class="editable-cell"></td>';
+      html+='<td data-field="eficiencia"></td>';
+      html+='<td data-field="desercion"></td>';
       html+='<td>'+repP1+'</td>';
       html+='<td>'+repEF+'</td>';
       html+='<td>'+pctRepCierre+'</td>';
-      html+='<td contenteditable="true" class="editable-cell"></td>';
+      html+='<td contenteditable="true" class="editable-cell" data-field="bajas"></td>';
       html+='<td><button class="copy-row-btn" onclick="CALIF.copyIndicadorRow(this)" title="Copiar fila"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button></td>';
       html+='</tr>';
     });
@@ -2440,6 +2441,60 @@ function renderIndicadores(data){
   html+='</tbody></table></div>';
   el.innerHTML=html;
   el.classList.remove('hidden');
+
+  if(!el._hasInputHandler){
+    el._hasInputHandler=true;
+    el.addEventListener('input',function(e){
+      const td=e.target.closest('td[contenteditable]');
+      if(!td)return;
+      const row=td.closest('tr.indicadores-row');
+      if(row)recalcIndicadorRow(row);
+    });
+  }
+}
+
+function recalcIndicadorRow(row){
+  const cohorteEl=row.querySelector('[data-field="cohorte"]');
+  const inicioEl=row.querySelector('[data-field="matricula-inicio"]');
+  const cierreEl=row.querySelector('[data-field="matricula-cierre"]');
+  const eficienciaEl=row.querySelector('[data-field="eficiencia"]');
+  const desercionEl=row.querySelector('[data-field="desercion"]');
+  const bajasEl=row.querySelector('[data-field="bajas"]');
+
+  const inicio=parseFloat(inicioEl.textContent)||0;
+  const bajasText=bajasEl.textContent.trim();
+  const bajas=parseFloat(bajasText)||0;
+  const bajasEntered=bajasText!=='';
+  const cohorteText=cohorteEl.textContent.trim();
+  const cohorte=parseFloat(cohorteText)||0;
+  const cohorteEntered=cohorteText!=='';
+
+  const cierre=inicio-bajas;
+  cierreEl.textContent=bajasEntered?cierre:'';
+
+  if(bajasEntered&&cohorteEntered&&cohorte>0){
+    eficienciaEl.textContent=((cierre/cohorte)*100).toFixed(1)+'%';
+    desercionEl.textContent=(((cohorte-cierre)/cohorte)*100).toFixed(1)+'%';
+  }else{
+    eficienciaEl.textContent='';
+    desercionEl.textContent='';
+  }
+}
+
+function exportIndicadores(){
+  const table=document.querySelector('#indicadoresGeneracional .indicadores-table');
+  if(!table)return;
+  const clone=table.cloneNode(true);
+  clone.querySelectorAll('.copy-row-btn').forEach(btn=>btn.closest('td').remove());
+  clone.querySelectorAll('thead tr').forEach(tr=>{
+    const cells=[...tr.children];
+    const last=cells[cells.length-1];
+    if(last&&last.textContent.trim()==='')last.remove();
+  });
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.table_to_sheet(clone);
+  XLSX.utils.book_append_sheet(wb,ws,'Indicadores');
+  XLSX.writeFile(wb,'Indicadores_Generacionales.xlsx');
 }
 
 function copyIndicadorRow(btn){
@@ -3864,6 +3919,7 @@ window.CALIF = {
   explorerPage: typeof explorerPage !== "undefined" ? explorerPage : function(){},
   explorerPerPage: typeof explorerPerPage !== "undefined" ? explorerPerPage : function(){},
   explorerRemoveFilter: typeof explorerRemoveFilter !== "undefined" ? explorerRemoveFilter : function(){},
+  exportIndicadores: typeof exportIndicadores !== "undefined" ? exportIndicadores : function(){},
   explorerSearch: typeof explorerSearch !== "undefined" ? explorerSearch : function(){},
   explorerSort: typeof explorerSort !== "undefined" ? explorerSort : function(){},
   setNumLogic: typeof setNumLogic !== "undefined" ? setNumLogic : function(){},
