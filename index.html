@@ -2347,6 +2347,16 @@ function renderIndicadores(data){
   if(!el)return;
   if(!data||!data.length){el.classList.add('hidden');el.innerHTML='';return}
 
+  const saved=new Map();
+  el.querySelectorAll('tr.indicadores-row[data-row-key]').forEach(row=>{
+    const k=row.getAttribute('data-row-key');
+    const cohorte=row.querySelector('[data-field="cohorte"]');
+    const bajas=row.querySelector('[data-field="bajas"]');
+    if(cohorte||bajas){
+      saved.set(k,{cohorte:cohorte?cohorte.textContent:'',bajas:bajas?bajas.textContent:''});
+    }
+  });
+
   const groups=new Map();
   data.forEach(r=>{
     const key=(r.Campus||'Sin campus')+'|||'+(r.Modalidad||'Sin modalidad');
@@ -2388,6 +2398,7 @@ function renderIndicadores(data){
 
     [...gradoGroups.entries()].sort((a,b)=>(a[0]+'').localeCompare(b[0]+'')).forEach(([grado,gRows])=>{
       const gen=gRows[0].Generacion||'';
+      const rowKey=key+'|||'+(grado||'');
       const studentMap=new Map();
       gRows.forEach(r=>{
         if(!studentMap.has(r.Matricula))studentMap.set(r.Matricula,{sexo:r.Sexo||'',p1:[],ef:[],rep:[]});
@@ -2416,7 +2427,7 @@ function renderIndicadores(data){
       const repCierre=students.filter(s=>s.rep.some(v=>v<7)).length;
       const pctRepCierre=total?((repCierre/total)*100).toFixed(1)+'%':'';
 
-      html+='<tr class="indicadores-row">';
+      html+='<tr class="indicadores-row" data-row-key="'+rowKey+'">';
       html+='<td>'+gradoToCuatrimestre(grado)+'</td>';
       html+='<td>'+gen+'</td>';
       html+='<td contenteditable="true" class="editable-cell" data-field="cohorte"></td>';
@@ -2441,6 +2452,14 @@ function renderIndicadores(data){
   html+='</tbody></table></div>';
   el.innerHTML=html;
   el.classList.remove('hidden');
+
+  saved.forEach((vals,k)=>{
+    const row=el.querySelector('tr[data-row-key="'+k+'"]');
+    if(!row)return;
+    if(vals.cohorte){const c=row.querySelector('[data-field="cohorte"]');if(c)c.textContent=vals.cohorte}
+    if(vals.bajas){const b=row.querySelector('[data-field="bajas"]');if(b)b.textContent=vals.bajas}
+    recalcIndicadorRow(row);
+  });
 
   if(!el._hasInputHandler){
     el._hasInputHandler=true;
