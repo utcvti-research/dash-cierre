@@ -2533,9 +2533,8 @@ function renderIndicadores(data){
   el.querySelectorAll('tr.indicadores-row[data-row-key]').forEach(row=>{
     const k=row.getAttribute('data-row-key');
     const cohorte=row.querySelector('[data-field="cohorte"]');
-    const bajas=row.querySelector('[data-field="bajas"]');
-    if(cohorte||bajas){
-      saved.set(k,{cohorte:cohorte?cohorte.textContent:'',bajas:bajas?bajas.textContent:''});
+    if(cohorte&&cohorte.textContent.trim()){
+      saved.set(k,{cohorte:cohorte.textContent});
     }
   });
 
@@ -2560,6 +2559,7 @@ function renderIndicadores(data){
   html+='<th rowspan="2">Deserción</th>';
   html+='<th colspan="2">Reprobación</th>';
   html+='<th rowspan="2">% Reprobación<br>al Cierre</th>';
+  html+='<th rowspan="2">Reprobados<br>al cierre</th>';
   html+='<th rowspan="2">Bajas</th>';
   html+='<th rowspan="2"></th>';
   html+='</tr><tr>';
@@ -2569,7 +2569,7 @@ function renderIndicadores(data){
 
   groups.forEach((rows,key)=>{
     const parts=key.split('|||');
-    html+='<tr class="indicadores-section"><td colspan="17">'+parts[0]+' '+parts[1]+'</td></tr>';
+    html+='<tr class="indicadores-section"><td colspan="18">'+parts[0]+' '+parts[1]+'</td></tr>';
 
     const gradoGroups=new Map();
     rows.forEach(r=>{
@@ -2608,6 +2608,7 @@ function renderIndicadores(data){
       const repEF=students.filter(s=>s.ef.some(v=>v<7)).length;
       const repCierre=students.filter(s=>s.rep.some(v=>v<7)).length;
       const pctRepCierre=total?((repCierre/total)*100).toFixed(1)+'%':'';
+      const bajasCalc=students.filter(s=>s.rep.filter(v=>v<7).length>=4).length;
 
       html+='<tr class="indicadores-row" data-row-key="'+rowKey+'">';
       html+='<td>'+gradoToCuatrimestre(grado)+'</td>';
@@ -2625,7 +2626,8 @@ function renderIndicadores(data){
       html+='<td>'+repP1+'</td>';
       html+='<td>'+repEF+'</td>';
       html+='<td>'+pctRepCierre+'</td>';
-      html+='<td contenteditable="true" class="editable-cell" data-field="bajas"></td>';
+      html+='<td data-field="reprobados-cierre">'+repCierre+'</td>';
+      html+='<td contenteditable="true" class="editable-cell" data-field="bajas">'+bajasCalc+'</td>';
       html+='<td><button class="copy-row-btn" onclick="CALIF.copyIndicadorRow(this)" title="Copiar fila"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button></td>';
       html+='</tr>';
     });
@@ -2639,9 +2641,8 @@ function renderIndicadores(data){
     const row=el.querySelector('tr[data-row-key="'+k+'"]');
     if(!row)return;
     if(vals.cohorte){const c=row.querySelector('[data-field="cohorte"]');if(c)c.textContent=vals.cohorte}
-    if(vals.bajas){const b=row.querySelector('[data-field="bajas"]');if(b)b.textContent=vals.bajas}
-    recalcIndicadorRow(row);
   });
+  el.querySelectorAll('tr.indicadores-row').forEach(row=>recalcIndicadorRow(row));
 
   if(!el._hasInputHandler){
     el._hasInputHandler=true;
