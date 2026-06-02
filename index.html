@@ -979,10 +979,15 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 <div class="filters" id="filtersDocentes"></div>
 <div class="stats-row" id="statsDocentes"></div>
 <div class="toolbar">
-<div class="radio-group" id="colSwitchDocentes">
+<div class="period-selector" id="colSwitchDocentes">
+<div class="period-group"><span class="period-group-label ord">Ordinario</span><div class="radio-group">
 <button class="active" data-col="Cal_P1" onclick="CALIF.switchCol(this,'docentes')">Parcial 1</button>
 <button data-col="Cal_EF" onclick="CALIF.switchCol(this,'docentes')">Parcial Final</button>
 <button data-col="Cal_CF" onclick="CALIF.switchCol(this,'docentes')">Calif. Final</button>
+</div></div>
+<div class="period-group"><span class="period-group-label rep">Reportar</span><div class="radio-group rep-group">
+<button data-col="Cal_Rep" onclick="CALIF.switchCol(this,'docentes')">Cal. a reportar</button>
+</div></div>
 </div>
 <input type="text" id="docenteSearch" placeholder="🔍 Buscar docente..." oninput="CALIF.filterDocenteRows(this.value)" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;min-width:240px;outline:none">
 <button class="export-btn" onclick="CALIF.showHeatmap()" style="background:var(--purple);margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M3 3h8v8H3V3m10 0h8v8h-8V3M3 13h8v8H3v-8m10 5h3v3h-3v-3m5 0h3v3h-3v-3m-5-5h3v3h-3v-3m5 0h3v3h-3v-3"/></svg>Ver mapa de calor</button>
@@ -1302,6 +1307,28 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 })();
 </script>
 
+<script>
+window._xls={
+  hs:'background:#0f172a;color:#fff;font-weight:700;text-align:center;vertical-align:middle;padding:10px 8px;border:2px solid #475569;font-family:Calibri,sans-serif;font-size:11pt',
+  ss:'background:#1e3a5f;color:#fff;font-weight:600;text-align:center;vertical-align:middle;padding:8px 6px;border:2px solid #475569;font-family:Calibri,sans-serif;font-size:10pt',
+  sec:'background:#e2e8f0;color:#0f172a;font-weight:700;text-align:left;padding:8px 14px;border:2px solid #94a3b8;font-family:Calibri,sans-serif;font-size:11pt',
+  cs:'text-align:center;vertical-align:middle;padding:6px 8px;border:1.5px solid #94a3b8;font-family:Calibri,sans-serif;font-size:10pt',
+  cl:'text-align:left;vertical-align:middle;padding:6px 8px;border:1.5px solid #94a3b8;font-family:Calibri,sans-serif;font-size:10pt',
+  esc:function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')},
+  dl:function(html,name,sheet){
+    var sn=sheet||'Datos';
+    var x='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+    x+='<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>'+sn+'</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>';
+    x+='<body>'+html+'</body></html>';
+    var b=new Blob(['﻿'+x],{type:'application/vnd.ms-excel'});
+    var u=URL.createObjectURL(b);
+    var a=document.createElement('a');
+    a.href=u;a.download=name;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(u);
+  }
+};
+</script>
 
 <!-- JS de Calificaciones (encapsulado en IIFE) -->
 <script>
@@ -1970,15 +1997,14 @@ function showDocenteDetail(key,skipScroll){
     </tr>`;
   });
   html+='</tbody>';
-  let totAlumnos=0,totAprob=0,totReprob=0,sumPct=0,cntPct=0,sumAprov=0,cntAprov=0;
+  let totAlumnos=0,totAprob=0,totReprob=0,sumAprov=0,cntAprov=0;
   groups.forEach(g=>{
     totAlumnos+=g.alumnos;
     totAprob+=g.aprob;
     totReprob+=g.reprob;
-    if(!isNaN(parseFloat(g.pct))){sumPct+=parseFloat(g.pct);cntPct++}
     if(g.aprov!=='N/A'){sumAprov+=parseFloat(g.aprov);cntAprov++}
   });
-  const avgPct=cntPct>0?(sumPct/cntPct).toFixed(1):'0';
+  const avgPct=totAlumnos>0?((totReprob/totAlumnos)*100).toFixed(1):'0';
   const avgAprov=cntAprov>0?(sumAprov/cntAprov).toFixed(1):'N/A';
   const totPctCls=Number(avgPct)>=20?'fail':'pass';
   const totAprovCls=avgAprov!=='N/A'&&parseFloat(avgAprov)<7?'fail':'pass';
@@ -2485,13 +2511,31 @@ function filterDocenteRows(query){
 }
 
 function exportDocentesTable(){
-  const area=document.getElementById('tableAreaDocentes');
-  const t=area.querySelector('table');
+  var area=document.getElementById('tableAreaDocentes');
+  var t=area.querySelector('table');
   if(!t)return;
-  const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.table_to_sheet(t,{raw:true});
-  XLSX.utils.book_append_sheet(wb,ws,'Docentes');
-  XLSX.writeFile(wb,`Reporte_Docentes_${tabState.docentes.col}.xlsx`);
+  var X=window._xls,e=X.esc;
+  var h='<table><tr>';
+  h+='<th style="'+X.hs+';width:50px">Núm.</th>';
+  h+='<th style="'+X.hs+';width:250px">Docente</th>';
+  h+='<th style="'+X.hs+';width:80px">Materias</th>';
+  h+='<th style="'+X.hs+';width:130px">Alumnos atendidos</th>';
+  h+='<th style="'+X.hs+';width:130px">Aprovechamiento</th>';
+  h+='<th style="'+X.hs+';width:90px">Aprobados</th>';
+  h+='<th style="'+X.hs+';width:90px">Reprobados</th>';
+  h+='<th style="'+X.hs+';width:120px">% Reprobación</th>';
+  h+='</tr>';
+  t.querySelectorAll('tbody tr').forEach(function(tr){
+    var cells=tr.querySelectorAll('td');
+    if(cells.length<8)return;
+    h+='<tr>';
+    h+='<td style="'+X.cs+'">'+e(cells[0].textContent.trim())+'</td>';
+    h+='<td style="'+X.cl+'">'+e(cells[1].textContent.trim())+'</td>';
+    for(var i=2;i<cells.length;i++) h+='<td style="'+X.cs+'">'+e(cells[i].textContent.trim())+'</td>';
+    h+='</tr>';
+  });
+  h+='</table>';
+  X.dl(h,'Reporte_Docentes_'+tabState.docentes.col+'.xls','Docentes');
 }
 
 function switchMainTab(tab){
@@ -2684,19 +2728,52 @@ function recalcIndicadorRow(row){
 }
 
 function exportIndicadores(){
-  const table=document.querySelector('#indicadoresGeneracional .indicadores-table');
+  var table=document.querySelector('#indicadoresGeneracional .indicadores-table');
   if(!table)return;
-  const clone=table.cloneNode(true);
-  clone.querySelectorAll('.copy-row-btn').forEach(btn=>btn.closest('td').remove());
-  clone.querySelectorAll('thead tr').forEach(tr=>{
-    const cells=[...tr.children];
-    const last=cells[cells.length-1];
-    if(last&&last.textContent.trim()==='')last.remove();
-  });
-  const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.table_to_sheet(clone);
-  XLSX.utils.book_append_sheet(wb,ws,'Indicadores');
-  XLSX.writeFile(wb,'Indicadores_Generacionales.xlsx');
+  var X=window._xls,e=X.esc;
+
+  var h='<table><tr>';
+  h+='<th rowspan="2" style="'+X.hs+';width:110px">Cuatrimestre</th>';
+  h+='<th rowspan="2" style="'+X.hs+';width:95px">Generación</th>';
+  h+='<th rowspan="2" style="'+X.hs+';width:140px">Inicio Cohorte generacional</th>';
+  h+='<th rowspan="2" style="'+X.hs+';width:160px">Matrícula al inicio cuatrimestral</th>';
+  h+='<th rowspan="2" style="'+X.hs+';width:40px">H</th>';
+  h+='<th rowspan="2" style="'+X.hs+';width:40px">M</th>';
+  h+='<th rowspan="2" style="'+X.hs+';width:160px">Matrícula al cierre cuatrimestral</th>';
+  h+='<th colspan="2" style="'+X.hs+'">Aprovechamiento</th>';
+  h+='<th rowspan="2" style="'+X.hs+';width:85px">Promedio</th>';
+  h+='<th rowspan="2" style="'+X.hs+';width:110px">Eficiencia terminal</th>';
+  h+='<th rowspan="2" style="'+X.hs+';width:90px">Deserción</th>';
+  h+='<th colspan="2" style="'+X.hs+'">Reprobación</th>';
+  h+='<th rowspan="2" style="'+X.hs+';width:130px">% Reprobación al Cierre</th>';
+  h+='<th rowspan="2" style="'+X.hs+';width:120px">Reprobados al cierre</th>';
+  h+='<th rowspan="2" style="'+X.hs+';width:65px">Bajas</th>';
+  h+='</tr><tr>';
+  h+='<th style="'+X.ss+';width:95px">Parcial 1</th>';
+  h+='<th style="'+X.ss+';width:105px">Parcial final</th>';
+  h+='<th style="'+X.ss+';width:95px">Parcial 1</th>';
+  h+='<th style="'+X.ss+';width:105px">Parcial final</th>';
+  h+='</tr>';
+
+  var tbody=table.querySelector('tbody');
+  if(tbody){
+    tbody.querySelectorAll('tr').forEach(function(tr){
+      if(tr.classList.contains('indicadores-section')){
+        h+='<tr><td colspan="17" style="'+X.sec+'">'+e(tr.querySelector('td').textContent.trim())+'</td></tr>';
+      }else if(tr.classList.contains('indicadores-row')){
+        var cells=[].slice.call(tr.querySelectorAll('td'));
+        h+='<tr>';
+        for(var i=0;i<cells.length-1;i++){
+          var v=cells[i].textContent.trim();
+          var st=cells[i].classList.contains('editable-cell')?X.cs+';background:#fefce8':X.cs;
+          h+='<td style="'+st+'">'+e(v)+'</td>';
+        }
+        h+='</tr>';
+      }
+    });
+  }
+  h+='</table>';
+  X.dl(h,'Indicadores_Generacionales.xls','Indicadores');
 }
 
 function copyIndicadorRow(btn){
@@ -3514,28 +3591,50 @@ function handleFile(file){
 }
 
 function exportTab(tab){
-  const area=document.getElementById('tableArea'+cap(tab));
-  const tables=area.querySelectorAll('table');
+  var X=window._xls,e=X.esc;
+  var area=document.getElementById('tableArea'+cap(tab));
+  var tables=area?area.querySelectorAll('table'):[];
+  if(!tables.length){
+    var summary=document.getElementById('groupSummary'+cap(tab));
+    if(summary)tables=summary.querySelectorAll('table');
+  }
   if(!tables.length)return;
-  const wb=XLSX.utils.book_new();
-  tables.forEach((t,i)=>{
-    const ws=XLSX.utils.table_to_sheet(t,{raw:true});
-    const ths=t.querySelectorAll('thead tr th');
-    ths.forEach((th,c)=>{
-      const addr=XLSX.utils.encode_cell({r:0,c:c});
-      const exp=th.getAttribute('data-export');
-      if(exp&&ws[addr]){
-        ws[addr].v=exp;
-      }
+
+  function buildStyledTable(t){
+    var h='<table><tr>';
+    t.querySelectorAll('thead tr th').forEach(function(th){
+      if(th.style.display==='none')return;
+      var text=th.getAttribute('data-export')||th.textContent.trim();
+      var w=th.classList.contains('materia-header')?';width:110px':'';
+      h+='<th style="'+X.hs+w+'">'+e(text)+'</th>';
     });
-    const headerDiv=t.closest('.table-wrapper')?.previousElementSibling;
-    let sheetName=tab==='generacional'?`Grupo_${i+1}`:'Calificaciones';
-    if(headerDiv&&headerDiv.textContent&&headerDiv.style.background){
-      sheetName=headerDiv.textContent.trim().substring(0,31);
-    }
-    XLSX.utils.book_append_sheet(wb,ws,sheetName.substring(0,31));
+    h+='</tr>';
+    t.querySelectorAll('tbody tr').forEach(function(tr){
+      h+='<tr>';
+      tr.querySelectorAll('td').forEach(function(td){
+        if(td.style.display==='none')return;
+        var v=td.textContent.trim();
+        var isNum=td.classList.contains('grade-cell')||td.classList.contains('total-cell');
+        var isFail=td.classList.contains('fail');
+        var st=isNum?X.cs:X.cl;
+        if(isFail) st+=';background:#fde8e8;color:#c0392b;font-weight:700';
+        h+='<td style="'+st+'">'+e(v)+'</td>';
+      });
+      h+='</tr>';
+    });
+    h+='</table>';
+    return h;
+  }
+
+  var allHtml='',sheetName='Calificaciones';
+  tables.forEach(function(t,idx){
+    var hd=t.closest('.table-wrapper');
+    hd=hd&&hd.previousElementSibling;
+    if(hd&&hd.textContent&&hd.style&&hd.style.background) sheetName=hd.textContent.trim().substring(0,31);
+    else if(tab==='generacional') sheetName='Grupo_'+(idx+1);
+    allHtml+=buildStyledTable(t);
   });
-  XLSX.writeFile(wb,`Reporte_${cap(tab)}_${tabState[tab].col}.xlsx`);
+  X.dl(allHtml,'Reporte_'+cap(tab)+'_'+tabState[tab].col+'.xls',sheetName);
 }
 
 function exportChartImg(tab){
@@ -4002,15 +4101,29 @@ function explorerToggleCol(col,checked){
 
 function exportExplorer(){
   if(!rawData.length)return;
-  const filtered=getFilteredExplorerData();
-  const sorted=sortExplorerData(filtered);
-  const vis=explorerState.visibleCols;
-  const wsData=[vis];
-  sorted.forEach(row=>{wsData.push(vis.map(c=>row[c]!=null?row[c]:''))});
-  const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.aoa_to_sheet(wsData);
-  XLSX.utils.book_append_sheet(wb,ws,'Explorador');
-  XLSX.writeFile(wb,`Explorador_${sorted.length}_registros.xlsx`);
+  var filtered=getFilteredExplorerData();
+  var sorted=sortExplorerData(filtered);
+  var vis=explorerState.visibleCols;
+  var X=window._xls,e=X.esc;
+  var h='<table><tr>';
+  vis.forEach(function(col){
+    var w=isNumericCol(col)?';width:80px':';width:130px';
+    h+='<th style="'+X.hs+w+'">'+e(col)+'</th>';
+  });
+  h+='</tr>';
+  sorted.forEach(function(row){
+    h+='<tr>';
+    vis.forEach(function(col){
+      var v=row[col]!=null?row[col]:'';
+      var num=isNumericCol(col);
+      var st=num?X.cs:X.cl;
+      if(num&&v!==''&&!isNaN(Number(v))&&Number(v)<7) st+=';background:#fde8e8;color:#c0392b;font-weight:700';
+      h+='<td style="'+st+'">'+e(v)+'</td>';
+    });
+    h+='</tr>';
+  });
+  h+='</table>';
+  X.dl(h,'Explorador_'+sorted.length+'_registros.xls','Explorador');
 }
 
 document.addEventListener('click',function(e){
@@ -5296,98 +5409,128 @@ function exportarExcel() {
 }
 
 function exportarMaterias(v, notes, periodo) {
-  const BOM = '\uFEFF';
-  const docsMat = getDocsMateria();
-  const headers = ['Docente', 'Carpeta', ...docsMat.map(d => d.titulo), 'Completitud', 'Validación', 'Observaciones'];
-  const rows = [headers];
+  var X=window._xls,e=X.esc;
+  var docsMat=getDocsMateria();
+  var sc=function(m){
+    if(m==='FALTA'||m==='INVALIDO')return 'background:#fde8e8;color:#c0392b';
+    if(m==='VALIDO')return 'background:#e8f5e9;color:#27ae60';
+    if(m==='PARCIAL'||m==='PENDIENTE')return 'background:#fff3e0;color:#e67e22';
+    return 'background:#f5f5f5;color:#888';
+  };
+  var h='<table><tr>';
+  h+='<th style="'+X.hs+';width:220px">Docente</th>';
+  h+='<th style="'+X.hs+';width:280px">Carpeta</th>';
+  docsMat.forEach(function(d){h+='<th style="'+X.hs+';width:100px">'+e(d.titulo)+'</th>'});
+  h+='<th style="'+X.hs+';width:100px">Validaci\u00f3n</th>';
+  h+='<th style="'+X.hs+';width:200px">Observaciones</th>';
+  h+='</tr>';
 
-  STATE.docentes.forEach(d => {
-    (d.materias || []).forEach(m => {
-      const carpeta = [m.grupo, m.carrera || '', m.nombre].filter(Boolean).join(' - ');
-      const row = [d.nombre, carpeta];
-      let existen = 0, validados = 0;
-      docsMat.forEach(doc => {
-        const f = m.archivos.find(x => x.id === doc.id);
-        const ex = f && f.exists;
-        const k = getValidationKey(d.nombre, m.grupo, m.nombre, doc.id);
-        const vv = v[k];
-        if (ex) existen++;
-        if (vv === 'valid') validados++;
-        let mark = '';
-        if (!ex) mark = 'FALTA';
-        else if (vv === 'valid') mark = 'VALIDO';
-        else if (vv === 'partial') mark = 'PARCIAL';
-        else if (vv === 'invalid') mark = 'INVALIDO';
-        else if (vv === 'pending') mark = 'PENDIENTE';
-        else mark = 'SIN REVISAR';
-        row.push(mark);
+  var count=0;
+  STATE.docentes.forEach(function(d){
+    (d.materias||[]).forEach(function(m){
+      var carpeta=[m.grupo,m.carrera||'',m.nombre].filter(Boolean).join(' - ');
+      h+='<tr>';
+      h+='<td style="'+X.cl+'">'+e(d.nombre)+'</td>';
+      h+='<td style="'+X.cl+'">'+e(carpeta)+'</td>';
+      var existen=0,validados=0;
+      docsMat.forEach(function(doc){
+        var f=m.archivos.find(function(x){return x.id===doc.id});
+        var ex=f&&f.exists;
+        var k=getValidationKey(d.nombre,m.grupo,m.nombre,doc.id);
+        var vv=v[k];
+        if(ex)existen++;
+        if(vv==='valid')validados++;
+        var mark='';
+        if(!ex)mark='FALTA';
+        else if(vv==='valid')mark='VALIDO';
+        else if(vv==='partial')mark='PARCIAL';
+        else if(vv==='invalid')mark='INVALIDO';
+        else if(vv==='pending')mark='PENDIENTE';
+        else mark='SIN REVISAR';
+        h+='<td style="'+X.cs+';font-weight:600;'+sc(mark)+'">'+mark+'</td>';
       });
-      row.push(`${existen}/${docsMat.length}`);
-      let estado = 'PENDIENTE';
-      if (validados === docsMat.length) estado = 'COMPLETO';
-      else if (existen === docsMat.length) estado = 'EN REVISION';
-      else estado = 'INCOMPLETO';
-      row.push(estado);
-      const nk = getNoteKey(d.nombre, m.grupo, m.nombre);
-      const docNotesMat = docsMat
-        .map(doc => { const t = notes[getNoteKeyDoc(d.nombre, m.grupo, m.nombre, doc.id)]; return t ? `${doc.titulo}: ${t}` : ''; })
-        .filter(Boolean);
-      const allNotesMat = [notes[nk] || '', ...docNotesMat].filter(Boolean).join('\n');
-      row.push(allNotesMat);
-      rows.push(row);
+      var estado='PENDIENTE',eb='background:#fff3e0;color:#e67e22';
+      if(validados===docsMat.length){estado='COMPLETO';eb='background:#e8f5e9;color:#27ae60'}
+      else if(existen===docsMat.length){estado='EN REVISION';eb='background:#e3f2fd;color:#1565c0'}
+      else{estado='INCOMPLETO';eb='background:#fde8e8;color:#c0392b'}
+      h+='<td style="'+X.cs+';font-weight:700;'+eb+'">'+estado+'</td>';
+      var nk=getNoteKey(d.nombre,m.grupo,m.nombre);
+      var dn=docsMat.map(function(doc){var t=notes[getNoteKeyDoc(d.nombre,m.grupo,m.nombre,doc.id)];return t?doc.titulo+': '+t:''}).filter(Boolean);
+      var an=[notes[nk]||''].concat(dn).filter(Boolean).join('\n');
+      h+='<td style="'+X.cl+'">'+e(an)+'</td>';
+      h+='</tr>';
+      count++;
     });
   });
+  h+='</table>';
 
-  if (rows.length === 1) { toast('No hay materias para exportar', 'warn'); return; }
-  
-  downloadCsv(BOM + rowsToCsv(rows), `Reporte_Materias_${periodo.replace(/\s+/g, '_')}.csv`);
+  if(!count){toast('No hay materias para exportar','warn');return}
+  var fn='Reporte_Materias_'+periodo.replace(/\s+/g,'_')+'.xls';
+  X.dl(h,fn,'Materias');
+  toast('Reporte exportado: '+fn,'success');
 }
 
 function exportarEstadias(v, notes, periodo) {
-  const BOM = '\uFEFF';
-  const docsEst = getDocsEstadia();
-  const headers = ['Asesor', 'Matrícula', 'Alumno', ...docsEst.map(d => d.titulo), 'Completitud', 'Validación', 'Observaciones'];
-  const rows = [headers];
+  var X=window._xls,e=X.esc;
+  var docsEst=getDocsEstadia();
+  var sc=function(m){
+    if(m==='FALTA'||m==='INVALIDO')return 'background:#fde8e8;color:#c0392b';
+    if(m==='VALIDO')return 'background:#e8f5e9;color:#27ae60';
+    if(m==='PARCIAL'||m==='PENDIENTE')return 'background:#fff3e0;color:#e67e22';
+    return 'background:#f5f5f5;color:#888';
+  };
+  var h='<table><tr>';
+  h+='<th style="'+X.hs+';width:220px">Asesor</th>';
+  h+='<th style="'+X.hs+';width:100px">Matr\u00edcula</th>';
+  h+='<th style="'+X.hs+';width:200px">Alumno</th>';
+  docsEst.forEach(function(d){h+='<th style="'+X.hs+';width:100px">'+e(d.titulo)+'</th>'});
+  h+='<th style="'+X.hs+';width:100px">Validaci\u00f3n</th>';
+  h+='<th style="'+X.hs+';width:200px">Observaciones</th>';
+  h+='</tr>';
 
-  STATE.docentes.forEach(d => {
-    (d.estadias || []).forEach(a => {
-      const row = [d.nombre, a.matricula || '', a.nombre || a.folderName];
-      let existen = 0, validados = 0;
-      docsEst.forEach(doc => {
-        const f = a.archivos.find(x => x.id === doc.id);
-        const ex = f && f.exists;
-        const k = getValidationKeyEstadia(d.nombre, a.matricula, a.nombre, doc.id);
-        const vv = v[k];
-        if (ex) existen++;
-        if (vv === 'valid') validados++;
-        let mark = '';
-        if (!ex) mark = 'FALTA';
-        else if (vv === 'valid') mark = 'VALIDO';
-        else if (vv === 'partial') mark = 'PARCIAL';
-        else if (vv === 'invalid') mark = 'INVALIDO';
-        else if (vv === 'pending') mark = 'PENDIENTE';
-        else mark = 'SIN REVISAR';
-        row.push(mark);
+  var count=0;
+  STATE.docentes.forEach(function(d){
+    (d.estadias||[]).forEach(function(a){
+      h+='<tr>';
+      h+='<td style="'+X.cl+'">'+e(d.nombre)+'</td>';
+      h+='<td style="'+X.cs+'">'+e(a.matricula||'')+'</td>';
+      h+='<td style="'+X.cl+'">'+e(a.nombre||a.folderName)+'</td>';
+      var existen=0,validados=0;
+      docsEst.forEach(function(doc){
+        var f=a.archivos.find(function(x){return x.id===doc.id});
+        var ex=f&&f.exists;
+        var k=getValidationKeyEstadia(d.nombre,a.matricula,a.nombre,doc.id);
+        var vv=v[k];
+        if(ex)existen++;
+        if(vv==='valid')validados++;
+        var mark='';
+        if(!ex)mark='FALTA';
+        else if(vv==='valid')mark='VALIDO';
+        else if(vv==='partial')mark='PARCIAL';
+        else if(vv==='invalid')mark='INVALIDO';
+        else if(vv==='pending')mark='PENDIENTE';
+        else mark='SIN REVISAR';
+        h+='<td style="'+X.cs+';font-weight:600;'+sc(mark)+'">'+mark+'</td>';
       });
-      row.push(`${existen}/${docsEst.length}`);
-      let estado = 'PENDIENTE';
-      if (validados === docsEst.length) estado = 'COMPLETO';
-      else if (existen === docsEst.length) estado = 'EN REVISION';
-      else estado = 'INCOMPLETO';
-      row.push(estado);
-      const nk = getNoteKeyEstadia(d.nombre, a.matricula, a.nombre);
-      const docNotesEst = docsEst
-        .map(doc => { const t = notes[getNoteKeyDocEstadia(d.nombre, a.matricula, a.nombre, doc.id)]; return t ? `${doc.titulo}: ${t}` : ''; })
-        .filter(Boolean);
-      const allNotesEst = [notes[nk] || '', ...docNotesEst].filter(Boolean).join('\n');
-      row.push(allNotesEst);
-      rows.push(row);
+      var estado='PENDIENTE',eb='background:#fff3e0;color:#e67e22';
+      if(validados===docsEst.length){estado='COMPLETO';eb='background:#e8f5e9;color:#27ae60'}
+      else if(existen===docsEst.length){estado='EN REVISION';eb='background:#e3f2fd;color:#1565c0'}
+      else{estado='INCOMPLETO';eb='background:#fde8e8;color:#c0392b'}
+      h+='<td style="'+X.cs+';font-weight:700;'+eb+'">'+estado+'</td>';
+      var nk=getNoteKeyEstadia(d.nombre,a.matricula,a.nombre);
+      var dn=docsEst.map(function(doc){var t=notes[getNoteKeyDocEstadia(d.nombre,a.matricula,a.nombre,doc.id)];return t?doc.titulo+': '+t:''}).filter(Boolean);
+      var an=[notes[nk]||''].concat(dn).filter(Boolean).join('\n');
+      h+='<td style="'+X.cl+'">'+e(an)+'</td>';
+      h+='</tr>';
+      count++;
     });
   });
+  h+='</table>';
 
-  if (rows.length === 1) { toast('No hay estadías para exportar', 'warn'); return; }
-  
-  downloadCsv(BOM + rowsToCsv(rows), `Reporte_Estadias_${periodo.replace(/\s+/g, '_')}.csv`);
+  if(!count){toast('No hay estad\u00edas para exportar','warn');return}
+  var fn='Reporte_Estadias_'+periodo.replace(/\s+/g,'_')+'.xls';
+  X.dl(h,fn,'Estad\u00edas');
+  toast('Reporte exportado: '+fn,'success');
 }
 
 function rowsToCsv(rows) {
