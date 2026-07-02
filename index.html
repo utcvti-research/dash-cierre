@@ -4411,6 +4411,71 @@ function migrateValidationKeys() {
   localStorage.setItem('validador_migration_v2', '1');
 }
 
+function migrateValidationKeysV3() {
+  if (localStorage.getItem('validador_migration_v3')) return;
+  const storedData = DB.loadData();
+  if (!storedData || !storedData.docentes) {
+    localStorage.setItem('validador_migration_v3', '1');
+    return;
+  }
+  // Mapa: "docente::grupo::materia" → [carrera1, carrera2, ...]
+  const carreraMap = {};
+  storedData.docentes.forEach(d => {
+    (d.materias || []).forEach(m => {
+      const k = `${d.nombre}::${m.grupo}::${m.nombre}`;
+      if (!carreraMap[k]) carreraMap[k] = [];
+      carreraMap[k].push(m.carrera || '');
+    });
+  });
+  const v = DB.loadValidations();
+  const notes = DB.loadNotes();
+  const newV = {}, newNotes = {};
+  let changed = false;
+
+  Object.keys(v).forEach(key => {
+    if (key.startsWith('EST::')) { newV[key] = v[key]; return; }
+    const parts = key.split('::');
+    if (parts.length === 4) {
+      // Formato viejo: d::g::m::id[__ts]
+      const [d, g, m, lastPart] = parts;
+      const hasTs = lastPart.endsWith('__ts');
+      const baseId = hasTs ? lastPart.slice(0, -4) : lastPart;
+      const carreras = carreraMap[`${d}::${g}::${m}`];
+      if (carreras && carreras.length > 0) {
+        carreras.forEach(car => {
+          newV[hasTs ? `${d}::${g}::${car}::${m}::${baseId}__ts` : `${d}::${g}::${car}::${m}::${baseId}`] = v[key];
+        });
+        changed = true;
+      } else { newV[key] = v[key]; }
+    } else { newV[key] = v[key]; }
+  });
+
+  Object.keys(notes).forEach(key => {
+    if (key.startsWith('EST::')) { newNotes[key] = notes[key]; return; }
+    const parts = key.split('::');
+    if (parts.length === 3) {
+      // Formato viejo nota general: d::g::m
+      const [d, g, m] = parts;
+      const carreras = carreraMap[`${d}::${g}::${m}`];
+      if (carreras && carreras.length > 0) {
+        carreras.forEach(car => { newNotes[`${d}::${g}::${car}::${m}`] = notes[key]; });
+        changed = true;
+      } else { newNotes[key] = notes[key]; }
+    } else if (parts.length === 5 && parts[4] === 'note') {
+      // Formato viejo nota de evidencia: d::g::m::id::note
+      const [d, g, m, id] = parts;
+      const carreras = carreraMap[`${d}::${g}::${m}`];
+      if (carreras && carreras.length > 0) {
+        carreras.forEach(car => { newNotes[`${d}::${g}::${car}::${m}::${id}::note`] = notes[key]; });
+        changed = true;
+      } else { newNotes[key] = notes[key]; }
+    } else { newNotes[key] = notes[key]; }
+  });
+
+  if (changed) { DB.saveValidations(newV); DB.saveNotes(newNotes); }
+  localStorage.setItem('validador_migration_v3', '1');
+}
+
 const AVATAR_COLORS = ['', 'c2', 'c3', 'c4', 'c5'];
 
 // === STORAGE ===
@@ -5900,6 +5965,7 @@ function init() {
   const cfg = DB.loadConfig();
   if (cfg) STATE.config = { ...STATE.config, ...cfg };
   migrateValidationKeys();
+  migrateValidationKeysV3();
   const data = DB.loadData();
   if (data && data.docentes) {
     const docsMat = getDocsMateria();
