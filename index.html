@@ -5512,7 +5512,7 @@ function exportarMaterias(v, notes, periodo) {
   var h='<table><tr>';
   h+='<th style="'+X.hs+';width:220px">Docente</th>';
   h+='<th style="'+X.hs+';width:280px">Carpeta</th>';
-  docsMat.forEach(function(d){h+='<th style="'+X.hs+';width:100px">'+e(d.titulo)+'</th>'});
+  docsMat.forEach(function(d){h+='<th style="'+X.hs+';width:100px">'+e(d.num+'. '+d.titulo)+'</th>'});
   h+='<th style="'+X.hs+';width:100px">Validaci\u00f3n</th>';
   h+='<th style="'+X.hs+';width:200px">Observaciones</th>';
   h+='</tr>';
@@ -5575,7 +5575,7 @@ function exportarEstadias(v, notes, periodo) {
   h+='<th style="'+X.hs+';width:220px">Asesor</th>';
   h+='<th style="'+X.hs+';width:100px">Matr\u00edcula</th>';
   h+='<th style="'+X.hs+';width:200px">Alumno</th>';
-  docsEst.forEach(function(d){h+='<th style="'+X.hs+';width:100px">'+e(d.titulo)+'</th>'});
+  docsEst.forEach(function(d){h+='<th style="'+X.hs+';width:100px">'+e(d.num+'. '+d.titulo)+'</th>'});
   h+='<th style="'+X.hs+';width:100px">Validaci\u00f3n</th>';
   h+='<th style="'+X.hs+';width:200px">Observaciones</th>';
   h+='</tr>';
