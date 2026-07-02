@@ -4461,9 +4461,9 @@ function hideLoading() { qs('#loadingOverlay').classList.remove('visible'); }
 function openModal(id) { qs(`#${id}`).classList.add('visible'); }
 function closeModal(id) { qs(`#${id}`).classList.remove('visible'); }
 
-function getValidationKey(d, g, m, id) { return `${d}::${g}::${m}::${id}`; }
-function getNoteKey(d, g, m) { return `${d}::${g}::${m}`; }
-function getNoteKeyDoc(d, g, m, docId) { return `${d}::${g}::${m}::${docId}::note`; }
+function getValidationKey(d, g, car, m, id) { return `${d}::${g}::${car}::${m}::${id}`; }
+function getNoteKey(d, g, car, m) { return `${d}::${g}::${car}::${m}`; }
+function getNoteKeyDoc(d, g, car, m, docId) { return `${d}::${g}::${car}::${m}::${docId}::note`; }
 function getValidationKeyEstadia(d, mat, nom, id) { return `EST::${d}::${mat}::${nom}::${id}`; }
 function getNoteKeyEstadia(d, mat, nom) { return `EST::${d}::${mat}::${nom}`; }
 function getNoteKeyDocEstadia(d, mat, nom, docId) { return `EST::${d}::${mat}::${nom}::${docId}::note`; }
@@ -4699,11 +4699,11 @@ function renderAlumnoRow(docenteNombre, alumno, v) {
 }
 
 function renderMateriaRow(docenteNombre, materia, v) {
-  const s = calculateMateriaStats(docenteNombre, materia.grupo, materia.nombre, v);
+  const s = calculateMateriaStats(docenteNombre, materia.grupo, materia.carrera||'', materia.nombre, v);
   const dots = getDocsMateria().map(doc => {
     const f = materia.archivos.find(x => x.id === doc.id);
     if (!f || !f.exists) return '<div class="dot missing" title="No existe"></div>';
-    const k = getValidationKey(docenteNombre, materia.grupo, materia.nombre, doc.id);
+    const k = getValidationKey(docenteNombre, materia.grupo, materia.carrera||'', materia.nombre, doc.id);
     const vv = v[k];
     if (vv === 'valid') return '<div class="dot valid" title="Válido"></div>';
     if (vv === 'partial') return '<div class="dot partial" title="Parcialmente válido"></div>';
@@ -4714,10 +4714,11 @@ function renderMateriaRow(docenteNombre, materia, v) {
 
   const dn = docenteNombre.replace(/'/g, "\\'").replace(/"/g, '&quot;');
   const g = materia.grupo.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const car = (materia.carrera||'').replace(/'/g, "\\'").replace(/"/g, '&quot;');
   const m = materia.nombre.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
   return `
-    <div class="materia" onclick="VAL.openDetail('${dn}','${g}','${m}')">
+    <div class="materia" onclick="VAL.openDetail('${dn}','${g}','${car}','${m}')">
       <div class="materia-code">${escapeHtml(materia.grupo)}</div>
       <div class="materia-name">${escapeHtml(materia.nombre)}</div>
       <div class="dots">${dots}</div>
@@ -4727,17 +4728,18 @@ function renderMateriaRow(docenteNombre, materia, v) {
 }
 
 function renderDetailMateria() {
-  const { docente, grupo, materia } = STATE.currentMateria;
+  const { docente, grupo, carrera, materia } = STATE.currentMateria;
   const docObj = STATE.docentes.find(d => d.nombre === docente);
   if (!docObj) { STATE.view = 'dashboard'; render(); return; }
-  const matObj = docObj.materias.find(m => m.grupo === grupo && m.nombre === materia);
+  const matObj = docObj.materias.find(m => m.grupo === grupo && (m.carrera||'') === carrera && m.nombre === materia);
   if (!matObj) { STATE.view = 'dashboard'; render(); return; }
 
   const v = DB.loadValidations();
   const notes = DB.loadNotes();
-  const nk = getNoteKey(docente, grupo, materia);
+  const nk = getNoteKey(docente, grupo, carrera, materia);
   const dn = docente.replace(/'/g, "\\'").replace(/"/g, '&quot;');
   const g = grupo.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const car = carrera.replace(/'/g, "\\'").replace(/"/g, '&quot;');
   const m = materia.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
   qs('#content').innerHTML = `
@@ -4757,11 +4759,11 @@ function renderDetailMateria() {
             <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
             Abrir en Drive
           </a>` : ''}
-          <button class="header-btn" onclick="VAL.openNotesModal('${dn}','${g}','${m}')">
+          <button class="header-btn" onclick="VAL.openNotesModal('${dn}','${g}','${car}','${m}')">
             <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
             ${notes[nk] ? 'Editar notas' : 'Agregar notas'}
           </button>
-          <button class="header-btn" onclick="VAL.openEmailModal('${dn}','${g}','${m}')">
+          <button class="header-btn" onclick="VAL.openEmailModal('${dn}','${g}','${car}','${m}')">
             <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
             Notificar docente
           </button>
@@ -4844,14 +4846,14 @@ function renderDocumentRow(doc, matObj, v, type) {
   const exists = f && f.exists;
 
   const k = type === 'materia'
-    ? getValidationKey(STATE.currentMateria.docente, STATE.currentMateria.grupo, STATE.currentMateria.materia, doc.id)
+    ? getValidationKey(STATE.currentMateria.docente, STATE.currentMateria.grupo, STATE.currentMateria.carrera||'', STATE.currentMateria.materia, doc.id)
     : getValidationKeyEstadia(STATE.currentEstadia.docente, STATE.currentEstadia.matricula, STATE.currentEstadia.nombre, doc.id);
   const vv = v[k];
 
   // Nota específica de esta evidencia
   const notes = DB.loadNotes();
   const nkDoc = type === 'materia'
-    ? getNoteKeyDoc(STATE.currentMateria.docente, STATE.currentMateria.grupo, STATE.currentMateria.materia, doc.id)
+    ? getNoteKeyDoc(STATE.currentMateria.docente, STATE.currentMateria.grupo, STATE.currentMateria.carrera||'', STATE.currentMateria.materia, doc.id)
     : getNoteKeyDocEstadia(STATE.currentEstadia.docente, STATE.currentEstadia.matricula, STATE.currentEstadia.nombre, doc.id);
   const docNote = notes[nkDoc] || '';
   const safeDocId = doc.id.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -4939,7 +4941,7 @@ function calculateStats() {
   STATE.docentes.forEach(d => {
     (d.materias || []).forEach(m => {
       totalMaterias++;
-      const s = calculateMateriaStats(d.nombre, m.grupo, m.nombre, v);
+      const s = calculateMateriaStats(d.nombre, m.grupo, m.carrera||'', m.nombre, v);
       if (s.validadas === s.total && s.total > 0) validadasMat++;
       totalDocsMat += getDocsMateria().length;
       validDocsMat += s.validadas;
@@ -4966,10 +4968,10 @@ function calculateStats() {
   };
 }
 
-function calculateMateriaStats(d, g, m, v) {
+function calculateMateriaStats(d, g, car, m, v) {
   let validadas = 0;
   getDocsMateria().forEach(doc => {
-    if (v[getValidationKey(d, g, m, doc.id)] === 'valid') validadas++;
+    if (v[getValidationKey(d, g, car, m, doc.id)] === 'valid') validadas++;
   });
   return { validadas, total: getDocsMateria().length };
 }
@@ -4985,7 +4987,7 @@ function calculateAlumnoStats(docenteNombre, alumno, v) {
 function calculateDocenteProgress(docente, v) {
   let total = 0, validadas = 0;
   (docente.materias || []).forEach(m => {
-    const s = calculateMateriaStats(docente.nombre, m.grupo, m.nombre, v);
+    const s = calculateMateriaStats(docente.nombre, m.grupo, m.carrera||'', m.nombre, v);
     total += s.total;
     validadas += s.validadas;
   });
@@ -5047,9 +5049,9 @@ function toggleDocente(encoded) {
   if (el) el.classList.toggle('open');
 }
 
-function openDetail(docente, grupo, materia) {
+function openDetail(docente, grupo, carrera, materia) {
   event?.stopPropagation();
-  STATE.currentMateria = { docente, grupo, materia };
+  STATE.currentMateria = { docente, grupo, carrera, materia };
   STATE.currentEstadia = null;
   STATE.view = 'detail';
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -5086,8 +5088,8 @@ function setValidation(docId, status, type) {
   type = type || 'materia';
   let key;
   if (type === 'materia') {
-    const { docente, grupo, materia } = STATE.currentMateria;
-    key = getValidationKey(docente, grupo, materia, docId);
+    const { docente, grupo, carrera, materia } = STATE.currentMateria;
+    key = getValidationKey(docente, grupo, carrera, materia, docId);
   } else {
     const { docente, matricula, nombre } = STATE.currentEstadia;
     key = getValidationKeyEstadia(docente, matricula, nombre, docId);
@@ -5126,16 +5128,16 @@ function buildDocNotesSummary(docList, getKeyFn) {
   return `<div class="doc-notes-summary-title">Notas por evidencia</div>${items}`;
 }
 
-function openNotesModal(docente, grupo, materia) {
+function openNotesModal(docente, grupo, carrera, materia) {
   event?.stopPropagation();
   const notes = DB.loadNotes();
-  const k = getNoteKey(docente, grupo, materia);
+  const k = getNoteKey(docente, grupo, carrera, materia);
   qs('#notesModalTitle').textContent = 'Observaciones generales';
   qs('#notesFieldLabel').textContent = 'Nota general sobre la materia';
   qs('#notesSubtitle').textContent = `${docente} · ${grupo} · ${materia}`;
   qs('#inputNotes').value = notes[k] || '';
   const summaryEl = qs('#docNotesSummary');
-  const summary = buildDocNotesSummary(getDocsMateria(), id => getNoteKeyDoc(docente, grupo, materia, id));
+  const summary = buildDocNotesSummary(getDocsMateria(), id => getNoteKeyDoc(docente, grupo, carrera, materia, id));
   summaryEl.innerHTML = summary;
   summaryEl.style.display = summary ? 'block' : 'none';
   qs('#btnSaveNotes').onclick = () => {
@@ -5182,8 +5184,8 @@ function openDocNoteModal(docId, docTitulo, type) {
   const notes = DB.loadNotes();
   let k;
   if (type === 'materia') {
-    const { docente, grupo, materia } = STATE.currentMateria;
-    k = getNoteKeyDoc(docente, grupo, materia, docId);
+    const { docente, grupo, carrera, materia } = STATE.currentMateria;
+    k = getNoteKeyDoc(docente, grupo, carrera, materia, docId);
     qs('#notesSubtitle').textContent = `${materia} · ${decodeURIComponent(docTitulo)}`;
   } else {
     const { docente, matricula, nombre } = STATE.currentEstadia;
@@ -5211,10 +5213,10 @@ function openDocNoteModal(docId, docTitulo, type) {
 }
 
 // === EMAIL ===
-function openEmailModal(docente, grupo, materia) {
+function openEmailModal(docente, grupo, carrera, materia) {
   event?.stopPropagation();
   const docObj = STATE.docentes.find(d => d.nombre === docente);
-  const matObj = docObj?.materias.find(m => m.grupo === grupo && m.nombre === materia);
+  const matObj = docObj?.materias.find(m => m.grupo === grupo && (m.carrera||'') === carrera && m.nombre === materia);
   if (!matObj) return;
 
   const v = DB.loadValidations();
@@ -5223,7 +5225,7 @@ function openEmailModal(docente, grupo, materia) {
     const f = matObj.archivos.find(x => x.id === doc.id);
     if (!f || !f.exists) faltantes.push(doc.titulo);
     else {
-      const k = getValidationKey(docente, grupo, materia, doc.id);
+      const k = getValidationKey(docente, grupo, carrera, materia, doc.id);
       if (v[k] === 'invalid') invalidos.push(doc.titulo);
       else if (v[k] === 'partial') parciales.push(doc.titulo);
     }
@@ -5445,7 +5447,7 @@ function exportarMaterias(v, notes, periodo) {
       docsMat.forEach(function(doc){
         var f=m.archivos.find(function(x){return x.id===doc.id});
         var ex=f&&f.exists;
-        var k=getValidationKey(d.nombre,m.grupo,m.nombre,doc.id);
+        var k=getValidationKey(d.nombre,m.grupo,m.carrera||'',m.nombre,doc.id);
         var vv=v[k];
         if(ex)existen++;
         if(vv==='valid')validados++;
@@ -5463,8 +5465,8 @@ function exportarMaterias(v, notes, periodo) {
       else if(existen===docsMat.length){estado='EN REVISION';eb='background:#e3f2fd;color:#1565c0'}
       else{estado='INCOMPLETO';eb='background:#fde8e8;color:#c0392b'}
       h+='<td style="'+X.cs+';font-weight:700;'+eb+'">'+estado+'</td>';
-      var nk=getNoteKey(d.nombre,m.grupo,m.nombre);
-      var dn=docsMat.map(function(doc){var t=notes[getNoteKeyDoc(d.nombre,m.grupo,m.nombre,doc.id)];return t?doc.titulo+': '+t:''}).filter(Boolean);
+      var nk=getNoteKey(d.nombre,m.grupo,m.carrera||'',m.nombre);
+      var dn=docsMat.map(function(doc){var t=notes[getNoteKeyDoc(d.nombre,m.grupo,m.carrera||'',m.nombre,doc.id)];return t?doc.titulo+': '+t:''}).filter(Boolean);
       var an=[notes[nk]||''].concat(dn).filter(Boolean).join('\n');
       h+='<td style="'+X.cl+'">'+e(an)+'</td>';
       h+='</tr>';
