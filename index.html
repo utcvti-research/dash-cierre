@@ -5519,10 +5519,25 @@ function exportarMaterias(v, notes, periodo) {
 
   var count=0;
   STATE.docentes.forEach(function(d){
-    (d.materias||[]).forEach(function(m){
+    var mats=d.materias||[];
+    if(!mats.length) return;
+    // Estado global del docente para color de celda
+    var hayFalta=false,hayParcial=false,todoValido=true;
+    mats.forEach(function(m){
+      docsMat.forEach(function(doc){
+        var f=m.archivos.find(function(x){return x.id===doc.id});
+        var ex=f&&f.exists;
+        var vv=v[getValidationKey(d.nombre,m.grupo,m.carrera||'',m.nombre,doc.id)];
+        if(!ex){hayFalta=true;todoValido=false;}
+        else if(vv!=='valid'){if(vv==='partial')hayParcial=true;todoValido=false;}
+      });
+    });
+    var dc=hayFalta?'background:#fde8e8;color:#c0392b':hayParcial?'background:#fff3e0;color:#e67e22':todoValido?'background:#e8f5e9;color:#27ae60':'';
+
+    mats.forEach(function(m,mi){
       var carpeta=[m.grupo,m.carrera||'',m.nombre].filter(Boolean).join(' - ');
       h+='<tr>';
-      h+='<td style="'+X.cl+'">'+e(d.nombre)+'</td>';
+      if(mi===0) h+='<td rowspan="'+mats.length+'" style="'+X.cl+';'+dc+';font-weight:700;vertical-align:middle;text-align:center">'+e(d.nombre)+'</td>';
       h+='<td style="'+X.cl+'">'+e(carpeta)+'</td>';
       var existen=0,validados=0;
       docsMat.forEach(function(doc){
@@ -5582,9 +5597,24 @@ function exportarEstadias(v, notes, periodo) {
 
   var count=0;
   STATE.docentes.forEach(function(d){
-    (d.estadias||[]).forEach(function(a){
+    var ests=d.estadias||[];
+    if(!ests.length) return;
+    // Estado global del asesor para color de celda
+    var hayFalta=false,hayParcial=false,todoValido=true;
+    ests.forEach(function(a){
+      docsEst.forEach(function(doc){
+        var f=a.archivos.find(function(x){return x.id===doc.id});
+        var ex=f&&f.exists;
+        var vv=v[getValidationKeyEstadia(d.nombre,a.matricula,a.nombre,doc.id)];
+        if(!ex){hayFalta=true;todoValido=false;}
+        else if(vv!=='valid'){if(vv==='partial')hayParcial=true;todoValido=false;}
+      });
+    });
+    var dc=hayFalta?'background:#fde8e8;color:#c0392b':hayParcial?'background:#fff3e0;color:#e67e22':todoValido?'background:#e8f5e9;color:#27ae60':'';
+
+    ests.forEach(function(a,ai){
       h+='<tr>';
-      h+='<td style="'+X.cl+'">'+e(d.nombre)+'</td>';
+      if(ai===0) h+='<td rowspan="'+ests.length+'" style="'+X.cl+';'+dc+';font-weight:700;vertical-align:middle;text-align:center">'+e(d.nombre)+'</td>';
       h+='<td style="'+X.cs+'">'+e(a.matricula||'')+'</td>';
       h+='<td style="'+X.cl+'">'+e(a.nombre||a.folderName)+'</td>';
       var existen=0,validados=0;
