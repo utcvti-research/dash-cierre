@@ -1239,6 +1239,23 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   </div>
 </div>
 
+<!-- MODAL CONFIRMAR BORRAR NOTA AL VALIDAR -->
+<div class="modal-overlay" id="modalConfirmBorrarNota">
+  <div class="modal-box" style="max-width:420px;border-top-color:var(--amber-text)">
+    <div class="modal-body" style="padding-top:28px">
+      <div class="confirm-modal-icon">
+        <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+      </div>
+      <p class="confirm-modal-title">¿Borrar la nota de esta evidencia?</p>
+      <p class="confirm-modal-desc">Este documento tiene una nota asociada. Puedes conservarla o borrarla al marcarlo como válido.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn" onclick="VAL.resolverNotaAlValidar(false)">Conservar nota</button>
+      <button class="modal-btn danger" onclick="VAL.resolverNotaAlValidar(true)">Borrar nota</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL EMAIL -->
 <div class="modal-overlay" id="modalEmail">
   <div class="modal-box">
@@ -5257,17 +5274,32 @@ function backToDashboard() {
 }
 
 // === VALIDATION ===
+let pendingNotaAlValidar = null;
+
 function setValidation(docId, status, type) {
   type = type || 'materia';
-  let key;
+  let key, noteKey;
   if (type === 'materia') {
     const { docente, grupo, carrera, materia } = STATE.currentMateria;
     key = getValidationKey(docente, grupo, carrera, materia, docId);
+    noteKey = getNoteKeyDoc(docente, grupo, carrera, materia, docId);
   } else {
     const { docente, matricula, nombre } = STATE.currentEstadia;
     key = getValidationKeyEstadia(docente, matricula, nombre, docId);
+    noteKey = getNoteKeyDocEstadia(docente, matricula, nombre, docId);
   }
-  
+
+  const v = DB.loadValidations();
+  const marcandoValido = status === 'valid' && v[key] !== 'valid';
+  if (marcandoValido && DB.loadNotes()[noteKey]) {
+    pendingNotaAlValidar = { key, noteKey, type };
+    openModal('modalConfirmBorrarNota');
+    return;
+  }
+  aplicarValidation(key, status, type);
+}
+
+function aplicarValidation(key, status, type) {
   const v = DB.loadValidations();
   if (v[key] === status) {
     delete v[key]; delete v[key + '__ts'];
@@ -5281,9 +5313,22 @@ function setValidation(docId, status, type) {
   }
   DB.saveValidations(v);
   syncValidationToBackend(key, v[key]);
-  
+
   if (type === 'materia') renderDetailMateria();
   else renderDetailEstadia();
+}
+
+function resolverNotaAlValidar(borrar) {
+  if (!pendingNotaAlValidar) { closeModal('modalConfirmBorrarNota'); return; }
+  const { key, noteKey, type } = pendingNotaAlValidar;
+  pendingNotaAlValidar = null;
+  closeModal('modalConfirmBorrarNota');
+  if (borrar) {
+    const n = DB.loadNotes();
+    delete n[noteKey];
+    DB.saveNotes(n);
+  }
+  aplicarValidation(key, 'valid', type);
 }
 
 // === NOTES ===
@@ -6403,6 +6448,7 @@ window.VAL = {
   renderDocumentRow: typeof renderDocumentRow !== "undefined" ? renderDocumentRow : function(){},
   renderMateriaRow: typeof renderMateriaRow !== "undefined" ? renderMateriaRow : function(){},
   renderWelcome: typeof renderWelcome !== "undefined" ? renderWelcome : function(){},
+  resolverNotaAlValidar: typeof resolverNotaAlValidar !== "undefined" ? resolverNotaAlValidar : function(){},
   rowsToCsv: typeof rowsToCsv !== "undefined" ? rowsToCsv : function(){},
   saveConfig: typeof saveConfig !== "undefined" ? saveConfig : function(){},
   setFilter: typeof setFilter !== "undefined" ? setFilter : function(){},
